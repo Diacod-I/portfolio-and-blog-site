@@ -5,6 +5,7 @@ import UptimeCounter from '@/components/UptimeCounter'
 import RecentNotes from '@/components/RecentNotes'
 import FeaturedLinks from '@/components/FeaturedLinks'
 import Navbar from '@/components/Navbar'
+import ImageViewer from '@/components/ImageViewer'
 
 function LoadingDelay({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -86,25 +87,23 @@ export default function HomePage() {
               {/* Left Column */}
               <div className="flex flex-col h-full">
                 {/* System Information */}
-                <div className="win98-window flex-1 flex flex-col">
+                <div className="win98-window mb-4">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/info.png" alt="System" className="w-4 h-4" />
                       <span>System Information</span>
                     </div>
                   </div>
-                  <div className="flex-1 flex flex-col bg-[#000000]">
-                    <div className="flex-1 p-4 flex items-center justify-center border-2 border-t-white border-l-white border-b-white border-r-white">
-                      <img
-                        src="/Advith_Krishnan.png"
-                        alt="Application"
-                        className="w-4/5 h-auto object-contain max-h-[450px]"
-                      />
-                    </div>
+                  <div className="p-2">
                     <Suspense fallback={<div className="win98-window p-2">Loading uptime...</div>}>
                       <UptimeCounter />
                     </Suspense>
                   </div>
+                </div>
+
+                {/* Image Viewer */}
+                <div className="flex-1">
+                  <ImageViewer />
                 </div>
               </div>
 

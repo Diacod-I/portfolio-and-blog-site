@@ -1,0 +1,38 @@
+[
+    {
+        "title": "LinkedIn",
+        "url": "https://www.linkedin.com/in/advithkrishnan/",
+        "icon_path": "/internet_shortcuts/linkedin.png",
+        "description": "Check out my career updates!"
+    },
+    {
+        "title": "GitHub",
+        "url": "https://github.com/Diacod-I",
+        "icon_path": "/internet_shortcuts/github.png",
+        "description": "I upload my code here!"
+    },
+    {   "title": "ORCID",
+        "url": "https://orcid.org/0009-0009-6207-5271",
+        "icon_path": "/internet_shortcuts/orcid.png",
+        "description": "Check out my Research Papers!"
+    },
+    {
+        "title": "Next Tech Lab Website",
+        "url": "https://nexttechlab.in",
+        "icon_path": "/internet_shortcuts/ntl_logo.png",
+        "description": "Student community that shaped me into a better developer and human being."
+    },
+    {
+        "title": "LFX Mentorship @ Open Mainframe Project - Final Blog",
+        "url": "https://openmainframeproject.org/blog/summer-mentorship-2025-advith-krishnan/",
+        "icon_path": "/internet_shortcuts/open-mainframe-project.png",
+        "description": "Final Blog about my project RAG to Riches at the Linux Foundation Mentorship under the Open Mainframe Project"
+    },
+    {
+        "title": "LFX Mentorship @ Open Mainframe Project - Midterm Blog",
+        "url": "https://openmainframeproject.org/blog/mentorship-series-rag-to-riches-using-your-legacy-data-by-advith-krishnan/",
+        "icon_path": "/internet_shortcuts/open-mainframe-project.png",
+        "description": "Mid-Term Blog about my project RAG to Riches at the Linux Foundation Mentorship under the Open Mainframe Project"
+    }
+
+]

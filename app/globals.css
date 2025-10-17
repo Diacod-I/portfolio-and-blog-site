@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: none;
+    font-smooth: never;
+    text-rendering: optimizeLegibility;
+  }
+
+  html, body {
+    @apply overflow-hidden font-mono;
+    image-rendering: pixelated;
+    letter-spacing: 0px;
+  }
+
+  * {
+    @apply font-mono border-[#808080];
+  }
+
+  body {
+    @apply bg-[#008080] text-black h-screen;
+  }
+}
+
+@layer components {
+  .win98-app-window {
+    @apply bg-[#c0c0c0] p-1 border-2 border-white border-r-[#808080] border-b-[#808080] text-black dark:text-black;
+  }
+
+  .win98-window {
+    @apply bg-[#c0c0c0] p-1 border-2 border-[#aaaaaa] border-r-[#808080] border-b-[#808080] text-black dark:text-black;
+  }
+
+  .win98-window-navbar {
+    @apply bg-[#c0c0c0] p-1.5 text-black dark:text-black;
+  }
+
+  .win98-titlebar {
+    @apply text-white px-2 py-1 flex items-center justify-between;
+    background: linear-gradient(90deg, #000080 0%, #1f8af4 100%);
+  }
+
+  .win98-button {
+    @apply bg-[#d0d0d0] border-2 border-t-[#d4d4d4] border-l-[#d4d4d4] border-b-[#808080] border-r-[#808080] 
+           hover:bg-[#e0e0e0] transition-colors
+           hover:active:border-t-[#808080] hover:active:border-l-[#808080] hover:active:border-b-white hover:active:border-r-white
+           text-black hover:text-[#f9f9f9];
+  }
+
+    .win98-navbar-button {
+    @apply bg-[#c0c0c0] border-2 border-transparent
+           hover:border-t-white hover:border-l-white hover:border-b-[#808080] hover:border-r-[#808080] 
+           active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white
+           transition-colors text-black hover:text-[#f9f9f9];
+  }
+
+  .win98-window-content {
+    @apply bg-white p-1 border-2 border-[#808080] text-black dark:text-black;
+  }
+
+  .win98-taskbar {
+    @apply fixed bottom-0 left-0 right-0 bg-[#c0c0c0] border-t-2 border-white p-1 flex items-center z-50
+           will-change-transform transform-gpu;
+    height: 38px;
+    position: -webkit-sticky;
+    position: sticky;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .win98-taskbar * {
+    @apply text-black dark:text-black;
+  }
+
+  .win98-start-button {
+    @apply px-2 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] 
+           flex items-center gap-1 hover:active:border-t-[#808080] hover:active:border-l-[#808080] hover:active:border-b-white hover:active:border-r-white
+           text-black dark:text-black;
+  }
+
+    .win98-taskbar-time {
+    @apply px-4 py-1 bg-[#c1c1c1] border-2 border-b-white border-r-white border-t-[#808080] border-l-[#808080] 
+           flex items-center gap-2 text-black dark:text-black;
+  }
+
+  .win98-window-button {
+    @apply w-6 h-6 flex items-center justify-center win98-button text-black dark:text-black;
+  }
+
+  .win98-resume-button {
+    @apply px-2 py-0.5 bg-[#c0c0c0] border-2 border-transparent relative text-black hover:text-[#ffffff]
+           hover:bg-[#92dcd7] hover:border-t-white hover:border-l-white hover:border-b-[#808080] hover:border-r-[#808080] 
+           active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white;
+  }
+  .win98-app-name {
+    @apply text-white text-sm px-2;
+    background-color: #008080 !important;
+  }
+  
+  .win98-app-name.active {
+    background-color: #000080 !important;
+    color: white !important;
+  }
+}
+
+/* Windows 98-style scrollbar */
+::-webkit-scrollbar {
+  width: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #c0c0c0;
+  border: 1px solid #808080;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #dfdfdf;
+  border: 1px solid #808080;
+  box-shadow: inset 1px 1px #fff;
+}
+
+/* Smooth theme transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

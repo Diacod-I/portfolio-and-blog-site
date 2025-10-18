@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from 'react'
 
-export default function FooterConsole() {
+interface FooterConsoleProps {
+  activeApps?: { id: string; name: string; icon: string; isActive: boolean }[]
+  onAppClick?: (id: string) => void
+}
+
+export default function FooterConsole({ 
+  activeApps = [], 
+  onAppClick = () => {} 
+}: FooterConsoleProps) {
   const [time, setTime] = useState<string>('')
   const [mounted, setMounted] = useState(false)
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false)
@@ -68,7 +76,21 @@ export default function FooterConsole() {
 
       <div className="border-l-2 border-[#808080] ml-2 h-8"></div>
       <div className="border-l-2 border-[#ffffff] h-8"></div>
-      <div className="flex-1 flex items-center gap-2"></div>
+      <div className="flex-1 flex items-center gap-2">
+        {activeApps.map((app) => (
+          <button
+            key={app.id}
+            onClick={() => onAppClick(app.id)}
+            className={`win98-taskbar-button flex items-center gap-2 px-2 py-1 ${
+              app.isActive 
+                ? 'bg-[#c3c3c3] border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white' 
+                : ''
+            }`}
+          >
+            <img src={app.icon} alt={app.name} className="w-4 h-4" />
+          </button>
+        ))}
+      </div>
       <div className="border-l-2 border-[#808080] h-8"></div>
       <div className="border-l-2 border-[#ffffff] mr-2 h-8"></div>
       <div className="px-2 win98-taskbar-time">

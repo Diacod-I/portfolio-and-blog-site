@@ -6,6 +6,8 @@ import RecentNotes from '@/components/RecentNotes'
 import FeaturedLinks from '@/components/FeaturedLinks'
 import Navbar from '@/components/Navbar'
 import ImageViewer from '@/components/ImageViewer'
+import WindowsLoader from '@/components/WindowsLoader'
+import FooterConsole from '@/components/FooterConsole'
 
 function LoadingDelay({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -27,6 +29,48 @@ function LoadingDelay({ children }: { children: React.ReactNode }) {
 
 export default function HomePage() {
   const [isAppOpen, setIsAppOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [activeApps, setActiveApps] = useState<Array<{
+    id: string;
+    name: string;
+    icon: string;
+    isActive: boolean;
+  }>>([])
+
+  const handleAppOpen = async () => {
+    if (!isAppOpen) {
+      setIsLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      setIsLoading(false)
+      setIsAppOpen(true)
+      window.history.replaceState({}, '', '/?app=open')
+    }
+  }
+
+  const handleAppClick = (id: string) => {
+    if (id === 'main-app') {
+      setIsAppOpen(prev => !prev)
+      setActiveApps(prev => prev.map(app => 
+        app.id === id ? { ...app, isActive: !app.isActive } : app
+      ))
+    }
+  }
+
+  useEffect(() => {
+    setActiveApps(prev => {
+      if (isAppOpen && !prev.some(app => app.id === 'main-app')) {
+        return [{
+          id: 'main-app',
+          name: 'advith_krishnan.exe',
+          icon: '/win98/advith_krishnan_exe.jpg',
+          isActive: true
+        }]
+      }
+      return prev.map(app => 
+        app.id === 'main-app' ? { ...app, isActive: isAppOpen } : app
+      )
+    })
+  }, [isAppOpen])
   const [position, setPosition] = useState({ x: 20, y: 20 })
   const [isDragging, setIsDragging] = useState(false)
 
@@ -70,20 +114,18 @@ export default function HomePage() {
   }, [isDragging])
 
   return (
-    <div 
-      className="h-screen p-4 pb-16 overflow-hidden relative"
-      style={{
-        backgroundImage: 'url(/win98/windows_98_wallpaper.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
-    >
+    <>
+      <div 
+        className="h-screen p-4 pb-16 overflow-hidden relative"
+        style={{
+          backgroundImage: 'url(/win98/windows_98_wallpaper.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
       {/* Desktop Icon */}
       <button 
-        onClick={() => {
-          setIsAppOpen(true);
-          window.history.replaceState({}, '', '/?app=open');
-        }}
+        onClick={handleAppOpen}
         className="flex flex-col items-center gap-2 p-2"
       >
         <img
@@ -109,8 +151,11 @@ export default function HomePage() {
               <button 
                 className="win98-window-button font-bold text-2xl"
                 onClick={() => {
-                  setIsAppOpen(false);
-                  window.history.replaceState({}, '', '/');
+                  setTimeout(() => {
+                    setIsAppOpen(false);
+                    setActiveApps(prev => prev.filter(app => app.id !== 'main-app'));
+                    window.history.replaceState({}, '', '/');
+                  }, 400);
                 }}
               >×</button>
             </div>
@@ -163,7 +208,7 @@ export default function HomePage() {
                 {/* Internet Shortcuts */}
                 <div className="win98-window flex-1 flex flex-col">
                   <div className="win98-titlebar">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       <img src="/win98/internet.png" alt="Internet" className="w-4 h-4" />
                       <span>Internet Shortcuts</span>
                     </div>
@@ -181,6 +226,10 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {isLoading && <WindowsLoader />}
     </div>
+    <FooterConsole activeApps={activeApps} onAppClick={handleAppClick} />
+    </>
   )
 }

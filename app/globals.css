@@ -121,10 +121,3 @@
   border: 1px solid #808080;
   box-shadow: inset 1px 1px #fff;
 }
-
-/* Smooth theme transition */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}

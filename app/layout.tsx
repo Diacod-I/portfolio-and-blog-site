@@ -46,11 +46,10 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}
       >
         <Providers>
-          <div className="min-h-screen pb-12">
+          <div className="min-h-screen">
             {children}
+            <Analytics />
           </div>
-          <FooterConsole />
-          <Analytics />
         </Providers>
       </body>
     </html>

@@ -1,5 +1,11 @@
 [
     {
+        "title": "Subscribe to my Blog!",
+        "url": "https://www.linkedin.com/in/advithkrishnan/",
+        "icon_path": "/internet_shortcuts/linkedin.png",
+        "description": "Never miss an update on my blog. Subscribe via email!"
+    },
+    {
         "title": "LinkedIn",
         "url": "https://www.linkedin.com/in/advithkrishnan/",
         "icon_path": "/internet_shortcuts/linkedin.png",

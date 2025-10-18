@@ -75,19 +75,20 @@ export default function FooterConsole({
       </div>
 
       <div className="border-l-2 border-[#808080] ml-2 h-8"></div>
-      <div className="border-l-2 border-[#ffffff] h-8"></div>
+      <div className="border-l-2 border-[#ffffff] h-8 mr-2"></div>
       <div className="flex-1 flex items-center gap-2">
         {activeApps.map((app) => (
           <button
             key={app.id}
             onClick={() => onAppClick(app.id)}
-            className={`win98-taskbar-button flex items-center gap-2 px-2 py-1 ${
+            className={`win98-button flex items-center gap-2 px-2 py-1 min-w-[150px] ${
               app.isActive 
                 ? 'bg-[#c3c3c3] border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white' 
                 : ''
             }`}
           >
             <img src={app.icon} alt={app.name} className="w-4 h-4" />
+            <span className="text-xs">{app.name}</span>
           </button>
         ))}
       </div>

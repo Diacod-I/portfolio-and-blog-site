@@ -41,9 +41,8 @@ export default function ImageViewer() {
           <div className="relative flex items-center justify-center w-full p-4">
             <button
               onClick={prevImage}
-              className="win98-button absolute left-2 px-2 py-1 z-10"
-            >
-              ◀
+              className="win98-button absolute justify-center left-2 px-2 py-1 z-10"
+            >◀
             </button>
             <div className="w-[500px] h-[360px] flex items-center justify-center">
               <img
@@ -55,9 +54,8 @@ export default function ImageViewer() {
           </div>
           <button
             onClick={nextImage}
-            className="win98-button absolute right-2 px-2 py-1 z-10"
-          >
-            ▶
+            className="win98-button absolute justify-center right-2 px-2 py-1 z-10"
+          >▶
           </button>
           <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-2">
             {images.map((_, index) => (

@@ -21,7 +21,10 @@ function LoadingDelay({ children }: { children: React.ReactNode }) {
   }, [])
 
   if (isLoading) {
-    return <div className="win98-window p-2">Loading documents...</div>
+    return <div className="win98-window items-center flex gap-4 p-2">
+                <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
+                <span>Loading documents...</span>
+             </div>
   }
 
   return <>{children}</>
@@ -71,8 +74,6 @@ export default function HomePage() {
       )
     })
   }, [isAppOpen])
-  const [position, setPosition] = useState({ x: 20, y: 20 })
-  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
@@ -81,37 +82,6 @@ export default function HomePage() {
     }
   }, [])
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      const maxY = window.innerHeight - 150 // Adjust based on FooterConsole height + icon height
-      const maxX = window.innerWidth - 100  // Adjust based on icon width
-      
-      const newX = Math.min(Math.max(0, e.clientX - 30), maxX)
-      const newY = Math.min(Math.max(0, e.clientY - 30), maxY)
-      
-      setPosition({ x: newX, y: newY })
-    }
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove as any)
-      document.addEventListener('mouseup', handleMouseUp)
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove as any)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isDragging])
 
   return (
     <>
@@ -147,7 +117,16 @@ export default function HomePage() {
               <span>advith_krishnan.exe</span>
             </div>
             <div className="flex gap-2">
-              <button className="win98-window-button font-bold">?</button>
+              <button 
+                className="win98-window-button font-bold text-xl flex items-center justify-center" 
+                style={{ paddingBottom: '4px' }}
+                onClick={() => {
+                  setIsAppOpen(false);
+                  setActiveApps(prev => prev.map(app => 
+                    app.id === 'main-app' ? { ...app, isActive: false } : app
+                  ));
+                }}
+              >_</button>
               <button 
                 className="win98-window-button font-bold text-2xl"
                 onClick={() => {
@@ -197,7 +176,10 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="flex-1 bg-[#f0f0f0] p-2">
-                    <Suspense fallback={<div className="win98-window p-2">Loading documents...</div>}>
+                    <Suspense fallback={<div className="win98-window p-2 flex items-center gap-4">
+                        <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
+                        <span>Fetching them for you... Almost there...</span>
+                    </div>}>
                       <LoadingDelay>
                         <RecentNotes />
                       </LoadingDelay>

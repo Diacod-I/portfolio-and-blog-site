@@ -6,10 +6,10 @@ import matter from 'gray-matter'
 import { cache } from 'react'
 
 export type Note = {
-  slug: string
-  title: string
-  date: string
-  excerpt?: string
+    title: string
+    slug: string
+    date: string
+    excerpt?: string
 }
 
 // Cache the result to avoid reading the files multiple times

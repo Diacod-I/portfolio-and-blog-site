@@ -27,6 +27,8 @@ function LoadingDelay({ children }: { children: React.ReactNode }) {
 
 export default function HomePage() {
   const [isAppOpen, setIsAppOpen] = useState(false)
+  const [position, setPosition] = useState({ x: 20, y: 20 })
+  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
@@ -34,6 +36,38 @@ export default function HomePage() {
       setIsAppOpen(true)
     }
   }, [])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      const maxY = window.innerHeight - 150 // Adjust based on FooterConsole height + icon height
+      const maxX = window.innerWidth - 100  // Adjust based on icon width
+      
+      const newX = Math.min(Math.max(0, e.clientX - 30), maxX)
+      const newY = Math.min(Math.max(0, e.clientY - 30), maxY)
+      
+      setPosition({ x: newX, y: newY })
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove as any)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove as any)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging])
 
   return (
     <div 

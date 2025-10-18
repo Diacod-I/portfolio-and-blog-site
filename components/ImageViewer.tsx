@@ -37,7 +37,7 @@ export default function ImageViewer() {
         </div>
       </div>
       <div className="flex-1 bg-[#c0c0c0] p-4">
-        <div className="overflow-y-auto max-h-[420px]">
+        <div className="overflow-y-auto max-h-[410px]">
           <div className="relative flex items-center justify-center w-full p-4">
             <button
               onClick={prevImage}
@@ -45,7 +45,7 @@ export default function ImageViewer() {
             >
               ◀
             </button>
-            <div className="w-[500px] h-[370px] flex items-center justify-center">
+            <div className="w-[500px] h-[360px] flex items-center justify-center">
               <img
                 src={images[currentIndex].src}
                 alt={images[currentIndex].alt}

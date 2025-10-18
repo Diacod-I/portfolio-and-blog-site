@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 export default function FooterConsole() {
   const [time, setTime] = useState<string>('')
   const [mounted, setMounted] = useState(false)
+  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -14,12 +15,57 @@ export default function FooterConsole() {
     return () => clearInterval(timer)
   }, [])
 
+  // Close start menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.win98-start-button') && !target.closest('.win98-start-menu')) {
+        setIsStartMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
   return (
     <footer className="win98-taskbar">
-      <button className="win98-start-button">
-        <img src="/win98/start.png" alt="Start" className="w-5 h-5" />
-        <span className='font-black text-[1.1em]'>Start</span>
-      </button>
+      <div className="relative">
+        <button 
+          className={`win98-start-button ${isStartMenuOpen ? 'active' : ''}`}
+          onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
+        >
+          <img src="/win98/start.png" alt="Start" className="w-5 h-5" />
+          <span className='font-black text-[1.1em]'>Start</span>
+        </button>
+
+        {isStartMenuOpen && (
+          <div className="win98-start-menu absolute bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-black">
+            <div className="bg-[#000080] absolute left-0 top-0 bottom-0 w-[23px]"></div>
+            <div className="flex flex-col py-2 pl-[18px]">
+              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
+                <img src="/win98/notepad.png" alt="Documents" className="w-8 h-8 mr-3" />
+                <span>Documents</span>
+              </button>
+              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
+                <img src="/win98/photos.png" alt="Pictures" className="w-8 h-8 mr-3" />
+                <span>Pictures</span>
+              </button>
+              <div className="border-t border-[#808080] my-2"></div>
+              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
+                <img src="/win98/internet.png" alt="Internet" className="w-8 h-8 mr-3" />
+                <span>Internet</span>
+              </button>
+              <div className="border-t border-[#808080] my-2"></div>
+              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
+                <img src="/win98/info.png" alt="About" className="w-8 h-8 mr-3" />
+                <span>About</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="border-l-2 border-[#808080] ml-2 h-8"></div>
       <div className="border-l-2 border-[#ffffff] h-8"></div>
       <div className="flex-1 flex items-center gap-2"></div>

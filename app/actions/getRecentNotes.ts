@@ -16,9 +16,14 @@ export type Note = {
 export const getRecentNotes = cache(async (): Promise<Note[]> => {
   try {
     const notesDirectory = path.join(process.cwd(), 'content', 'notes')
+    console.log('Looking for notes in:', notesDirectory)
+    console.log('Current working directory:', process.cwd())
+    
     const files = await fs.readdir(notesDirectory)
+    console.log('Files found:', files)
 
     const mdxFiles = files.filter(file => file.endsWith('.mdx'))
+    console.log('MDX files:', mdxFiles)
     
     if (mdxFiles.length === 0) {
       console.log('No .mdx files found in:', notesDirectory)
@@ -54,7 +59,8 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
     return validNotes
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   } catch (error) {
-    console.error('Error reading notes:', error)
+    console.error('Error reading notes directory:', error)
+    console.error('Error details:', error instanceof Error ? error.message : String(error))
     return []
   }
 })

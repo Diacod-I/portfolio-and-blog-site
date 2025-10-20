@@ -34,8 +34,14 @@ async function validateIconPath(iconPath: string): Promise<string> {
 export const getFeaturedLinks = cache(async (): Promise<FeaturedLink[]> => {
   try {
     const filePath = path.join(process.cwd(), 'data', 'featured.json')
+    console.log('Looking for featured links at:', filePath)
+    console.log('Current working directory:', process.cwd())
+    
     const fileContent = await fs.readFile(filePath, 'utf8')
+    console.log('Featured links file content loaded, length:', fileContent.length)
+    
     const links = JSON.parse(fileContent) as FeaturedLink[]
+    console.log('Parsed links count:', links.length)
     
     // Validate each icon path
     const validatedLinks = await Promise.all(
@@ -45,9 +51,11 @@ export const getFeaturedLinks = cache(async (): Promise<FeaturedLink[]> => {
       }))
     )
     
+    console.log('Validated links count:', validatedLinks.length)
     return validatedLinks
   } catch (error) {
     console.error('Error reading featured links:', error)
+    console.error('Error details:', error instanceof Error ? error.message : String(error))
     return fallbackLinks
   }
 })

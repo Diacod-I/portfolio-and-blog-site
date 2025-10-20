@@ -11,10 +11,6 @@ const nextConfig = {
     minimumCacheTTL: 86400,
   },
   swcMinify: true,
-  // Temporarily disabled to debug Vercel deployment
-  // compiler: {
-  //   removeConsole: process.env.NODE_ENV === 'production',
-  // },
 };
 
 module.exports = nextConfig;

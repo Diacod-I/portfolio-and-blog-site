@@ -86,7 +86,7 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-white"
+                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black"
                 />
               </div>
 
@@ -101,7 +101,7 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-white"
+                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black"
                 />
               </div>
 
@@ -116,7 +116,7 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={handleChange}
                   required
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-white"
+                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black"
                 />
               </div>
 
@@ -131,7 +131,7 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-white resize-none"
+                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black resize-none"
                 />
               </div>
 

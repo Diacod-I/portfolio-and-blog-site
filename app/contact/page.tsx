@@ -180,6 +180,8 @@ export default function ContactPage() {
                   <a href="https://github.com/Diacod-I" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     @Diacod-I
                   </a>
+                </p>
+                <p className="flex items-center gap-2">
                   <strong>Twitter/X:</strong>
                   <a href="https://x.com/advith_krishnan" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     @advith_krishnan

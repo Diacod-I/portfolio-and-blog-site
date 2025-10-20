@@ -3,38 +3,13 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Verify reCAPTCHA token
-async function verifyRecaptcha(token: string): Promise<boolean> {
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY
-  
-  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `secret=${secretKey}&response=${token}`,
-  })
-
-  const data = await response.json()
-  return data.success && data.score > 0.5 // Score > 0.5 means likely human
-}
-
 export async function POST(request: Request) {
   try {
-    const { name, email, subject, message, recaptchaToken } = await request.json()
-
-    // Verify reCAPTCHA
-    const isHuman = await verifyRecaptcha(recaptchaToken)
-    if (!isHuman) {
-      return NextResponse.json(
-        { error: 'reCAPTCHA verification failed' },
-        { status: 400 }
-      )
-    }
+    const { name, email, subject, message } = await request.json()
 
     // Send confirmation email to the user
     await resend.emails.send({
-      from: 'Advith Krishnan <noreply@yourdomain.com>', // Replace with your domain
+      from: 'Advith Krishnan <onboarding@resend.dev>',
       to: email,
       subject: 'Thanks for contacting me!',
       html: `
@@ -60,7 +35,7 @@ export async function POST(request: Request) {
 
     // Send notification email to yourself
     await resend.emails.send({
-      from: 'Contact Form <contact@yourdomain.com>', // Replace with your domain
+      from: 'Contact Form <onboarding@resend.dev>',
       to: 'advithkrishnan@gmail.com', // Your email
       replyTo: email, // Allow direct reply to the sender
       subject: `New Contact Form Submission: ${subject}`,

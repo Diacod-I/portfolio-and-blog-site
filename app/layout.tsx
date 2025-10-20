@@ -1,8 +1,7 @@
 import './globals.css'
 import { Inter, JetBrains_Mono, VT323 } from 'next/font/google'
 import { Providers } from './providers'
-import FooterConsole from '@/components/FooterConsole'
-import { Analytics } from '@vercel/analytics/react'
+import { Analytics } from "@vercel/analytics/next"
 import { Metadata } from 'next'
 
 const inter = Inter({

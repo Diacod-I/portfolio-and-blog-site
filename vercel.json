@@ -1,10 +1,6 @@
 {
-  "functions": {
-    "app/**/*.ts": {
-      "includeFiles": "content/**/*.mdx"
-    },
-    "app/**/*.tsx": {
-      "includeFiles": "content/**/*.mdx"
-    }
-  }
+  "includeFiles": [
+    "content/**",
+    "data/**"
+  ]
 }

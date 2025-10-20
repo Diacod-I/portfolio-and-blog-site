@@ -18,13 +18,21 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
     const notesDirectory = path.join(process.cwd(), 'content', 'notes')
     const files = await fs.readdir(notesDirectory)
 
+    const mdxFiles = files.filter(file => file.endsWith('.mdx'))
+    
+    if (mdxFiles.length === 0) {
+      console.log('No .mdx files found in:', notesDirectory)
+      return []
+    }
+
     const notes = await Promise.all(
-      files
-        .filter(file => file.endsWith('.mdx'))
-        .map(async file => {
+      mdxFiles.map(async file => {
+        try {
           const filePath = path.join(notesDirectory, file)
           const fileContent = await fs.readFile(filePath, 'utf8')
           const { data } = matter(fileContent)
+          
+          console.log('Processing file:', file, 'with data:', data)
           
           return {
             slug: file.replace('.mdx', ''),
@@ -32,11 +40,18 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
             date: data.date || new Date().toISOString(),
             excerpt: data.excerpt
           }
-        })
+        } catch (err) {
+          console.error('Error processing file:', file, err)
+          return null
+        }
+      })
     )
 
-    // Sort by date (most recent first) and return all notes
-    return notes
+    // Filter out any null values and sort by date (most recent first)
+    const validNotes = notes.filter((note): note is Note => note !== null)
+    console.log('Valid notes found:', validNotes.length)
+    
+    return validNotes
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   } catch (error) {
     console.error('Error reading notes:', error)

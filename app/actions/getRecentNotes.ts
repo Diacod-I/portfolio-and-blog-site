@@ -17,9 +17,6 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
   try {
     const notesDirectory = path.join(process.cwd(), 'content', 'notes')
     const files = await fs.readdir(notesDirectory)
-    
-    const twoWeeksAgo = new Date()
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
 
     const notes = await Promise.all(
       files
@@ -38,9 +35,8 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
         })
     )
 
-    // Filter notes from last 2 weeks and sort by date
+    // Sort by date (most recent first) and return all notes
     return notes
-      .filter(note => new Date(note.date) >= twoWeeksAgo)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   } catch (error) {
     console.error('Error reading notes:', error)

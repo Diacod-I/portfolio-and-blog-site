@@ -19,7 +19,7 @@ export default function UptimeCounter() {
         <div className="flex items-center gap-2">
           {`Monster Energy Drinks chugged (lifetime): ${data.monster_drinks_chugged}`}
             <img 
-                src="/win98/monster-logo.png" 
+                src="/win98/monster-logo.webp" 
                 alt="Monster Energy"
                 className="w-4 h-8" 
             />

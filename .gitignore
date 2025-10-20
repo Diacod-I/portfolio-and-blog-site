@@ -27,3 +27,5 @@ next-env.d.ts
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+/content/notes/draft_content/

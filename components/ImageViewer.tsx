@@ -4,15 +4,15 @@ import { useState } from 'react'
 
 const images = [
   {
-    src: '/Advith_Krishnan.png',
+    src: '/Advith_Krishnan.webp',
     alt: 'Profile Picture'
   },
   {
-    src: '/win98/advith_krishnan_exe.jpg',
+    src: '/win98/advith_krishnan_exe.webp',
     alt: 'Windows 98 Profile'
   },
   {
-    src: '/win98/windows_98_wallpaper.jpg',
+    src: '/win98/windows_98_wallpaper.webp',
     alt: 'Windows 98 Wallpaper'
   }
 ]
@@ -32,7 +32,7 @@ export default function ImageViewer() {
     <div className="win98-window flex-1 flex flex-col">
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
-          <img src="/win98/photos.png" alt="Photos" className="w-4 h-4" />
+          <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
           <span>Recent Photos Viewer</span>
         </div>
       </div>

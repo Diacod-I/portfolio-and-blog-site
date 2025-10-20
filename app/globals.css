@@ -63,7 +63,7 @@
 
   .win98-taskbar {
     @apply fixed bottom-0 left-0 right-0 bg-[#c0c0c0] border-t-2 border-white p-1 flex items-center z-50
-           will-change-transform transform-gpu;
+           will-change-transform transform-gpu text-black dark:text-black;
     height: 38px;
     position: -webkit-sticky;
     position: sticky;
@@ -71,14 +71,14 @@
     backface-visibility: hidden;
   }
 
-  .win98-taskbar * {
-    @apply text-black dark:text-black;
-  }
-
   .win98-start-button {
     @apply px-2 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] 
            flex items-center gap-1 hover:active:border-t-[#808080] hover:active:border-l-[#808080] hover:active:border-b-white hover:active:border-r-white
            text-black dark:text-black;
+  }
+
+  .win98-start-menu-item {
+    @apply hover:bg-[#000080] hover:text-white
   }
 
     .win98-taskbar-time {

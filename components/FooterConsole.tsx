@@ -43,30 +43,30 @@ export default function FooterConsole({
           className={`win98-start-button ${isStartMenuOpen ? 'active' : ''}`}
           onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
         >
-          <img src="/win98/start.png" alt="Start" className="w-5 h-5" />
+          <img src="/win98/start.webp" alt="Start Button Icon" className="w-5 h-5" />
           <span className='font-black text-[1.1em]'>Start</span>
         </button>
 
         {isStartMenuOpen && (
-          <div className="win98-start-menu absolute bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-black">
+          <div className="win98-start-menu absolute bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-transparent">
             <div className="bg-[#000080] absolute left-0 top-0 bottom-0 w-[23px]"></div>
             <div className="flex flex-col py-2 pl-[18px]">
-              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
-                <img src="/win98/notepad.png" alt="Documents" className="w-8 h-8 mr-3" />
+              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
+                <img src="/win98/notepad.webp" alt="Documents" className="w-8 h-8 mr-3" />
                 <span>Documents</span>
               </button>
-              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
-                <img src="/win98/photos.png" alt="Pictures" className="w-8 h-8 mr-3" />
+              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
+                <img src="/win98/photos.webp" alt="Pictures" className="w-8 h-8 mr-3" />
                 <span>Pictures</span>
               </button>
               <div className="border-t border-[#808080] my-2"></div>
-              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
-                <img src="/win98/internet.png" alt="Internet" className="w-8 h-8 mr-3" />
+              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
+                <img src="/win98/internet.webp" alt="Internet" className="w-8 h-8 mr-3" />
                 <span>Internet</span>
               </button>
               <div className="border-t border-[#808080] my-2"></div>
-              <button className="win98-start-item flex items-center px-4 py-1 hover:bg-[#000080] hover:text-white min-w-0">
-                <img src="/win98/info.png" alt="About" className="w-8 h-8 mr-3" />
+              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
+                <img src="/win98/info.webp" alt="About" className="w-8 h-8 mr-3" />
                 <span>About</span>
               </button>
             </div>
@@ -87,8 +87,8 @@ export default function FooterConsole({
                 : ''
             }`}
           >
-            <img src={app.icon} alt={app.name} className="w-4 h-4" />
-            <span className="text-xs">{app.name}</span>
+            <img src={app.icon} alt={app.name+" Icon"} className="w-4 h-4" />
+            <span className="text-xs font-bold">{app.name}</span>
           </button>
         ))}
       </div>

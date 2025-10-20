@@ -22,12 +22,12 @@ export default function FeaturedLinks() {
           className="win98-button p-2 flex items-center gap-2 no-underline text-black"
         >
           <img 
-            src={!link.icon_path || link.icon_path === "/" ? "/win98/internet.png" : link.icon_path}
+            src={!link.icon_path || link.icon_path === "/" ? "/win98/internet.webp" : link.icon_path}
             alt="" 
             className="w-8 h-8 mr-2"
             onError={(e) => {
               e.currentTarget.onerror = null;
-              e.currentTarget.src = "/win98/internet.png";
+              e.currentTarget.src = "/win98/internet.webp";
             }}
           />
           <div>

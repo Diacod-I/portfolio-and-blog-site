@@ -14,7 +14,7 @@ export default function NoteWindow({ title, children }: NoteWindowProps) {
     <div 
       className="h-screen p-4 pb-16 overflow-hidden"
       style={{
-        backgroundImage: 'url(/win98/windows_98_wallpaper.jpg)',
+        backgroundImage: 'url(/win98/windows_98_wallpaper.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
@@ -22,7 +22,7 @@ export default function NoteWindow({ title, children }: NoteWindowProps) {
       <div className="win98-window min-h-min max-h-full flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <img src="/win98/notes.png" alt="Notes" className="w-4 h-4" />
+            <img src="/win98/notes.webp" alt="Notes" className="w-4 h-4" />
             <span>{title}</span>
           </div>
           <div className="flex gap-1">

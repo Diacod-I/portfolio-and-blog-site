@@ -43,9 +43,9 @@ export default function HomePage() {
   const handleAppOpen = async () => {
     if (!isAppOpen) {
       setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      setIsLoading(false)
+      await new Promise(resolve => setTimeout(resolve, 1000))
       setIsAppOpen(true)
+      setIsLoading(false)
       window.history.replaceState({}, '', '/?app=open')
     }
   }
@@ -65,7 +65,7 @@ export default function HomePage() {
         return [{
           id: 'main-app',
           name: 'advith_krishnan.exe',
-          icon: '/win98/advith_krishnan_exe.jpg',
+          icon: '/win98/advith_krishnan_exe.webp',
           isActive: true
         }]
       }
@@ -88,7 +88,7 @@ export default function HomePage() {
       <div 
         className="h-screen p-4 pb-16 overflow-hidden relative"
         style={{
-          backgroundImage: 'url(/win98/windows_98_wallpaper.jpg)',
+          backgroundImage: 'url(/win98/windows_98_wallpaper.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -99,7 +99,7 @@ export default function HomePage() {
         className="flex flex-col items-center gap-2 p-2"
       >
         <img
-          src="/win98/advith_krishnan_exe.jpg"
+          src="/win98/advith_krishnan_exe.webp"
           alt="Application"
           className="w-14 h-14"
         />
@@ -113,7 +113,7 @@ export default function HomePage() {
         <div className="win98-app-window fixed z-40 flex flex-col" style={{ top: '5px', right: '5px', bottom: '43px', left: '5px' }}>
           <div className="win98-titlebar">
             <div className="flex items-center gap-2">
-              <img src="/win98/advith_krishnan_exe.jpg" alt="App Icon" className="w-4 h-4" />
+              <img src="/win98/advith_krishnan_exe.webp" alt="App Icon" className="w-4 h-4" />
               <span>advith_krishnan.exe</span>
             </div>
             <div className="flex gap-2">
@@ -140,15 +140,15 @@ export default function HomePage() {
             </div>
           </div>
             <Navbar />
-          <div className="flex-1 win98-window-content flex flex-col bg-[#222222]">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1">
+          <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 overflow-y-auto">
               {/* Left Column */}
               <div className="flex flex-col h-full">
                 {/* System Information */}
                 <div className="win98-window mb-4">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
-                      <img src="/win98/info.png" alt="System" className="w-4 h-4" />
+                      <img src="/win98/info.webp" alt="System" className="w-4 h-4" />
                       <span>System Information</span>
                     </div>
                   </div>
@@ -171,7 +171,7 @@ export default function HomePage() {
                 <div className="win98-window flex-1 flex flex-col mb-4">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
-                      <img src="/win98/notepad.png" alt="Notes" className="w-4 h-4" />
+                      <img src="/win98/notepad.webp" alt="Notes" className="w-4 h-4" />
                       <span>Recent Blog Posts</span>
                     </div>
                   </div>
@@ -191,12 +191,12 @@ export default function HomePage() {
                 <div className="win98-window flex-1 flex flex-col">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
-                      <img src="/win98/internet.png" alt="Internet" className="w-4 h-4" />
+                      <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
                       <span>Internet Shortcuts</span>
                     </div>
                   </div>
                   <div className="flex-1 bg-white border-2 p-2">
-                    <Suspense fallback={<div className="win98-window p-2">Loading links...</div>}>
+                    <Suspense fallback={<div className="win98-window p-2">Loading shortcuts...</div>}>
                       <div className="overflow-y-auto border-2 max-h-[240px]">
                         <FeaturedLinks />
                       </div>

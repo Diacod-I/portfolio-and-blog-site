@@ -44,7 +44,7 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
             title: data.title || 'Untitled',
             date: data.date || new Date().toISOString(),
             excerpt: data.excerpt
-          }
+          } as Note
         } catch (err) {
           console.error('Error processing file:', file, err)
           return null
@@ -53,7 +53,7 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
     )
 
     // Filter out any null values and sort by date (most recent first)
-    const validNotes = notes.filter((note): note is Note => note !== null)
+    const validNotes = notes.filter((note) => note !== null) as Note[]
     console.log('Valid notes found:', validNotes.length)
     
     return validNotes

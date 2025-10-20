@@ -200,7 +200,7 @@ export default function ContactPage() {
                 <p className="flex items-center gap-2">
                   <strong>GitHub:</strong>
                   <a href="https://github.com/Diacod-I" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    @Diacod-I
+                    Diacod-I
                   </a>
                 </p>
                 <p className="flex items-center gap-2">

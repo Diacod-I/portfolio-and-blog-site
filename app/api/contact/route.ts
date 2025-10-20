@@ -4,6 +4,27 @@ import { Resend } from 'resend'
 // Initialize Resend with API key (use dummy key if not set during build)
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_build')
 
+// Simple in-memory rate limiting (resets on server restart)
+// For production, use Redis or a proper rate limiting service
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+
+function checkRateLimit(identifier: string, maxRequests = 3, windowMs = 60000): boolean {
+  const now = Date.now()
+  const record = rateLimitMap.get(identifier)
+
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(identifier, { count: 1, resetTime: now + windowMs })
+    return true
+  }
+
+  if (record.count >= maxRequests) {
+    return false
+  }
+
+  record.count++
+  return true
+}
+
 export async function POST(request: Request) {
   // Check if API key is actually set at runtime
   if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_dummy_key_for_build') {
@@ -15,6 +36,31 @@ export async function POST(request: Request) {
   }
   try {
     const { name, email, subject, message } = await request.json()
+
+    // Rate limiting: max 3 submissions per email per minute
+    if (!checkRateLimit(email)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again tomorrow.' },
+        { status: 429 }
+      )
+    }
+
+    // Basic validation
+    if (!name || !email || !subject || !message) {
+      return NextResponse.json(
+        { error: 'All fields are required.' },
+        { status: 400 }
+      )
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: 'Invalid email address.' },
+        { status: 400 }
+      )
+    }
 
     // Send confirmation email to the user
     await resend.emails.send({

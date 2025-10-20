@@ -2,9 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
-export default function ContactPage() {
+function ContactForm() {
   const router = useRouter()
+  const { executeRecaptcha } = useGoogleReCaptcha()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,22 +15,55 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!executeRecaptcha) {
+      console.log('Execute recaptcha not yet available')
+      return
+    }
+
     setIsSubmitting(true)
+    setErrorMessage('')
     
-    // Simulate form submission (you can replace this with actual API call)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setIsSubmitting(false)
-    setSubmitStatus('success')
-    
-    // Reset form after 2 seconds
-    setTimeout(() => {
-      setFormData({ name: '', email: '', subject: '', message: '' })
-      setSubmitStatus('idle')
-    }, 2000)
+    try {
+      // Get reCAPTCHA token
+      const recaptchaToken = await executeRecaptcha('contact_form')
+      
+      // Submit form with reCAPTCHA token
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          recaptchaToken,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSubmitStatus('success')
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setFormData({ name: '', email: '', subject: '', message: '' })
+          setSubmitStatus('idle')
+        }, 3000)
+      } else {
+        setSubmitStatus('error')
+        setErrorMessage(data.error || 'Failed to send message. Please try again.')
+      }
+    } catch (error) {
+      console.error('Form submission error:', error)
+      setSubmitStatus('error')
+      setErrorMessage('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -154,10 +189,22 @@ export default function ContactPage() {
                 {submitStatus === 'error' && (
                   <div className="flex items-center gap-2 text-red-700 font-bold">
                     <span>✗</span>
-                    <span>Failed to send message. Please try again.</span>
+                    <span>{errorMessage || 'Failed to send message. Please try again.'}</span>
                   </div>
                 )}
               </div>
+              
+              <p className="text-xs text-gray-400 mt-2">
+                This site is protected by reCAPTCHA and the Google{' '}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                  Privacy Policy
+                </a>{' '}
+                and{' '}
+                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                  Terms of Service
+                </a>{' '}
+                apply.
+              </p>
             </form>
 
             <div className="mt-8 pt-8 border-t-2 border-[#808080]">
@@ -193,5 +240,20 @@ export default function ContactPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ContactPage() {
+  return (
+    <GoogleReCaptchaProvider
+      reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
+      scriptProps={{
+        async: true,
+        defer: true,
+        appendTo: 'head',
+      }}
+    >
+      <ContactForm />
+    </GoogleReCaptchaProvider>
   )
 }

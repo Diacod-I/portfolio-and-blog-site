@@ -1,15 +1,23 @@
 'use client'
 
-import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
-import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 
-export default function FeaturedLinks() {
-  const [links, setLinks] = useState<FeaturedLink[]>([])
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-  useEffect(() => {
-    getFeaturedLinks().then(setLinks)
-  }, [])
+export default function FeaturedLinks() {
+  const { data: links, error } = useSWR<FeaturedLink[]>('/api/featured', fetcher)
+
+  if (error) {
+    return <div className="text-sm">Error loading links. Please try again later.</div>
+  }
+
+  if (!links) {
+    return <div className="win98-window items-center flex gap-4 p-2">
+      <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
+      <span>Loading shortcuts...</span>
+    </div>
+  }
 
   return (
     <div className="grid">
@@ -25,10 +33,6 @@ export default function FeaturedLinks() {
             src={!link.icon_path || link.icon_path === "/" ? "/win98/internet.webp" : link.icon_path}
             alt="" 
             className="w-8 h-8 mr-2"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = "/win98/internet.webp";
-            }}
           />
           <div>
             <div className="font-bold">{link.title}</div>

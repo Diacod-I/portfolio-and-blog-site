@@ -9,27 +9,6 @@ import ImageViewer from '@/components/ImageViewer'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
 
-function LoadingDelay({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (isLoading) {
-    return <div className="win98-window items-center flex gap-4 p-2">
-                <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
-                <span>Loading documents...</span>
-             </div>
-  }
-
-  return <>{children}</>
-}
-
 export default function HomePage() {
   const [isAppOpen, setIsAppOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -176,14 +155,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="flex-1 bg-[#f0f0f0] p-2">
-                    <Suspense fallback={<div className="win98-window p-2 flex items-center gap-4">
-                        <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
-                        <span>Fetching them for you... Almost there...</span>
-                    </div>}>
-                      <LoadingDelay>
-                        <RecentNotes />
-                      </LoadingDelay>
-                    </Suspense>
+                    <RecentNotes />
                   </div>
                 </div>
                 
@@ -196,11 +168,9 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="flex-1 bg-white border-2 p-2">
-                    <Suspense fallback={<div className="win98-window p-2">Loading shortcuts...</div>}>
-                      <div className="overflow-y-auto border-2 max-h-[240px]">
-                        <FeaturedLinks />
-                      </div>
-                    </Suspense>
+                    <div className="overflow-y-auto border-2 max-h-[240px]">
+                      <FeaturedLinks />
+                    </div>
                   </div>
                 </div>
               </div>

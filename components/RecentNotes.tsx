@@ -1,9 +1,31 @@
+'use client'
+
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { getRecentNotes } from '@/app/actions/getRecentNotes'
+import useSWR from 'swr'
 
-export default async function RecentNotes() {
-  const notes = await getRecentNotes()
+type Note = {
+  title: string
+  slug: string
+  date: string
+  excerpt?: string
+}
+
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+
+export default function RecentNotes() {
+  const { data: notes, error } = useSWR<Note[]>('/api/notes', fetcher)
+
+  if (error) {
+    return <div className="text-sm">Error loading blogs. Please try again later.</div>
+  }
+
+  if (!notes) {
+    return <div className="win98-window items-center flex gap-4 p-2">
+      <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
+      <span>Loading blogs...</span>
+    </div>
+  }
 
   if (notes.length === 0) {
     return <div className="text-sm">No recent blogs to show. Advith is writing them :)</div>

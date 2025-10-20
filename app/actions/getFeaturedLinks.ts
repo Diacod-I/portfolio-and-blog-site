@@ -16,7 +16,7 @@ const fallbackLinks: FeaturedLink[] = [
     title: "Blog at Open Mainframe",
     url: "https://example.com/talk",
     description: "Blog about my work during my mentorship at the Open Mainframe Project",
-    icon_path: "/win98/internet.png"
+    icon_path: "/win98/internet.webp"
   }
 ]
 
@@ -26,7 +26,7 @@ async function validateIconPath(iconPath: string): Promise<string> {
     await fs.access(publicPath)
     return iconPath
   } catch {
-    return '/win98/internet.png'
+    return '/win98/internet.webp'
   }
 }
 
@@ -47,7 +47,7 @@ export const getFeaturedLinks = cache(async (): Promise<FeaturedLink[]> => {
     const validatedLinks = await Promise.all(
       links.map(async (link) => ({
         ...link,
-        icon_path: await validateIconPath(link.icon_path || '/win98/internet.png')
+        icon_path: await validateIconPath(link.icon_path || '/win98/internet.webp')
       }))
     )
     

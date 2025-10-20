@@ -178,7 +178,11 @@ export default function ContactPage() {
                 <p className="flex items-center gap-2">
                   <strong>GitHub:</strong>
                   <a href="https://github.com/Diacod-I" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    github.com/Diacod-I
+                    @Diacod-I
+                  </a>
+                  <strong>Twitter/X:</strong>
+                  <a href="https://x.com/advith_krishnan" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    @advith_krishnan
                   </a>
                 </p>
               </div>

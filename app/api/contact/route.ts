@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend with API key (use dummy key if not set during build)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_build')
 
 export async function POST(request: Request) {
+  // Check if API key is actually set at runtime
+  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_dummy_key_for_build') {
+    console.error('RESEND_API_KEY is not set')
+    return NextResponse.json(
+      { error: 'Email service is not configured. Please contact the site administrator.' },
+      { status: 500 }
+    )
+  }
   try {
     const { name, email, subject, message } = await request.json()
 

@@ -1,13 +1,41 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect, useRef } from 'react'
 
 export default function ErrorWindow() {
   const router = useRouter()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    // Create audio element once
+    audioRef.current = new Audio('/win98/windows_error_sound.mp3')
+    
+    // Try to play (will work if user navigated from within site)
+    audioRef.current.play().catch(() => {
+      // Silent fail if blocked - user will trigger it by clicking anyway
+    })
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  const handleClick = () => {
+    // Play sound on any click if it hasn't played yet
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
+      audioRef.current.play().catch(() => {})
+    }
+  }
 
   return (
     <div 
       className="h-screen p-4 pb-16 overflow-hidden"
+      onClick={handleClick}
       style={{
         backgroundImage: 'url(/win98/windows_98_wallpaper.webp)',
         backgroundSize: 'cover',

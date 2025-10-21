@@ -235,7 +235,7 @@ export default function AdminUploadPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border-2 border-t-[#7b7b7b] text-white border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm"
+                className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
                 required
               />
             </div>
@@ -246,7 +246,7 @@ export default function AdminUploadPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border-2 border-t-[#7b7b7b] text-white border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm"
+                className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
                 required
               />
             </div>
@@ -344,7 +344,7 @@ export default function AdminUploadPage() {
                     type="url"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm"
+                    className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
                     required
                   />
                 </div>
@@ -356,7 +356,7 @@ export default function AdminUploadPage() {
                   type="text"
                   value={altText}
                   onChange={(e) => setAltText(e.target.value)}
-                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm"
+                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
                   required
                 />
               </div>
@@ -366,7 +366,7 @@ export default function AdminUploadPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm"
+                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
                   rows={3}
                   required
                 />
@@ -378,7 +378,7 @@ export default function AdminUploadPage() {
                   type="number"
                   value={displayOrder}
                   onChange={(e) => setDisplayOrder(parseInt(e.target.value))}
-                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm"
+                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
                 />
               </div>
               

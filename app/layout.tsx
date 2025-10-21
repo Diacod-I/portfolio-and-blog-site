@@ -40,6 +40,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
+        <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
       </head>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}

@@ -2,14 +2,14 @@
     {
         "title": "Subscribe to my Blog!",
         "url": "https://www.linkedin.com/in/advithkrishnan/",
-        "icon_path": "/internet_shortcuts/linkedin.webp",
-        "description": "Never miss an update on my blog. Subscribe via email!"
+        "icon_path": "/internet_shortcuts/rss_feed_logo.webp",
+        "description": "Never miss an update on my blog. Be notified via email!"
     },
     {
         "title": "LinkedIn",
         "url": "https://www.linkedin.com/in/advithkrishnan/",
         "icon_path": "/internet_shortcuts/linkedin.webp",
-        "description": "Check out my career updates!"
+        "description": "Check out my career updates and other professional feed!"
     },
     {
         "title": "GitHub",
@@ -20,7 +20,7 @@
     {   "title": "ORCID",
         "url": "https://orcid.org/0009-0009-6207-5271",
         "icon_path": "/internet_shortcuts/orcid.webp",
-        "description": "Check out my Research Papers!"
+        "description": "Read my Research Papers! They are fun!"
     },
     {
         "title": "Next Tech Lab Website",

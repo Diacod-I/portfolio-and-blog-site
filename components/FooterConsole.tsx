@@ -51,24 +51,16 @@ export default function FooterConsole({
           <div className="win98-start-menu absolute bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-transparent">
             <div className="bg-[#000080] absolute left-0 top-0 bottom-0 w-[23px]"></div>
             <div className="flex flex-col py-2 pl-[18px]">
-              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
-                <img src="/win98/notepad.webp" alt="Documents" className="w-8 h-8 mr-3" />
-                <span>Documents</span>
-              </button>
-              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
-                <img src="/win98/photos.webp" alt="Pictures" className="w-8 h-8 mr-3" />
-                <span>Pictures</span>
-              </button>
-              <div className="border-t border-[#808080] my-2"></div>
-              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
-                <img src="/win98/internet.webp" alt="Internet" className="w-8 h-8 mr-3" />
-                <span>Internet</span>
-              </button>
-              <div className="border-t border-[#808080] my-2"></div>
-              <button className="win98-start-menu-item flex items-center px-4 py-1 min-w-0">
-                <img src="/win98/info.webp" alt="About" className="w-8 h-8 mr-3" />
-                <span>About</span>
-              </button>
+              <div className="flex items-center">
+                <img 
+                  src="/club_penguin.gif" 
+                  alt="Club Penguin Dancing" 
+                  className="w-64 h-auto"
+                />
+              </div>
+              <p className="ml-1 text-center">
+              Hope you are having a great day!
+              </p>
             </div>
           </div>
         )}

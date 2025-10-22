@@ -41,6 +41,20 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
+        <meta name="keywords" content="Advith, Blog, Portfolio, Windows 98, Developer, Projects, Research" />
+        <meta name="author" content="Advith Krishnan" />
+        <meta name="robots" content="index, follow" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="Advith's Blogfolio" />
+        <meta property="og:description" content="Advith's Windows 98 themed Portfolio and Blog website" />
+        <meta property="og:url" content="https://adviths-blogfolio.vercel.app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://adviths-blogfolio.vercel.app/Advith_Krishnan.webp" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Advith's Blogfolio" />
+        <meta name="twitter:description" content="Advith's Windows 98 themed Portfolio and Blog website" />
+        <meta name="twitter:image" content="https://adviths-blogfolio.vercel.app/Advith_Krishnan.webp" />
+        <link rel="canonical" href="https://adviths-blogfolio.vercel.app/" />
       </head>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}

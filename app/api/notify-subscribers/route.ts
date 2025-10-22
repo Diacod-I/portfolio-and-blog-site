@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       const batch = subscribers.slice(i, i + batchSize)
       
       const results = await Promise.allSettled(
-        batch.map(({ email }) =>
+        batch.map(({ email }: { email: string }) =>
           resend.emails.send({
             from: 'Advith\'s Blog <onboarding@resend.dev>',
             to: email,

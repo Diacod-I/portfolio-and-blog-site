@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'content/notes/**/*.mdx'
+      - 'content/notes/*.mdx'
+      - '!content/notes/draft_content/**'
 
 jobs:
   send-notifications:
@@ -24,8 +25,8 @@ jobs:
       - name: Get new blog posts
         id: new_posts
         run: |
-          # Get list of new .mdx files in this commit
-          NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD | grep 'content/notes/.*\.mdx$' || echo "")
+          # Get list of new .mdx files in this commit (excluding draft_content)
+          NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD | grep 'content/notes/.*\.mdx$' | grep -v 'draft_content' || echo "")
           echo "new_files<<EOF" >> $GITHUB_OUTPUT
           echo "$NEW_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

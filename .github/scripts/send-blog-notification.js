@@ -77,10 +77,10 @@ async function sendNotifications() {
         const batch = subscribers.slice(i, i + batchSize)
         
         const results = await Promise.allSettled(
-          batch.map(({ email }) =>
+          batch.map((subscriber) =>
             resend.emails.send({
               from: 'Advith\'s Blog <onboarding@resend.dev>', // Change to your verified domain
-              to: email,
+              to: subscriber.email,
               subject: `📝 New Blog Post: ${title}`,
               html: `
                 <!DOCTYPE html>

@@ -208,7 +208,6 @@ export default function ImageViewer() {
             }`}>
               <div className="flex items-center gap-2 mb-1 flex-wrap justify-center">
                 <p className="text-sm text-center">
-                  {images[currentIndex].description}&nbsp;
               <span className="text-xs text-gray-600">
               {isRecent(images[currentIndex].uploaded_at) && (
                   <span className="bg-yellow-300 border-2 border-t-yellow-100 border-l-yellow-100 border-b-yellow-500 border-r-yellow-500 px-2 py-0.5 text-xs font-bold whitespace-nowrap">
@@ -216,6 +215,8 @@ export default function ImageViewer() {
                   </span>
                 )} 
               </span>
+              &nbsp;
+                  {images[currentIndex].description}
                 </p>
               </div>
             </div>

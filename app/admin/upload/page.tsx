@@ -34,6 +34,11 @@ export default function AdminUploadPage() {
   
   // Existing photos
   const [photos, setPhotos] = useState<Photo[]>([])
+  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null)
+  const [editAltText, setEditAltText] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editDisplayOrder, setEditDisplayOrder] = useState(0)
+  const [editIsVisible, setEditIsVisible] = useState(true)
 
   useEffect(() => {
     checkUser()
@@ -191,11 +196,6 @@ export default function AdminUploadPage() {
       }
       
       fetchPhotos()
-    } catch (error: any) {
-      alert(`Error deleting photo: ${error.message}`)
-    }
-  }
-
   async function toggleVisibility(id: string, currentVisibility: boolean) {
     const { error } = await supabase
       .from('photos')
@@ -203,6 +203,53 @@ export default function AdminUploadPage() {
       .eq('id', id)
     
     if (error) {
+      alert(`Error updating visibility: ${error.message}`)
+    } else {
+      fetchPhotos()
+    }
+  }
+
+  function startEditing(photo: Photo) {
+    setEditingPhoto(photo)
+    setEditAltText(photo.alt_text)
+    setEditDescription(photo.description)
+    setEditDisplayOrder(photo.display_order)
+    setEditIsVisible(photo.is_visible)
+  }
+
+  function cancelEditing() {
+    setEditingPhoto(null)
+    setEditAltText('')
+    setEditDescription('')
+    setEditDisplayOrder(0)
+    setEditIsVisible(true)
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingPhoto) return
+
+    try {
+      const { error } = await supabase
+        .from('photos')
+        .update({
+          alt_text: editAltText,
+          description: editDescription,
+          display_order: editDisplayOrder,
+          is_visible: editIsVisible,
+        })
+        .eq('id', editingPhoto.id)
+
+      if (error) {
+        throw error
+      }
+
+      cancelEditing()
+      fetchPhotos()
+    } catch (error: any) {
+      alert(`Error updating photo: ${error.message}`)
+    }
+  } if (error) {
       alert(`Error updating visibility: ${error.message}`)
     } else {
       fetchPhotos()
@@ -362,55 +409,129 @@ export default function AdminUploadPage() {
               </div>
               
               <div>
-                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Description:</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
-                  rows={3}
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Display Order:</label>
-                <input
-                  type="number"
-                  value={displayOrder}
-                  onChange={(e) => setDisplayOrder(parseInt(e.target.value))}
-                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={isVisible}
-                    onChange={(e) => setIsVisible(e.target.checked)}
-                  />
-                  <span className="font-['MS_Sans_Serif'] text-sm">Visible on site</span>
-                </label>
-              </div>
-              
-              {uploadStatus && (
-                <p className={`font-['MS_Sans_Serif'] text-sm ${uploadStatus.includes('Error') ? 'text-red-700' : 'text-green-700'}`}>
-                  {uploadStatus}
-                </p>
-              )}
-              
-              <button
-                type="submit"
-                disabled={uploading}
-                className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-1 font-['MS_Sans_Serif'] text-sm active:border-t-black active:border-l-black active:border-r-white active:border-b-white disabled:opacity-50"
-              >
-                {uploading ? 'Uploading...' : 'Upload Photo'}
-              </button>
-            </form>
-          </div>
-
           {/* Photos List */}
           <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4">
+            <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4">
+              <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Existing Photos ({photos.length})</span>
+            </div>
+            
+            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+              {photos.map((photo) => (
+                <div key={photo.id} className="border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white p-2">
+                  {editingPhoto?.id === photo.id ? (
+                    // Edit Form
+                    <form onSubmit={handleUpdate} className="space-y-2">
+                      <div className="flex gap-2">
+                        <img
+                          src={photo.image_url}
+                          alt={photo.alt_text}
+                          className="w-20 h-20 object-cover border border-black"
+                        />
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={editAltText}
+                            onChange={(e) => setEditAltText(e.target.value)}
+                            className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white mb-1"
+                            placeholder="Alt text"
+                            required
+                          />
+                          <textarea
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                            className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white"
+                            rows={2}
+                            placeholder="Description"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 items-center">
+                        <label className="font-['MS_Sans_Serif'] text-xs">Order:</label>
+                        <input
+                          type="number"
+                          value={editDisplayOrder}
+                          onChange={(e) => setEditDisplayOrder(parseInt(e.target.value))}
+                          className="w-20 border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white"
+                        />
+                        <label className="flex items-center gap-1 ml-2">
+                          <input
+                            type="checkbox"
+                            checked={editIsVisible}
+                            onChange={(e) => setEditIsVisible(e.target.checked)}
+                          />
+                          <span className="font-['MS_Sans_Serif'] text-xs">Visible</span>
+                        </label>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditing}
+                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    // Display View
+                    <>
+                      <div className="flex gap-2">
+                        <img
+                          src={photo.image_url}
+                          alt={photo.alt_text}
+                          className="w-20 h-20 object-cover border border-black"
+                        />
+                        <div className="flex-1">
+                          <p className="font-['MS_Sans_Serif'] text-sm font-bold">{photo.alt_text}</p>
+                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-700">{photo.description}</p>
+                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-600 mt-1">Order: {photo.display_order}</p>
+                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-600">
+                            Status: {photo.is_visible ? '👁️ Visible' : '🚫 Hidden'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={() => startEditing(photo)}
+                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => toggleVisibility(photo.id, photo.is_visible)}
+                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+                        >
+                          {photo.is_visible ? 'Hide' : 'Show'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(photo.id, photo.image_url)}
+                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs text-red-700 active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              
+              {photos.length === 0 && (
+                <p className="font-['MS_Sans_Serif'] text-sm text-gray-600 text-center py-8">
+                  No photos yet. Upload your first photo!
+                </p>
+              )}
+            </div>
+          </div>lassName="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4">
             <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4">
               <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Existing Photos ({photos.length})</span>
             </div>

@@ -22,6 +22,13 @@ export default function ImageViewer() {
 
   // Fetch photos from Supabase
   useEffect(() => {
+    // Skip if Supabase isn't configured (e.g., during build)
+    if (!supabase) {
+      setLoading(false)
+      setError('Photo gallery not configured')
+      return
+    }
+
     fetchPhotos()
     
     // Subscribe to real-time updates
@@ -42,6 +49,8 @@ export default function ImageViewer() {
   }, [])
 
   const fetchPhotos = async () => {
+    if (!supabase) return
+    
     try {
       const { data, error } = await supabase
         .from('photos')

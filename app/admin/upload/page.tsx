@@ -196,6 +196,11 @@ export default function AdminUploadPage() {
       }
       
       fetchPhotos()
+    } catch (error: any) {
+      alert(`Error deleting photo: ${error.message}`)
+    }
+  }
+
   async function toggleVisibility(id: string, currentVisibility: boolean) {
     const { error } = await supabase
       .from('photos')
@@ -248,11 +253,6 @@ export default function AdminUploadPage() {
       fetchPhotos()
     } catch (error: any) {
       alert(`Error updating photo: ${error.message}`)
-    }
-  } if (error) {
-      alert(`Error updating visibility: ${error.message}`)
-    } else {
-      fetchPhotos()
     }
   }
 
@@ -531,55 +531,12 @@ export default function AdminUploadPage() {
                 </p>
               )}
             </div>
-          </div>lassName="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4">
-            <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4">
-              <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Existing Photos ({photos.length})</span>
-            </div>
-            
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
-              {photos.map((photo) => (
-                <div key={photo.id} className="border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white p-2">
-                  <div className="flex gap-2">
-                    <img
-                      src={photo.image_url}
-                      alt={photo.alt_text}
-                      className="w-20 h-20 object-cover border border-black"
-                    />
-                    <div className="flex-1">
-                      <p className="font-['MS_Sans_Serif'] text-sm font-bold">{photo.alt_text}</p>
-                      <p className="font-['MS_Sans_Serif'] text-xs text-gray-700">{photo.description}</p>
-                      <p className="font-['MS_Sans_Serif'] text-xs text-gray-600 mt-1">Order: {photo.display_order}</p>
-                      <p className="font-['MS_Sans_Serif'] text-xs text-gray-600">
-                        Status: {photo.is_visible ? '👁️ Visible' : '🚫 Hidden'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => toggleVisibility(photo.id, photo.is_visible)}
-                      className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-                    >
-                      {photo.is_visible ? 'Hide' : 'Show'}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(photo.id, photo.image_url)}
-                      className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs text-red-700 active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-              
-              {photos.length === 0 && (
-                <p className="font-['MS_Sans_Serif'] text-sm text-gray-600 text-center py-8">
-                  No photos yet. Upload your first photo!
-                </p>
-              )}
-            </div>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
       </div>
     </div>
   )

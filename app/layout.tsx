@@ -24,7 +24,7 @@ const vt323 = VT323({
 })
 
 export const metadata: Metadata = {
-  title: "Advith's Blogfolio",
+  title: "Advith Krishnan's Blogfolio",
   description: "Advith's Windows 98 themed Portfolio and Blog website",
   icons: {
     icon: '/favicon.ico'
@@ -45,7 +45,7 @@ export default function RootLayout({
         <meta name="author" content="Advith Krishnan" />
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="Advith's Blogfolio" />
+        <meta property="og:title" content="Advith Krishnan's Blogfolio" />
         <meta property="og:description" content="Advith's Windows 98 themed Portfolio and Blog website" />
         <meta property="og:url" content="https://adviths-blogfolio.vercel.app/" />
         <meta property="og:type" content="website" />

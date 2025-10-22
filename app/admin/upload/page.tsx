@@ -270,7 +270,6 @@ export default function AdminUploadPage() {
     return (
       <div className="min-h-screen bg-[#008080] flex items-center justify-center p-4">
         <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-6 max-w-md w-full">
-          {/* Title bar */}
           <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4 flex items-center">
             <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Admin Login</span>
           </div>
@@ -327,7 +326,6 @@ export default function AdminUploadPage() {
   return (
     <div className="min-h-screen bg-[#008080] p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4 mb-4">
           <div className="flex justify-between items-center">
             <h1 className="font-['MS_Sans_Serif'] text-lg font-bold">Photo Admin Dashboard</h1>
@@ -342,7 +340,6 @@ export default function AdminUploadPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Upload Form */}
           <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4">
             <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4">
               <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Upload New Photo</span>
@@ -353,21 +350,11 @@ export default function AdminUploadPage() {
                 <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Upload Type:</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      value="file"
-                      checked={uploadType === 'file'}
-                      onChange={() => setUploadType('file')}
-                    />
+                    <input type="radio" value="file" checked={uploadType === 'file'} onChange={() => setUploadType('file')} />
                     <span className="font-['MS_Sans_Serif'] text-sm">File Upload</span>
                   </label>
                   <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      value="url"
-                      checked={uploadType === 'url'}
-                      onChange={() => setUploadType('url')}
-                    />
+                    <input type="radio" value="url" checked={uploadType === 'url'} onChange={() => setUploadType('url')} />
                     <span className="font-['MS_Sans_Serif'] text-sm">Image URL</span>
                   </label>
                 </div>
@@ -376,40 +363,47 @@ export default function AdminUploadPage() {
               {uploadType === 'file' ? (
                 <div>
                   <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Select Image:</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="w-full font-['MS_Sans_Serif'] text-sm"
-                    required
-                  />
+                  <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full font-['MS_Sans_Serif'] text-sm" required />
                 </div>
               ) : (
                 <div>
                   <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Image URL:</label>
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
-                    required
-                  />
+                  <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" required />
                 </div>
               )}
               
               <div>
                 <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Alt Text:</label>
-                <input
-                  type="text"
-                  value={altText}
-                  onChange={(e) => setAltText(e.target.value)}
-                  className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
-                  required
-                />
+                <input type="text" value={altText} onChange={(e) => setAltText(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" required />
               </div>
               
               <div>
-          {/* Photos List */}
+                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Description:</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" rows={3} required />
+              </div>
+              
+              <div>
+                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Display Order:</label>
+                <input type="number" value={displayOrder} onChange={(e) => setDisplayOrder(parseInt(e.target.value))} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" />
+              </div>
+              
+              <div>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={isVisible} onChange={(e) => setIsVisible(e.target.checked)} />
+                  <span className="font-['MS_Sans_Serif'] text-sm">Visible on site</span>
+                </label>
+              </div>
+              
+              {uploadStatus && (
+                <p className={`font-['MS_Sans_Serif'] text-sm ${uploadStatus.includes('Error') ? 'text-red-700' : 'text-green-700'}`}>{uploadStatus}</p>
+              )}
+              
+              <button type="submit" disabled={uploading} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-1 font-['MS_Sans_Serif'] text-sm active:border-t-black active:border-l-black active:border-r-white active:border-b-white disabled:opacity-50">
+                {uploading ? 'Uploading...' : 'Upload Photo'}
+              </button>
+            </form>
+          </div>
+
           <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4">
             <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4">
               <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Existing Photos ({photos.length})</span>
@@ -419,106 +413,42 @@ export default function AdminUploadPage() {
               {photos.map((photo) => (
                 <div key={photo.id} className="border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white p-2">
                   {editingPhoto?.id === photo.id ? (
-                    // Edit Form
                     <form onSubmit={handleUpdate} className="space-y-2">
                       <div className="flex gap-2">
-                        <img
-                          src={photo.image_url}
-                          alt={photo.alt_text}
-                          className="w-20 h-20 object-cover border border-black"
-                        />
+                        <img src={photo.image_url} alt={photo.alt_text} className="w-20 h-20 object-cover border border-black" />
                         <div className="flex-1">
-                          <input
-                            type="text"
-                            value={editAltText}
-                            onChange={(e) => setEditAltText(e.target.value)}
-                            className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white mb-1"
-                            placeholder="Alt text"
-                            required
-                          />
-                          <textarea
-                            value={editDescription}
-                            onChange={(e) => setEditDescription(e.target.value)}
-                            className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white"
-                            rows={2}
-                            placeholder="Description"
-                            required
-                          />
+                          <input type="text" value={editAltText} onChange={(e) => setEditAltText(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white mb-1" placeholder="Alt text" required />
+                          <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white" rows={2} placeholder="Description" required />
                         </div>
                       </div>
-                      
                       <div className="flex gap-2 items-center">
                         <label className="font-['MS_Sans_Serif'] text-xs">Order:</label>
-                        <input
-                          type="number"
-                          value={editDisplayOrder}
-                          onChange={(e) => setEditDisplayOrder(parseInt(e.target.value))}
-                          className="w-20 border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white"
-                        />
+                        <input type="number" value={editDisplayOrder} onChange={(e) => setEditDisplayOrder(parseInt(e.target.value))} className="w-20 border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white" />
                         <label className="flex items-center gap-1 ml-2">
-                          <input
-                            type="checkbox"
-                            checked={editIsVisible}
-                            onChange={(e) => setEditIsVisible(e.target.checked)}
-                          />
+                          <input type="checkbox" checked={editIsVisible} onChange={(e) => setEditIsVisible(e.target.checked)} />
                           <span className="font-['MS_Sans_Serif'] text-xs">Visible</span>
                         </label>
                       </div>
-                      
                       <div className="flex gap-2">
-                        <button
-                          type="submit"
-                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={cancelEditing}
-                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-                        >
-                          Cancel
-                        </button>
+                        <button type="submit" className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Save</button>
+                        <button type="button" onClick={cancelEditing} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Cancel</button>
                       </div>
                     </form>
                   ) : (
-                    // Display View
                     <>
                       <div className="flex gap-2">
-                        <img
-                          src={photo.image_url}
-                          alt={photo.alt_text}
-                          className="w-20 h-20 object-cover border border-black"
-                        />
+                        <img src={photo.image_url} alt={photo.alt_text} className="w-20 h-20 object-cover border border-black" />
                         <div className="flex-1">
                           <p className="font-['MS_Sans_Serif'] text-sm font-bold">{photo.alt_text}</p>
                           <p className="font-['MS_Sans_Serif'] text-xs text-gray-700">{photo.description}</p>
                           <p className="font-['MS_Sans_Serif'] text-xs text-gray-600 mt-1">Order: {photo.display_order}</p>
-                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-600">
-                            Status: {photo.is_visible ? '👁️ Visible' : '🚫 Hidden'}
-                          </p>
+                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-600">Status: {photo.is_visible ? '👁️ Visible' : '🚫 Hidden'}</p>
                         </div>
                       </div>
-                      
                       <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={() => startEditing(photo)}
-                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => toggleVisibility(photo.id, photo.is_visible)}
-                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-                        >
-                          {photo.is_visible ? 'Hide' : 'Show'}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(photo.id, photo.image_url)}
-                          className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs text-red-700 active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-                        >
-                          Delete
-                        </button>
+                        <button onClick={() => startEditing(photo)} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Edit</button>
+                        <button onClick={() => toggleVisibility(photo.id, photo.is_visible)} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">{photo.is_visible ? 'Hide' : 'Show'}</button>
+                        <button onClick={() => handleDelete(photo.id, photo.image_url)} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs text-red-700 active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Delete</button>
                       </div>
                     </>
                   )}
@@ -526,17 +456,11 @@ export default function AdminUploadPage() {
               ))}
               
               {photos.length === 0 && (
-                <p className="font-['MS_Sans_Serif'] text-sm text-gray-600 text-center py-8">
-                  No photos yet. Upload your first photo!
-                </p>
+                <p className="font-['MS_Sans_Serif'] text-sm text-gray-600 text-center py-8">No photos yet. Upload your first photo!</p>
               )}
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
       </div>
     </div>
   )

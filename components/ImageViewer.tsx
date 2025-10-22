@@ -56,6 +56,7 @@ export default function ImageViewer() {
         .from('photos')
         .select('*')
         .eq('is_visible', true)
+        .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false })
         .limit(10)
 
@@ -75,7 +76,7 @@ export default function ImageViewer() {
     }
   }
 
-  // Auto-scroll every 4 seconds
+  // Auto-scroll every 7 seconds
   useEffect(() => {
     if (images.length === 0) return
 
@@ -142,7 +143,7 @@ export default function ImageViewer() {
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
             <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
-            <span>Recent Photos Viewer</span>
+            <span>Recent Highlights</span>
           </div>
         </div>
         <div className="flex-1 bg-[#c0c0c0] p-2 flex items-center justify-center">
@@ -159,7 +160,7 @@ export default function ImageViewer() {
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
             <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
-            <span>Recent Photos Viewer</span>
+            <span>Recent Highlights</span>
           </div>
         </div>
         <div className="flex-1 bg-[#c0c0c0] p-2 flex items-center justify-center">
@@ -179,7 +180,7 @@ export default function ImageViewer() {
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
           <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
-          <span>Recent Photos Viewer</span>
+          <span>Recent Highlights</span>
         </div>
       </div>
       <div className="flex-1 bg-[#c0c0c0] p-2 flex items-center justify-center overflow-hidden">
@@ -207,17 +208,16 @@ export default function ImageViewer() {
             }`}>
               <div className="flex items-center gap-2 mb-1 flex-wrap justify-center">
                 <p className="text-sm text-center">
-                  {images[currentIndex].description}
-                </p>
-              </div>
+                  {images[currentIndex].description}&nbsp;
               <span className="text-xs text-gray-600">
               {isRecent(images[currentIndex].uploaded_at) && (
                   <span className="bg-yellow-300 border-2 border-t-yellow-100 border-l-yellow-100 border-b-yellow-500 border-r-yellow-500 px-2 py-0.5 text-xs font-bold whitespace-nowrap">
                     NEW
                   </span>
                 )} 
-                &nbsp;Uploaded {formatDate(images[currentIndex].uploaded_at)}
               </span>
+                </p>
+              </div>
             </div>
           </div>
           <button

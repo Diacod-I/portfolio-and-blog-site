@@ -72,7 +72,7 @@ export default function ImageViewer() {
 
     const interval = setInterval(() => {
       nextImage()
-    }, 4000)
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [currentIndex, images.length])
@@ -200,14 +200,14 @@ export default function ImageViewer() {
                 <p className="text-sm text-center">
                   {images[currentIndex].description}
                 </p>
-                {isRecent(images[currentIndex].uploaded_at) && (
-                  <span className="bg-yellow-300 border-2 border-t-yellow-100 border-l-yellow-100 border-b-yellow-500 border-r-yellow-500 px-2 py-0.5 text-xs font-bold whitespace-nowrap">
-                    🆕 NEW
-                  </span>
-                )}
               </div>
               <span className="text-xs text-gray-600">
-                Uploaded {formatDate(images[currentIndex].uploaded_at)}
+              {isRecent(images[currentIndex].uploaded_at) && (
+                  <span className="bg-yellow-300 border-2 border-t-yellow-100 border-l-yellow-100 border-b-yellow-500 border-r-yellow-500 px-2 py-0.5 text-xs font-bold whitespace-nowrap">
+                    NEW
+                  </span>
+                )} 
+                &nbsp;Uploaded {formatDate(images[currentIndex].uploaded_at)}
               </span>
             </div>
           </div>
@@ -218,19 +218,6 @@ export default function ImageViewer() {
           >▶
           </button>
         </div>
-      </div>
-      {/* Dot indicators */}
-      <div className="bg-[#c0c0c0] pb-2 flex justify-center gap-2">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToImage(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-navy' : 'bg-gray-400'
-            }`}
-            aria-label={`Go to image ${index + 1}`}
-          />
-        ))}
       </div>
     </div>
   )

@@ -123,8 +123,16 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 overflow-y-auto">
               {/* Left Column */}
               <div className="flex flex-col h-full">
+                {/* Image Viewer */}
+                <div className="flex-1">
+                  <ImageViewer />
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="flex flex-col h-full gap-4">
                 {/* System Information */}
-                <div className="win98-window mb-4">
+                {/* <div className="win98-window">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/info.webp" alt="System" className="w-4 h-4" />
@@ -136,18 +144,10 @@ export default function HomePage() {
                       <UptimeCounter />
                     </Suspense>
                   </div>
-                </div>
+                </div> */}
 
-                {/* Image Viewer */}
-                <div className="flex-1">
-                  <ImageViewer />
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="flex flex-col h-full justify-between">
                 {/* Recent Blogs */}
-                <div className="win98-window flex-1 flex flex-col mb-4">
+                <div className="win98-window flex-1 flex flex-col max-h-[300px]">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/notepad.webp" alt="Notes" className="w-4 h-4" />
@@ -160,7 +160,7 @@ export default function HomePage() {
                 </div>
                 
                 {/* Internet Shortcuts */}
-                <div className="win98-window flex-1 flex flex-col">
+                <div className="win98-window flex-1 flex flex-col max-h-[300px]">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
@@ -168,7 +168,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="flex-1 bg-white border-2 p-2">
-                    <div className="overflow-y-auto border-2 max-h-[240px]">
+                    <div className="overflow-y-auto border-2 max-h-[230px]">
                       <FeaturedLinks />
                     </div>
                   </div>

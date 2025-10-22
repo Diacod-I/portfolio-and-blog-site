@@ -203,10 +203,10 @@ export default function ImageViewer() {
               />
             </div>
             {/* Image description with date */}
-            <div className={`win98-inset bg-white p-3 mt-2 w-full max-w-[650px] min-h-[70px] flex flex-col items-center justify-center flex-shrink-0 transition-opacity duration-300 ${
+            <div className={`win98-inset bg-white mt-1 w-full max-w-[650px] min-h-[55px] flex flex-col items-center justify-center flex-shrink-0 transition-opacity duration-300 p-2 ${
               isTransitioning ? 'opacity-0' : 'opacity-100'
             }`}>
-              <div className="flex items-center gap-2 mb-1 flex-wrap justify-center">
+              <div className="flex items-center flex-wrap justify-center">
                 <p className="text-sm text-center">
               <span className="text-xs text-gray-600">
               {isRecent(images[currentIndex].uploaded_at) && (

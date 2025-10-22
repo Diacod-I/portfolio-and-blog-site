@@ -37,8 +37,8 @@ export default function FooterConsole({
   }, [])
 
   return (
-    <footer className="win98-taskbar">
-      <div className="relative">
+    <footer className="win98-taskbar overflow-x-auto overflow-y-hidden">
+      <div className="relative flex-shrink-0">
         <button 
           className={`win98-start-button ${isStartMenuOpen ? 'active' : ''}`}
           onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
@@ -48,7 +48,7 @@ export default function FooterConsole({
         </button>
 
         {isStartMenuOpen && (
-          <div className="win98-start-menu absolute bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-transparent">
+          <div className="win98-start-menu absolute bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-transparent z-50">
             <div className="bg-[#000080] absolute left-0 top-0 bottom-0 w-[23px]"></div>
             <div className="flex flex-col py-2 pl-[18px]">
               <div className="flex items-center">
@@ -66,14 +66,15 @@ export default function FooterConsole({
         )}
       </div>
 
-      <div className="border-l-2 border-[#808080] ml-2 h-8"></div>
-      <div className="border-l-2 border-[#ffffff] h-8 mr-2"></div>
-      <div className="flex-1 flex items-center gap-2">
+      <div className="border-l-2 border-[#808080] ml-2 h-8 flex-shrink-0"></div>
+      <div className="border-l-2 border-[#ffffff] h-8 mr-2 flex-shrink-0"></div>
+      <div className="flex-1 flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-max">
         {activeApps.map((app) => (
           <button
             key={app.id}
             onClick={() => onAppClick(app.id)}
-            className={`win98-button flex items-center gap-2 px-2 py-1 min-w-[150px] ${
+            className={`win98-button flex items-center gap-2 px-2 py-1 min-w-[150px] flex-shrink-0 ${
               app.isActive 
                 ? 'bg-[#c3c3c3] border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white' 
                 : ''
@@ -83,10 +84,11 @@ export default function FooterConsole({
             <span className="text-xs font-bold">{app.name}</span>
           </button>
         ))}
+        </div>
       </div>
-      <div className="border-l-2 border-[#808080] h-8"></div>
-      <div className="border-l-2 border-[#ffffff] mr-2 h-8"></div>
-      <div className="px-2 win98-taskbar-time">
+      <div className="border-l-2 border-[#808080] h-8 flex-shrink-0"></div>
+      <div className="border-l-2 border-[#ffffff] mr-2 h-8 flex-shrink-0"></div>
+      <div className="px-2 win98-taskbar-time flex-shrink-0">
         <span>{mounted ? time : ''}</span>
       </div>
     </footer>

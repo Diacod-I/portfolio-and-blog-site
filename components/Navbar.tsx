@@ -18,8 +18,8 @@ export default function Navbar() {
 
   return (
     <nav className="win98-window-navbar sticky top-0 z-50">
-      <div className="bg-[#c0c0c0]">
-        <div className="flex items-center justify-between">
+      <div className="bg-[#c0c0c0] overflow-x-auto overflow-y-hidden">
+        <div className="flex items-center justify-between min-w-max">
           <div className="flex items-center gap-0.5">
             {routes.map(({ path, label }) => {
               const isActive = pathname === path

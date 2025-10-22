@@ -1,0 +1,52 @@
+name: Notify Blog Subscribers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/notes/**/*.mdx'
+
+jobs:
+  send-notifications:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Get last 2 commits to detect new files
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Get new blog posts
+        id: new_posts
+        run: |
+          # Get list of new .mdx files in this commit
+          NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD | grep 'content/notes/.*\.mdx$' || echo "")
+          echo "new_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$NEW_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          if [ -z "$NEW_FILES" ]; then
+            echo "No new blog posts detected"
+          else
+            echo "New blog posts detected:"
+            echo "$NEW_FILES"
+          fi
+
+      - name: Install dependencies
+        if: steps.new_posts.outputs.new_files != ''
+        run: npm install @supabase/supabase-js resend gray-matter
+
+      - name: Send email notifications
+        if: steps.new_posts.outputs.new_files != ''
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+          NEW_FILES: ${{ steps.new_posts.outputs.new_files }}
+        run: node .github/scripts/send-blog-notification.js

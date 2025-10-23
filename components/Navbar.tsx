@@ -9,7 +9,6 @@ const routes = [
   { path: '/about', label: 'About' },
   { path: '/blog', label: 'Blog' },
   { path: '/contact', label: 'Contact' },
-  // { path: '/credits', label: 'Credits' },
   { path: '/gallery', label: 'Gallery' },
   { path: '/projects', label: 'Projects' }
 ]
@@ -20,7 +19,7 @@ export default function Navbar() {
   return (
     <nav className="win98-window-navbar sticky top-0 z-50">
       <div className="bg-[#c0c0c0] overflow-x-auto overflow-y-hidden">
-        <div className="flex items-center justify-between min-w-max">
+        <div className="flex items-center justify-between min-w-max w-full">
           <div className="flex items-center gap-0.5">
             {routes.map(({ path, label }) => {
               const isActive = pathname === path
@@ -43,6 +42,14 @@ export default function Navbar() {
               )
             })}
             <ResumeButton />
+          </div>
+          <div className="flex items-center gap-1 mr-2">
+            <button className="win98-navbar-button px-2 py-0.5 font-bold flex items-center gap-1">
+              <img src="/win98/star.webp" alt="Star" className="w-4 h-4" />
+            </button>
+            <button className="win98-navbar-button px-2 py-0.5 font-bold flex items-center gap-1">
+              <img src="/win98/heart.webp" alt="Heart" className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

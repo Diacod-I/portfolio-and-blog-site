@@ -9,8 +9,9 @@ const routes = [
   { path: '/about', label: 'About' },
   { path: '/blog', label: 'Blog' },
   { path: '/contact', label: 'Contact' },
+  { path: '/credits', label: 'Credits' },
   { path: '/gallery', label: 'Gallery' },
-  { path: '/projects', label: 'Projects' },
+  { path: '/projects', label: 'Projects' }
 ]
 
 export default function Navbar() {

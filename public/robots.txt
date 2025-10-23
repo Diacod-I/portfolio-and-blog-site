@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://adviths-blogfolio.vercel.app/sitemap.xml

@@ -1,6 +1,6 @@
 # Advith's Portfolio
 
-A nostalgic Windows 98-themed portfolio and blog website built with Next.js and Tailwind CSS.
+A nostalgic Windows 98-inspired portfolio and blog website built with Next.js and Tailwind CSS.
 
 ## Features
 

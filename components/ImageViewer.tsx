@@ -207,11 +207,11 @@ export default function ImageViewer() {
               isTransitioning ? 'opacity-0' : 'opacity-100'
             }`}>
               <div className="flex items-center flex-wrap justify-center">
-                <p className="text-sm text-center font-bold">
+                <p className="text-sm text-center font-semibold">
               <span className="text-xs text-gray-600">
               {isRecent(images[currentIndex].uploaded_at) && (
                 <span
-                  className="bg-yellow-300 border border-[#000000] px-2 py-0.5 text-xs font-bold rounded whitespace-nowrap animate-pulse-spiky"
+                  className="bg-yellow-300 border border-[#000000] px-2 py-0.5 text-xs font-extrabold rounded whitespace-nowrap animate-pulse-spiky"
                   style={{
                     minWidth: '40px',
                     minHeight: '22px',

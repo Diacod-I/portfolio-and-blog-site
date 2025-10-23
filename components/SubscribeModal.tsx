@@ -69,12 +69,12 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
         <div className="p-4 bg-[#c0c0c0]">
           <form onSubmit={handleSubmit} className="space-y-3">
-            <p className="text-sm text-black">
+            <p className="text-sm text-black font-bold">
               Get notified via email whenever I publish a new blog post!
             </p>
 
             <div>
-              <label className="text-sm block mb-1 text-black font-bold">
+              <label className="text-sm block mb-1 text-black">
                 Your Email:
               </label>
               <input
@@ -100,20 +100,20 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="win98-button px-4 py-1 text-sm disabled:opacity-50"
+                className="win98-button font-semibold px-4 py-1 text-sm disabled:opacity-50"
               >
                 {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="win98-button px-4 py-1 text-sm"
+                className="win98-button font-semibold px-4 py-1 text-sm"
               >
                 Cancel
               </button>
             </div>
 
-            <p className="text-xs text-gray-600">
+            <p className="text-xs font-semibold text-gray-600">
               📧 No spam. Unsubscribe anytime.
             </p>
           </form>

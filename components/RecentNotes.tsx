@@ -42,7 +42,7 @@ export default function RecentNotes() {
           <div className="flex items-center gap-2">
             {new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) ? (
               <span
-                className="text-[#000] text-[10px] font-bold px-2 py-0.5 rounded animate-gradient-pulse"
+                className="text-[#000] text-[10px] font-extrabold px-2 py-0.5 rounded animate-gradient-pulse"
                 style={{
                   background: 'repeating-linear-gradient(90deg, #ffb6ec 0px, #ffecb6 40px, #b6ffec 80px, #b6ecff 120px, #ecb6ff 160px, #ffb6ec 200px)',
                   backgroundSize: '200px 100%',

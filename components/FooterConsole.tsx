@@ -112,7 +112,7 @@ export default function FooterConsole({
         </div>
         {/* Copyright notice */}
         <p className="ml-auto px-2 text-[11px] text-[#444] font-mono opacity-70">
-          © 2025 Advith Krishnan. <a href="/LICENSE.md" className="hover:underline">CC BY-NC-ND 4.0</a>. <a href="/credits" className="text-[11px] text-[#444] font-mono opacity-70 hover:underline">Credits & attributions provided.</a>
+          © 2025 Advith Krishnan. <a href="/LICENSE.md" className="hover:underline">CC BY-NC-ND 4.0</a>. <a href="/credits" className="text-[11px] text-[#444] font-mono hover:underline">Credits & attributions provided.</a>
         </p>
         
         {/* Separator */}

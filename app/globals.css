@@ -121,3 +121,30 @@
   border: 1px solid #808080;
   box-shadow: inset 1px 1px #fff;
 }
+
+@keyframes gradientFlow {
+  0% { background-position-x: 0px; }
+  100% { background-position-x: 200px; }
+}
+@keyframes pulseExpand {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+@keyframes pulseSpiky {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.animate-gradient {
+  background-size: 400% 400%;
+  animation: gradientFlow 3s ease infinite;
+}
+.animate-pulse-expand {
+  animation: pulseExpand 1.2s ease-in-out infinite;
+}
+.animate-gradient-pulse {
+  background-size: 200px 100%;
+  animation: gradientFlow 3s linear infinite;
+}
+.animate-pulse-spiky {
+  animation: pulseSpiky 1.1s ease-in-out infinite;
+}

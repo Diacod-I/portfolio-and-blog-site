@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar'
 import ImageViewer from '@/components/ImageViewer'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
+import useSWR from 'swr'
 
 export default function HomePage() {
   const [isAppOpen, setIsAppOpen] = useState(false)
@@ -18,6 +19,10 @@ export default function HomePage() {
     icon: string;
     isActive: boolean;
   }>>([])
+
+  const fetcher = (url: string) => fetch(url).then(res => res.json())
+  const { data: notes } = useSWR<Array<{ date: string }>>('/api/notes', fetcher)
+  const hasNewBlog = Array.isArray(notes) && notes.some(note => new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
 
   const handleAppOpen = async () => {
     if (!isAppOpen) {
@@ -75,13 +80,18 @@ export default function HomePage() {
       {/* Desktop Icon */}
       <button 
         onClick={handleAppOpen}
-        className="flex flex-col items-center gap-2 p-2"
+        className="flex flex-col items-center gap-2 p-2 relative"
       >
-        <img
-          src="/win98/advith_krishnan_exe.webp"
-          alt="Application"
-          className="w-14 h-14"
-        />
+        {hasNewBlog && (
+          <span className="absolute top-0 right-14 -translate-y-2 translate-x-2 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse-expand pointer-events-none"></span>
+        )}
+        <div>
+          <img
+            src="/win98/advith_krishnan_exe.webp"
+            alt="Application"
+            className="w-14 h-14"
+          />
+        </div>
         <span className={`win98-app-name ${isAppOpen ? 'active' : ''}`}>
           advith_krishnan.exe
         </span>

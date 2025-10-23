@@ -19,6 +19,8 @@ export default function ImageViewer() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null)
+  const [prevIndex, setPrevIndex] = useState<number>(0)
 
   // Fetch photos from Supabase
   useEffect(() => {
@@ -89,21 +91,27 @@ export default function ImageViewer() {
 
   const nextImage = () => {
     if (!isTransitioning && images.length > 0) {
-      setIsTransitioning(true)
+      setPrevIndex(currentIndex);
+      setSwipeDirection('left');
+      setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length)
-        setIsTransitioning(false)
-      }, 300)
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+        setIsTransitioning(false);
+        setSwipeDirection(null);
+      }, 300);
     }
   }
 
   const prevImage = () => {
     if (!isTransitioning && images.length > 0) {
-      setIsTransitioning(true)
+      setPrevIndex(currentIndex);
+      setSwipeDirection('right');
+      setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
-        setIsTransitioning(false)
-      }, 300)
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+        setIsTransitioning(false);
+        setSwipeDirection(null);
+      }, 300);
     }
   }
 
@@ -192,15 +200,30 @@ export default function ImageViewer() {
           >◀
           </button>
           <div className="w-full h-full flex flex-col items-center justify-center px-12 py-2">
-            <div className={`flex-1 flex items-center justify-center w-full min-h-0 transition-opacity duration-300 ${
-              isTransitioning ? 'opacity-0' : 'opacity-100'
-            }`}>
-              <img
-                src={images[currentIndex].image_url}
-                alt={images[currentIndex].alt_text}
-                className="max-w-[650px] max-h-full w-auto h-auto object-contain"
-                style={{ imageRendering: 'pixelated' }}
-              />
+            <div className="relative w-full h-full overflow-hidden">
+              <div
+                className="flex h-full transition-transform duration-300"
+                style={{
+                  width: `${images.length * 100}%`,
+                  transform: `translateX(-${currentIndex * (100 / images.length)}%)`,
+                  position: 'relative',
+                }}
+              >
+                {images.map((img, idx) => (
+                  <div
+                    key={img.id}
+                    style={{ width: `${100 / images.length}%` }}
+                    className="flex items-center justify-center flex-shrink-0 flex-grow-0 overflow-hidden max-w-[650px] w-full h-full"
+                  >
+                    <img
+                      src={img.image_url}
+                      alt={img.alt_text}
+                      className="max-w-[650px] max-h-full w-auto h-auto object-contain"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
             {/* Image description with date */}
             <div className={`win98-inset bg-white mt-1 w-full max-w-[650px] min-h-[55px] flex flex-col items-center justify-center flex-shrink-0 transition-opacity duration-300 p-2 ${

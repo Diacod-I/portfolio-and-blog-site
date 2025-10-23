@@ -43,7 +43,7 @@ export default function NoteWindow({ title, children }: NoteWindowProps) {
         </div>
       </div>
       <div className="mt-8 text-center text-[11px] text-[#ffffff] font-mono opacity-70">
-        © 2025 Advith Krishnan. <a href="/LICENSE.md" className="hover:underline">CC BY-NC-ND 4.0</a>. <a href="/credits" className="text-[11px] text-[#ffffff] font-mono hover:underline">Credits & attributions provided.</a>
+        © 2025 Advith Krishnan. <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" className="hover:underline">CC BY-NC-ND 4.0</a>. <a href="/credits" className="text-[11px] text-[#ffffff] font-mono hover:underline">Credits & attributions provided.</a>
       </div>
     </div>
   )

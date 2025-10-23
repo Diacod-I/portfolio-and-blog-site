@@ -42,7 +42,7 @@ export default function CreditsPage() {
           </ul>
           <h2 className="text-lg font-bold mb-2">Licenses</h2>
           <ul className="list-disc ml-6 mb-4">
-            <li>Site content & code: <a href="/LICENSE.md" className="underline text-blue-700">CC BY-NC-ND 4.0</a> by Advith Krishnan</li>
+            <li>Site content & code: <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">CC BY-NC-ND 4.0</a> by Advith Krishnan</li>
             <li>Third-party assets retain their original licenses.</li>
           </ul>
           <p className="mt-4 text-sm text-gray-700">If you believe attribution is missing or incorrect, please <Link href="/contact" className="underline text-blue-700">contact me</Link>.</p>

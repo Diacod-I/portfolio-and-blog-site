@@ -226,7 +226,7 @@ export default function ImageViewer() {
               </div>
             </div>
             {/* Image description with date */}
-            <div className={`win98-inset bg-white mt-1 w-full max-w-[650px] min-h-[55px] flex flex-col items-center justify-center flex-shrink-0 transition-opacity duration-300 p-2 ${
+            <div className={`win98-inset bg-white mt-1 w-full border border-black max-w-[650px] min-h-[55px] flex flex-col items-center justify-center flex-shrink-0 transition-opacity duration-300 p-2 ${
               isTransitioning ? 'opacity-0' : 'opacity-100'
             }`}>
               <div className="flex items-center flex-wrap justify-center">

@@ -55,8 +55,12 @@ export const getRecentNotes = cache(async (): Promise<Note[]> => {
     // Filter out any null values and sort by date (most recent first)
     const validNotes = notes.filter((note) => note !== null) as Note[]
     console.log('Valid notes found:', validNotes.length)
-    
-    return validNotes
+
+    // Only include notes from the last 30 days
+    const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const recentNotes = validNotes.filter(note => new Date(note.date) >= oneMonthAgo)
+
+    return recentNotes
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   } catch (error) {
     console.error('Error reading notes directory:', error)

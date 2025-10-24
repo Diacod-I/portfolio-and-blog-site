@@ -32,7 +32,7 @@ export default function RecentNotes() {
   }
 
   return (
-    <div className="grid border-2 overflow-y-auto max-h-[235px]">
+    <div className="grid">
       {notes.map((note) => (
         <Link
         key={note.slug}

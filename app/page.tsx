@@ -129,56 +129,45 @@ export default function HomePage() {
             </div>
           </div>
             <Navbar />
-          <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 overflow-y-auto">
+          <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden min-h-0 h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 min-h-0 h-full overflow-hidden">
               {/* Left Column */}
-              <div className="flex flex-col h-full">
-                {/* Image Viewer */}
-                <div className="flex-1">
+              <div className="flex flex-col gap-4 h-full min-h-0 flex-1">
+                <h1 className="text-white text-2xl mt-2 text-center font-bold">
+                  Welcome to Advith Krishnan's Blogfolio!
+                </h1>
+                {/* Image Viewer - now fills left column */}
+                <div className="flex-1 min-h-0 h-full">
                   <ImageViewer />
                 </div>
               </div>
 
               {/* Right Column */}
-              <div className="flex flex-col h-full gap-4">
-                {/* System Information */}
-                {/* <div className="win98-window">
-                  <div className="win98-titlebar">
-                    <div className="flex items-center gap-2">
-                      <img src="/win98/info.webp" alt="System" className="w-4 h-4" />
-                      <span>System Information</span>
-                    </div>
-                  </div>
-                  <div className="p-2">
-                    <Suspense fallback={<div className="win98-window p-2">Loading uptime...</div>}>
-                      <UptimeCounter />
-                    </Suspense>
-                  </div>
-                </div> */}
-
+              <div className="flex flex-col h-full min-h-0 gap-4">
                 {/* Recent Blogs */}
-                <div className="win98-window flex-1 flex flex-col max-h-[300px]">
+                <div className="win98-window flex-1 flex flex-col min-h-0">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/notepad.webp" alt="Notes" className="w-4 h-4" />
                       <span>Recent Blog Posts</span>
                     </div>
                   </div>
-                  <div className="flex-1 bg-[#f0f0f0] p-2">
+                  <div className="flex-1 bg-[#f0f0f0] border-2 p-2 overflow-y-auto min-h-0">
+                    <div className="overflow-y-auto border-2 h-full min-h-0">
                     <RecentNotes />
+                    </div>
                   </div>
                 </div>
-                
                 {/* Internet Shortcuts */}
-                <div className="win98-window flex-1 flex flex-col max-h-[300px]">
+                <div className="win98-window flex-1 flex flex-col min-h-0">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
                       <span>Internet Shortcuts</span>
                     </div>
                   </div>
-                  <div className="flex-1 bg-white border-2 p-2">
-                    <div className="overflow-y-auto border-2 max-h-[230px]">
+                  <div className="flex-1 bg-white border-2 p-2 overflow-y-auto min-h-0">
+                    <div className="overflow-y-auto border-2 h-full min-h-0">
                       <FeaturedLinks />
                     </div>
                   </div>

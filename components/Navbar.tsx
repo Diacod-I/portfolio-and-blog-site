@@ -44,11 +44,15 @@ export default function Navbar() {
             <ResumeButton />
           </div>
           <div className="flex items-center gap-1 mr-2">
-            <button className="win98-navbar-button px-2 py-0.5 font-bold flex items-center gap-1">
-              <img src="/win98/star.webp" alt="Star" className="w-4 h-4" />
+            <button
+              className="win98-navbar-button px-1 font-bold flex items-center gap-1"
+              onClick={() => window.open('https://github.com/Diacod-I/portfolio-and-blog-site', '_blank')}
+              title="Star this repo on GitHub"
+            >
+              <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Star" className="w-6 h-6 object-contain" />
             </button>
-            <button className="win98-navbar-button px-2 py-0.5 font-bold flex items-center gap-1">
-              <img src="/win98/heart.webp" alt="Heart" className="w-4 h-4" />
+            <button className="win98-navbar-button font-bold px-1.5 py-0.5 flex items-center gap-1">
+              <img src="https://github.githubassets.com/images/icons/emoji/unicode/2764.png" alt="Heart" className="w-5 h-5 object-contain" />
             </button>
           </div>
         </div>

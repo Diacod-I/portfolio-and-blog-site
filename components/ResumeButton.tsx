@@ -3,7 +3,7 @@
 export default function ResumeButton() {
   const handleOpenResume = (e: React.MouseEvent) => {
     e.preventDefault()
-    window.open('/resume', '_blank')
+    window.location.href = '/resume'
   }
 
   return (

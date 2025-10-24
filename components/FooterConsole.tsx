@@ -79,8 +79,8 @@ export default function FooterConsole({
                     className="w-48 h-auto"
                   />
                 </div>
-                <p className="ml-2 text-center text-sm">
-                  Hope you are having a great day!
+                <p className="ml-2 text-center text-sm font-semibold">
+                  Hope you are having a great day! :)
                 </p>
               </div>
             </div>

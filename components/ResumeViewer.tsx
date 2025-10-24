@@ -31,7 +31,18 @@ export default function ResumeViewer() {
             >×</button>
           </div>
         </div>
-        <div className="win98-window-content bg-[#222222] text-white p-0 max-h-[calc(100vh-150px)] overflow-y-auto flex items-center justify-center">
+        {/* Download button below titlebar */}
+        <div className="flex justify-end px-4 py-2 bg-[#c0c0c0] border-b border-[#b0b0b0]">
+          <a
+            href="/Advith_Krishnan_Resume.pdf"
+            download
+            className="win98-button px-3 py-1 text-sm font-semibold flex items-center gap-1"
+          >
+            <img src="/win98/notes.webp" alt="Download" className="w-4 h-4" />
+            Download PDF
+          </a>
+        </div>
+        <div className="win98-window-content bg-[#222222] text-white p-0 max-h-[calc(100vh-150px)] flex items-center justify-center">
           <iframe
             src="/Advith_Krishnan_Resume.pdf"
             title="Resume PDF"

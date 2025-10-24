@@ -210,13 +210,13 @@ export default function HomePage() {
           <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 min-h-0 h-full overflow-y-auto">
               {/* Left Column */}
-              <div className="flex flex-col gap-4 h-full flex-1">
+              <div className="flex flex-col gap-2 h-full flex-1">
                 {/* <div className="items-center justify-center text-center"> */}
-                <h1 className="text-white text-xl -mb-2 font-bold">
-                  &gt; 👋 Hi, I'm Advith Krishnan! 
+                <h1 className="text-white text-3xl font-bold">
+                  👋 Hi, I'm Advith Krishnan! 
                 </h1>
                 <span className="text-white text-md min-h-[28px]">
-                  {" "} <span
+                  &gt; {" "} <span
                     className="inline-block transition-opacity duration-300"
                     style={{ fontFamily: 'monospace, monospace', letterSpacing: '0.5px' }}
                   >
@@ -242,8 +242,8 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
-                    <p className="font-bold mb-1 text-center">
-                      Fresh new blogs below 👇 and older ones <a href="/blog" className="text-blue-700 underline hover:text-blue-900">here</a>! Come one, come all!
+                    <p className="font-bold mb-1">
+                      &gt; Fresh new blogs below 👇 and older ones <a href="/blog" className="text-blue-700 underline hover:text-blue-900">here</a>! Come one, come all!
                     </p>
                     <div className="overflow-y-auto border-2" style={{ maxHeight: 226 }}>
                     <RecentNotes />
@@ -259,8 +259,8 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
-                   <p className="font-bold mb-1 text-center">
-                    My online presence! (Still not famous tho)
+                   <p className="font-bold mb-1">
+                    &gt; My online presence! (Still not famous tho)
                     </p>
                     <div className="overflow-y-auto border-2" style={{ maxHeight: 226 }}>
                       <FeaturedLinks />

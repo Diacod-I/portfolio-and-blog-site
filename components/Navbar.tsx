@@ -45,14 +45,35 @@ export default function Navbar() {
           </div>
           <div className="flex items-center gap-1 mr-2">
             <button
-              className="win98-navbar-button px-1 font-bold flex items-center gap-1"
+              className="win98-navbar-button px-2 font-bold flex items-center gap-1 bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 text-yellow-900 shadow-md border-yellow-400 hover:from-yellow-200 hover:to-yellow-400 transition-colors duration-200"
               onClick={() => window.open('https://github.com/Diacod-I/portfolio-and-blog-site', '_blank')}
               title="Star this repo on GitHub"
+              style={{
+                backgroundImage: 'linear-gradient(120deg, #fffbe6 0%, #ffe066 40%, #ffd700 100%)',
+                color: '#000000',
+                borderColor: '#ffd700',
+                fontWeight: 700
+              }}
             >
-              <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Star" className="w-6 h-6 object-contain" />
+              Star on GitHub! ⭐ 
             </button>
-            <button className="win98-navbar-button font-bold px-1.5 py-0.5 flex items-center gap-1">
-              <img src="https://github.githubassets.com/images/icons/emoji/unicode/2764.png" alt="Heart" className="w-5 h-5 object-contain" />
+            <div className='gap-0 flex'>
+            <div className="border-l-2 border-[#808080] h-7"></div>
+            <div className="border-l-2 border-[#ffffff] h-7"></div>
+            </div>
+            <button
+              className="win98-navbar-button px-2 font-bold flex items-center gap-1 bg-gradient-to-br from-pink-500 via-pink-700 to-purple-900 text-pink-100 shadow-md border-pink-700 hover:from-pink-600 hover:to-purple-800 transition-colors duration-200"
+              onClick={() => window.open('https://www.buymeacoffee.com/advithk', '_blank')}
+              title="Donate"
+              style={{
+                backgroundImage: 'linear-gradient(120deg, #e75480 0%, #b4005a 40%, #5a189a 100%)',
+                color: '#fff',
+                textShadow: '0 1px 4px #b4005a, 0 0px 1px #5a189a',
+                borderColor: '#b4005a',
+                fontWeight: 700
+              }}
+            >
+              Donate! ❤️
             </button>
           </div>
         </div>

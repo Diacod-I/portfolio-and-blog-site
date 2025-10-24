@@ -44,8 +44,8 @@
   }
 
   .win98-button {
-    @apply bg-[#b8b8b8] border-2 border-t-[#f0f0f0] border-l-[#f0f0f0] border-b-[#808080] border-r-[#808080] 
-           hover:bg-[#c8c8c8] transition-colors
+    @apply bg-[#c5c5c5] border-2 border-t-[#f0f0f0] border-l-[#f0f0f0] border-b-[#808080] border-r-[#808080] 
+           hover:bg-[#d5d5d5] transition-colors
            hover:active:border-t-[#808080] hover:active:border-l-[#808080] hover:active:border-b-white hover:active:border-r-white
            text-black hover:text-[#f9f9f9];
   }

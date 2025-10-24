@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import UptimeCounter from '@/components/UptimeCounter'
 import RecentNotes from '@/components/RecentNotes'
 import FeaturedLinks from '@/components/FeaturedLinks'
@@ -66,6 +66,84 @@ export default function HomePage() {
     }
   }, [])
 
+  // Morphing animation for roles with cryptic letters
+  const roles = [
+    "An AI Engineer",
+    "An AI Researcher",
+    "A Software Developer",
+    "A Full Stack Engineer"
+  ];
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [displayText, setDisplayText] = useState(roles[0]);
+  const morphing = useRef(false);
+
+  // Helper for random cryptic chars
+  const randomChar = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
+    return chars[Math.floor(Math.random() * chars.length)];
+  };
+
+  useEffect(() => {
+    let morphTimeout: NodeJS.Timeout;
+    let revealTimeout: NodeJS.Timeout;
+    let holdTimeout: NodeJS.Timeout;
+
+    const morphTo = roles[(roleIndex + 1) % roles.length];
+    morphing.current = true;
+
+    // 1. Animate random strings of same length for 0.5s (500ms)
+    let morphFrame = 0;
+    const morphFrames = 500 / 40; // 0.5s at 40ms per frame
+    const morph = () => {
+      setDisplayText(() => {
+        let cryptic = '';
+        for (let i = 0; i < morphTo.length; i++) {
+          cryptic += randomChar();
+        }
+        return cryptic;
+      });
+      morphFrame++;
+      if (morphFrame < morphFrames) {
+        morphTimeout = setTimeout(morph, 40);
+      } else {
+        // 2. Reveal actual text, one character at a time
+        let revealFrame = 0;
+        const reveal = () => {
+          setDisplayText(() => {
+            let revealed = '';
+            for (let i = 0; i < morphTo.length; i++) {
+              if (i <= revealFrame) {
+                revealed += morphTo[i];
+              } else {
+                revealed += randomChar();
+              }
+            }
+            return revealed;
+          });
+          if (revealFrame < morphTo.length - 1) {
+            revealFrame++;
+            revealTimeout = setTimeout(reveal, 40);
+          } else {
+            setDisplayText(morphTo);
+            // 3. Hold the final text for 2s before next morph
+            holdTimeout = setTimeout(() => {
+              setRoleIndex((prev) => (prev + 1) % roles.length);
+              morphing.current = false;
+            }, 2000);
+          }
+        };
+        reveal();
+      }
+    };
+    morph();
+
+    return () => {
+      clearTimeout(morphTimeout);
+      clearTimeout(revealTimeout);
+      clearTimeout(holdTimeout);
+    };
+    // eslint-disable-next-line
+  }, [roleIndex]);
 
   return (
     <>
@@ -129,45 +207,62 @@ export default function HomePage() {
             </div>
           </div>
             <Navbar />
-          <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden min-h-0 h-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 min-h-0 h-full overflow-hidden">
+          <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 min-h-0 h-full overflow-y-auto">
               {/* Left Column */}
-              <div className="flex flex-col gap-4 h-full min-h-0 flex-1">
-                <h1 className="text-white text-2xl mt-2 text-center font-bold">
-                  Welcome to Advith Krishnan's Blogfolio!
+              <div className="flex flex-col gap-4 h-full flex-1">
+                {/* <div className="items-center justify-center text-center"> */}
+                <h1 className="text-white text-xl -mb-2 font-bold">
+                  👋 Hi, I'm Advith Krishnan! 
                 </h1>
+                <span className="text-white text-md min-h-[28px]">
+                  {" "} <span
+                    className="inline-block transition-opacity duration-300"
+                    style={{ fontFamily: 'monospace, monospace', letterSpacing: '0.5px' }}
+                  >
+                    {displayText.trim()}
+                  </span>
+                  &nbsp;who works on cool stuff!
+                </span>
+                {/* </div> */}
                 {/* Image Viewer - now fills left column */}
-                <div className="flex-1 min-h-0 h-full">
+                <div className="flex-1">
                   <ImageViewer />
                 </div>
               </div>
 
               {/* Right Column */}
-              <div className="flex flex-col h-full min-h-0 gap-4">
+              <div className="flex flex-col h-full gap-4">
                 {/* Recent Blogs */}
-                <div className="win98-window flex-1 flex flex-col min-h-0">
+                <div className="win98-window flex-1 flex flex-col">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/notepad.webp" alt="Notes" className="w-4 h-4" />
                       <span>Recent Blog Posts</span>
                     </div>
                   </div>
-                  <div className="flex-1 bg-[#f0f0f0] border-2 p-2 overflow-y-auto min-h-0">
-                    <div className="overflow-y-auto border-2 h-full min-h-0">
+                  <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
+                    <p className="font-bold mb-1 text-center">
+                      Fresh new blogs below 👇 and older ones <a href="/blog" className="text-blue-700 underline hover:text-blue-900">here</a>! Come one, come all!
+                    </p>
+                    <div className="overflow-y-auto border-2" style={{ maxHeight: 226 }}>
                     <RecentNotes />
                     </div>
                   </div>
                 </div>
                 {/* Internet Shortcuts */}
-                <div className="win98-window flex-1 flex flex-col min-h-0">
+                <div className="win98-window flex-1 flex flex-col">
                   <div className="win98-titlebar">
                     <div className="flex items-center gap-2">
                       <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
                       <span>Internet Shortcuts</span>
                     </div>
                   </div>
-                  <div className="flex-1 bg-white border-2 p-2 overflow-y-auto min-h-0">
-                    <div className="overflow-y-auto border-2 h-full min-h-0">
+                  <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
+                   <p className="font-bold mb-1 text-center">
+                    My online presence! (Still not famous tho)
+                    </p>
+                    <div className="overflow-y-auto border-2" style={{ maxHeight: 226 }}>
                       <FeaturedLinks />
                     </div>
                   </div>

@@ -92,8 +92,9 @@ export default function ContactPage() {
         <div className="win98-window-content bg-[#222222] p-4 max-h-[calc(100vh-150px)] overflow-y-auto">
           <div className="max-w-2xl mx-auto">
             <h1 className="text-2xl font-bold mb-4 text-white">Get in Touch!</h1>
-            <p className="mb-6 text-white">
-              Have a question or want to work together? Fill out the form below and I'll get back to you as soon as possible.
+            <p className="mb-6 text-white text-justify">
+              Have a question or want to work together?
+              <br/><br/>Fill out the form below or ping my <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">socials</a> directly and I'll get back to you as soon as possible.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -183,7 +184,7 @@ export default function ContactPage() {
             </form>
 
             <div className="mt-8 pt-8 border-t-2 border-[#808080]">
-              <h2 className="text-xl font-bold mb-4 text-white">Other Ways to Reach Me</h2>
+              <h2 id="other-ways" className="text-xl font-bold mb-4 text-white">Other Ways to Reach Me</h2>
               <div className="space-y-2 text-white">
                 <p className="flex items-center gap-2">
                   <strong>Email:</strong> 

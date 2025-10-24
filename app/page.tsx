@@ -213,7 +213,7 @@ export default function HomePage() {
               <div className="flex flex-col gap-4 h-full flex-1">
                 {/* <div className="items-center justify-center text-center"> */}
                 <h1 className="text-white text-xl -mb-2 font-bold">
-                  👋 Hi, I'm Advith Krishnan! 
+                  &gt; 👋 Hi, I'm Advith Krishnan! 
                 </h1>
                 <span className="text-white text-md min-h-[28px]">
                   {" "} <span

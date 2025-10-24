@@ -42,6 +42,10 @@ export default function Navbar() {
               )
             })}
             <ResumeButton />
+            <div className='gap-0 flex'>
+            <div className="border-l-2 border-[#808080] h-7"></div>
+            <div className="border-l-2 border-[#ffffff] h-7"></div>
+            </div>
           </div>
           <div className="flex items-center gap-1 mr-2">
             <button

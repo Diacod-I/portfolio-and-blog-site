@@ -78,7 +78,7 @@ export default function ImageViewer() {
     }
   }
 
-  // Auto-scroll every 7 seconds
+  // Auto-scroll every 5 seconds
   useEffect(() => {
     if (images.length === 0) return
 
@@ -155,7 +155,7 @@ export default function ImageViewer() {
           </div>
         </div>
         <div className="flex-1 bg-[#c0c0c0] p-2 flex items-center justify-center">
-          <p className="text-sm">Loading photos...</p>
+          <p className="text-xl mt-2">Loading photos...</p>
         </div>
       </div>
     )

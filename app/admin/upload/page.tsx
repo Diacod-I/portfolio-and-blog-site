@@ -40,6 +40,7 @@ export default function AdminUploadPage() {
   const [editDisplayOrder, setEditDisplayOrder] = useState(0)
   const [editIsVisible, setEditIsVisible] = useState(true)
 
+
   useEffect(() => {
     checkUser()
   }, [])
@@ -77,27 +78,24 @@ export default function AdminUploadPage() {
     })
     
     if (error) {
-      setAuthError(error.message)
-    } else {
-      setUser(data.user)
-      fetchPhotos()
+      setAuthError('Invalid credentials.')
+      return
     }
-  }
-
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault()
-    setAuthError('')
     
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    // Query admin table
+    const { data: adminRows } = await supabase.from('admins').select('email');
+    const ADMIN_EMAILS = adminRows.map(row => row.email);
     
-    if (error) {
-      setAuthError(error.message)
-    } else {
-      setAuthError('Check your email to confirm your account!')
+    if (!ADMIN_EMAILS.includes(data.user.email)) {
+      setAuthError('You are not authorized to access this dashboard.')
+      await supabase.auth.signOut()
+      setUser(null)
+      setPhotos([])
+      return
     }
+    
+    setUser(data.user)
+    fetchPhotos()
   }
 
   async function handleLogout() {
@@ -307,14 +305,6 @@ export default function AdminUploadPage() {
                 className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-1 font-['MS_Sans_Serif'] text-sm active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
               >
                 Login
-              </button>
-              
-              <button
-                type="button"
-                onClick={handleSignup}
-                className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-1 font-['MS_Sans_Serif'] text-sm active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-              >
-                Sign Up
               </button>
             </div>
           </form>

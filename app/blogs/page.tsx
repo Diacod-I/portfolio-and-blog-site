@@ -1,0 +1,50 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import RecentNotes from '@/components/RecentNotes'
+import FeaturedLinks from '@/components/FeaturedLinks'
+import Navbar from '@/components/Navbar'
+
+export default function BlogsUnifiedPage() {
+  const router = useRouter()
+  return (
+    <div 
+      className="h-screen p-4 pb-16 overflow-hidden"
+      style={{
+        backgroundImage: 'url(/win98/windows_98_wallpaper.webp)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
+      <div className="win98-window min-h-min max-h-full flex flex-col">
+        <div className="win98-titlebar">
+          <div className="flex items-center gap-2">
+            <img src="/win98/notepad.webp" alt="Blogs" className="w-4 h-4" />
+            <span>All Blog Posts</span>
+          </div>
+          <div className="flex gap-1">
+            <button 
+              className="win98-window-button font-bold text-2xl"
+              onClick={() => router.push('/?app=open')}
+            >↩</button>
+            <button 
+              className="win98-window-button font-bold text-2xl"
+              onClick={() => router.push('/')}
+            >×</button>
+          </div>
+        </div>
+        <div className="win98-window-content bg-[#222222] p-4 max-h-[calc(100vh-150px)] overflow-y-auto">
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-2xl font-bold mb-4 text-white">All Blog Posts</h1>
+            <p className="mb-6 text-white text-justify">
+              Browse all my recent and older blog posts in one place. Click any post to read more.
+            </p>
+            <div className="bg-[#f0f0f0] border-2 p-4 rounded-lg mb-8">
+              <RecentNotes showAll={true} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

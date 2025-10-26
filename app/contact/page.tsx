@@ -94,8 +94,42 @@ export default function ContactPage() {
             <h1 className="text-2xl font-bold mb-4 text-white">Get in Touch!</h1>
             <p className="mb-6 text-white text-justify">
               Have a question or want to work together?
-              <br/><br/>Fill out the form below or ping my <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">socials</a> directly and I'll get back to you as soon as possible.
+              <br/><br/>Ping my <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">socials directly</a> (much faster!) or fill out the <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">form</a> provided and I'll get back to you as soon as possible.
             </p>
+
+            <div className="mt-8 pt-8 border-t-2 border-[#808080]"/>
+
+              <h2 id="other-ways" className="text-xl font-bold mb-4 text-white">Socials</h2>
+              <div className="space-y-2 text-white">
+                <p className="flex items-center gap-2">
+                  <strong>Email:</strong> 
+                  <a href="mailto:advithkrishnan@gmail.com" className="text-blue-600 hover:underline">
+                    advithkrishnan@gmail.com
+                  </a>
+                </p>
+                <p className="flex items-center gap-2">
+                  <strong>LinkedIn:</strong>
+                  <a href="https://www.linkedin.com/in/advithkrishnan/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    linkedin.com/in/advithkrishnan
+                  </a>
+                </p>
+                <p className="flex items-center gap-2">
+                  <strong>GitHub:</strong>
+                  <a href="https://github.com/Diacod-I" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    Diacod-I
+                  </a>
+                </p>
+                <p className="flex items-center gap-2">
+                  <strong>Twitter/X:</strong>
+                  <a href="https://x.com/advith_krishnan" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    @advith_krishnan
+                  </a>
+                </p>
+              </div>
+
+            <div className="mt-8 pt-8 border-t-2 border-[#808080]"/>
+
+            <h2 id="form" className="text-xl font-bold mb-4 text-white">Email Form</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -182,36 +216,6 @@ export default function ContactPage() {
                 )}
               </div>
             </form>
-
-            <div className="mt-8 pt-8 border-t-2 border-[#808080]">
-              <h2 id="other-ways" className="text-xl font-bold mb-4 text-white">Other Ways to Reach Me</h2>
-              <div className="space-y-2 text-white">
-                <p className="flex items-center gap-2">
-                  <strong>Email:</strong> 
-                  <a href="mailto:advithkrishnan@gmail.com" className="text-blue-600 hover:underline">
-                    advithkrishnan@gmail.com
-                  </a>
-                </p>
-                <p className="flex items-center gap-2">
-                  <strong>LinkedIn:</strong>
-                  <a href="https://www.linkedin.com/in/advithkrishnan/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    linkedin.com/in/advithkrishnan
-                  </a>
-                </p>
-                <p className="flex items-center gap-2">
-                  <strong>GitHub:</strong>
-                  <a href="https://github.com/Diacod-I" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    Diacod-I
-                  </a>
-                </p>
-                <p className="flex items-center gap-2">
-                  <strong>Twitter/X:</strong>
-                  <a href="https://x.com/advith_krishnan" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    @advith_krishnan
-                  </a>
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

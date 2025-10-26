@@ -50,7 +50,7 @@ export default function AdminUploadPage() {
     if (user) {
       // Query admin table
       const { data: adminRows } = await supabase.from('admins').select('email');
-      const ADMIN_EMAILS = adminRows?.map(row => row.email) || [];
+      const ADMIN_EMAILS = adminRows?.map((row: { email: string }) => row.email) || [];
       if (!ADMIN_EMAILS.includes(user.email)) {
         setAuthError('You are not authorized to access this dashboard.')
         await supabase.auth.signOut()

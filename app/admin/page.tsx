@@ -369,13 +369,6 @@ export default function AdminDashboardPage() {
           {/* Animated Navbar */}
           <div className="w-full mb-4 justify-center relative">
             <div className="w-[560px] justify-center bg-[#181A20] rounded-lg px-2 py-2 shadow border border-[#353945] flex gap-2 relative overflow-hidden">
-              <div
-                className="absolute top-0 h-full transition-all duration-400 ease-in-out z-10 bg-blue-900/20 rounded-lg pointer-events-none"
-                style={{
-                  left: indicatorStyle.left,
-                  width: indicatorStyle.width,
-                }}
-              />
               {tabList.map((t, i) => (
                 <button
                   key={t}
@@ -710,7 +703,7 @@ function handleDelete(id: string | number) {
 
   return (
     <div className="w-full flex flex-col items-center min-h-[300px]">
-      <div className="w-full flex justify-end mb-2">
+      <div className="w-full flex justify-end mb-4 -mt-1">
         <button onClick={() => openForm()} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-4 rounded transition">+ New Post</button>
       </div>
       <div className="w-full overflow-x-auto rounded-lg border border-[#353945] bg-[#181A20]">
@@ -737,7 +730,7 @@ function handleDelete(id: string | number) {
                 <td className="px-4 py-2">
                   <span className={post.status === 'Published' ? 'text-green-400' : 'text-yellow-400'}>{post.status}</span>
                 </td>
-                <td className="px-4 py-2 flex gap-2">
+                <td className="px-4 py-2 flex gap-2 justify-end">
                   {post.status === 'Draft' && (
                     <button onClick={() => handlePublish(post.slug)} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded transition">Publish</button>
                   )}

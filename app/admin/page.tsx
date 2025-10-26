@@ -59,7 +59,8 @@ declare global {
 
 export default function AdminDashboardPage() {
   // Auth states
-  const [user, setUser] = useState(null)
+  type UserType = { email?: string | null } | null;
+  const [user, setUser] = useState<UserType>(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState('')
   // Tab state
@@ -378,7 +379,7 @@ export default function AdminDashboardPage() {
               {tabList.map((t, i) => (
                 <button
                   key={t}
-                  ref={el => btnRefs.current[i] = el}
+                  ref={el => { btnRefs.current[i] = el; }}
                   onClick={() => setTab(t)}
                   className={`font-semibold px-4 py-2 rounded transition ${tab === t ? 'bg-blue-600 text-white z-20' : 'text-gray-300 hover:bg-[#23262F] z-20'}`}
                 >

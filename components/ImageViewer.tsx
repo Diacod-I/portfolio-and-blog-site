@@ -202,7 +202,7 @@ export default function ImageViewer() {
             <img
               src={images[previewIndex].image_url}
               alt={images[previewIndex].alt_text}
-              className="max-w-[80vw] max-h-[70vh] rounded-lg shadow-2xl border-2 border-[#353945]"
+              className="max-w-[80vw] max-h-[70vh] rounded-lg shadow-2xl"
               style={{ imageRendering: 'pixelated' }}
             />
             <div className="mt-4 text-center text-white text-lg font-semibold">

@@ -34,14 +34,16 @@ export default function BlogsUnifiedPage() {
           </div>
         </div>
         <div className="win98-window-content bg-[#222222] p-4 max-h-[calc(100vh-150px)] overflow-y-auto">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4 text-white">All Blog Posts</h1>
-            <p className="mb-6 text-white text-justify">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-extrabold mb-6 mt-4 text-white text-center tracking-tight drop-shadow">All Blog Posts</h1>
+            <p className="mb-8 text-white text-md text-center opacity-80">
               Browse all my recent and older blog posts in one place. Click any post to read more.
             </p>
-            <div className="bg-[#f0f0f0] border-2 p-4 rounded-lg mb-8">
-              <RecentNotes showAll={true} />
+            <div className="py-2">
+              <RecentNotes showAll={true} className="gap-y-3 p-2" />
             </div>
+            <hr className="my-8 border-gray-500 opacity-60" />
+            <p className="text-center mt-6 text-gray-400 italic">And I will continue to write more....</p>
           </div>
         </div>
       </div>

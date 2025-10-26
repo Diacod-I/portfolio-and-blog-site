@@ -13,7 +13,12 @@ type Note = {
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-export default function RecentNotes({ showAll = false }: { showAll?: boolean }) {
+type RecentNotesProps = {
+  showAll?: boolean
+  className?: string
+}
+
+export default function RecentNotes({ showAll = false, className }: RecentNotesProps) {
   const { data: notes, error } = useSWR<Note[]>('/api/notes', fetcher)
 
   if (error) {
@@ -34,7 +39,9 @@ export default function RecentNotes({ showAll = false }: { showAll?: boolean }) 
   const notesToShow = showAll ? notes : notes.slice(0, 5)
 
   return (
-    <div className="grid">
+
+  <div className={className}>
+    <div className={`grid ${className ?? ''}`}>
       {notesToShow.map((note) => (
         <Link
         key={note.slug}
@@ -67,5 +74,6 @@ export default function RecentNotes({ showAll = false }: { showAll?: boolean }) 
         </Link>
       ))}
     </div>
+  </div>
   )
 }

@@ -43,7 +43,7 @@ export default function BlogsUnifiedPage() {
               <RecentNotes showAll={true} className="gap-y-3 p-2" />
             </div>
             <hr className="my-8 border-gray-500 opacity-60" />
-            <p className="text-center mt-6 text-gray-400 italic">And I will continue to write more....</p>
+            <p className="text-center mt-6 text-gray-400 italic">More coming soon....</p>
           </div>
         </div>
       </div>

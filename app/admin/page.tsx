@@ -1,7 +1,7 @@
 // Combined Admin Dashboard: Upload & Notify
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { MDXProvider } from '@mdx-js/react';
@@ -290,6 +290,26 @@ export default function AdminDashboardPage() {
     }
   }
 
+  const tabList = ['upload', 'notify', 'resume', 'blog'] as const;
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+
+  useLayoutEffect(() => {
+    const idx = tabList.indexOf(tab);
+    const btn = btnRefs.current[idx];
+    if (btn) {
+      const parent = btn.parentElement;
+      const parentRect = parent?.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      if (parentRect) {
+        setIndicatorStyle({
+          left: btnRect.left - parentRect.left,
+          width: btnRect.width,
+        });
+      }
+    }
+  }, [tab]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#181A20] font-[Instrument_Sans,Work_Sans,sans-serif]">
@@ -337,13 +357,43 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#181A20] p-4 font-[Instrument_Sans,Work_Sans,sans-serif]">
       <div className={tab === 'notify' ? 'w-full flex justify-center' : 'w-full max-w-5xl'}>
         <div className={tab === 'notify' ? 'w-full max-w-2xl' : 'w-full'}>
-          <div className="w-full mb-4 justify-center">
-            <div className="w-[560px] justify-center bg-[#181A20] rounded-lg px-2 py-2 shadow border border-[#353945] flex gap-2">
-              <button onClick={() => setTab('upload')} className={`font-semibold px-4 py-2 rounded transition ${tab === 'upload' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-[#23262F]'}`}>Upload</button>
-              <button onClick={() => setTab('notify')} className={`font-semibold px-4 py-2 rounded transition ${tab === 'notify' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-[#23262F]'}`}>Notify</button>
-              <button onClick={() => setTab('resume')} className={`font-semibold px-4 py-2 rounded transition ${tab === 'resume' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-[#23262F]'}`}>Update Resume</button>
-              <button onClick={() => setTab('blog')} className={`font-semibold px-4 py-2 rounded transition ${tab === 'blog' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-[#23262F]'}`}>Blog Management</button>
+        {/* Logged in as this email */}
+          {user && user.email && (
+            <div className="mb-2 w-full flex justify-end">
+              <div className="text-xs text-gray-400 bg-[#181A20] px-2 py-1 rounded shadow border border-[#353945]">
+                Logged in as <span className="font-semibold text-gray-200">{user.email}</span>
+              </div>
             </div>
+          )}
+          {/* Animated Navbar */}
+          <div className="w-full mb-4 justify-center relative">
+            <div className="w-[560px] justify-center bg-[#181A20] rounded-lg px-2 py-2 shadow border border-[#353945] flex gap-2 relative overflow-hidden">
+              <div
+                className="absolute top-0 h-full transition-all duration-400 ease-in-out z-10 bg-blue-900/20 rounded-lg pointer-events-none"
+                style={{
+                  left: indicatorStyle.left,
+                  width: indicatorStyle.width,
+                }}
+              />
+              {tabList.map((t, i) => (
+                <button
+                  key={t}
+                  ref={el => btnRefs.current[i] = el}
+                  onClick={() => setTab(t)}
+                  className={`font-semibold px-4 py-2 rounded transition ${tab === t ? 'bg-blue-600 text-white z-20' : 'text-gray-300 hover:bg-[#23262F] z-20'}`}
+                >
+                  {t === 'upload' ? 'Upload' : t === 'notify' ? 'Notify' : t === 'resume' ? 'Update Resume' : 'Blog Management'}
+                </button>
+              ))}
+            </div>
+            {/* Logout button on the right */}
+            <button
+              onClick={handleLogout}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded transition shadow"
+              style={{ minWidth: '90px' }}
+            >
+              Logout
+            </button>
           </div>
           <div className="bg-[#23262F] shadow-xl rounded-xl p-4">
             {/* Tab content */}

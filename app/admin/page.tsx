@@ -47,7 +47,8 @@ function MDXPreviewer({ code }: { code: string }) {
     return () => { cancelled = true; };
   }, [code]);
 
-  return <div className="prose prose-invert"><Content /></div>;
+return <div className="prose prose-invert" style={{ maxWidth: '100%', width: '100%' }}><Content /></div>;
+
 }
 
 // Extend the Window interface to include resumeFile
@@ -745,7 +746,7 @@ function handleDelete(id: string | number) {
       {/* Modal/Form */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-[#23262F] rounded-lg shadow-xl p-8 w-full max-w-2xl relative">
+          <div className="bg-[#23262F] rounded-lg shadow-xl p-8 w-full max-w-4xl relative">
             <button onClick={closeForm} className="absolute top-2 right-2 text-gray-400 hover:text-white text-xl">&times;</button>
             <button
               onClick={() => setShowPreview((v) => !v)}
@@ -756,8 +757,10 @@ function handleDelete(id: string | number) {
             </button>
             <h3 className="text-lg font-bold mb-4 text-gray-100 text-center">{editingPost ? 'Edit Post' : 'New Post'}</h3>
             {showPreview ? (
-              <div className="bg-[#181A20] border border-[#353945] rounded p-4 min-h-[400px] max-h-[600px] overflow-y-auto text-gray-100 prose prose-invert">
-                <MDXPreviewer code={form.content ?? ''} />
+              <div className="bg-[#181A20] border border-[#353945] rounded p-4 min-h-[400px] max-h-[600px] overflow-y-auto w-full text-gray-100 prose prose-invert prose-[max-width:100%]"
+                style={{ minWidth: 840, maxWidth: '100%', width: '100%' }}
+              >
+                  <MDXPreviewer code={form.content ?? ''} />
               </div>
             ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">

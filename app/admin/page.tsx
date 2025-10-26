@@ -738,10 +738,10 @@ function handleDelete(id: string | number) {
                   <span className={post.status === 'Published' ? 'text-green-400' : 'text-yellow-400'}>{post.status}</span>
                 </td>
                 <td className="px-4 py-2 flex gap-2">
-                  <button onClick={() => openForm(post)} className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-3 rounded transition">Edit</button>
                   {post.status === 'Draft' && (
                     <button onClick={() => handlePublish(post.slug)} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded transition">Publish</button>
                   )}
+                  <button onClick={() => openForm(post)} className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-3 rounded transition">Edit</button>
                   <button onClick={() => handleDelete(post.id || post.slug)} className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded transition">Delete</button>
                 </td>
               </tr>

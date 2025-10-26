@@ -92,7 +92,12 @@ export default function AdminUploadPage() {
 
   async function handleGoogleLogin() {
     setAuthError('')
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/admin/upload`
+      }
+    });
     if (error) {
       setAuthError('Google sign-in failed.')
     }

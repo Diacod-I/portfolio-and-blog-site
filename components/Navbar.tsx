@@ -4,13 +4,15 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import ResumeButton from './ResumeButton'
 
+// TODO: Add "about page" content, then implement "projects page", then "gallery page".
+
 const routes = [
   { path: '/', label: 'Home' },
-  { path: '/about', label: 'About' },
+  // { path: '/about', label: 'About' },
   { path: '/blogs', label: 'Blog' },
   { path: '/contact', label: 'Contact' },
   // { path: '/gallery', label: 'Gallery' },
-  { path: '/projects', label: 'Projects' }
+  // { path: '/projects', label: 'Projects' }
 ]
 
 export default function Navbar() {

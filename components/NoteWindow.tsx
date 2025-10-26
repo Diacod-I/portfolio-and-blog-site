@@ -28,7 +28,7 @@ export default function NoteWindow({ title, children }: NoteWindowProps) {
           <div className="flex gap-1">
             <button 
               className="win98-window-button font-bold text-2xl"
-              onClick={() => router.push('/blogs')}
+              onClick={() => router.push('/?app=open')}
             >
               ↩
             </button>

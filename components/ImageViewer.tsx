@@ -191,10 +191,10 @@ export default function ImageViewer() {
       {/* Preview Modal */}
       {previewOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in">
-          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-2xl w-full flex flex-col items-center">
+          <div className="relative bg-[#23262F] border-2 border-gray-400 pb-2 rounded-lg shadow-xl max-w-2xl w-full flex flex-col items-center">
             <button
               onClick={() => setPreviewOpen(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
+              className="absolute -top-6 -right-6 text-gray-300 hover:text-white text-4xl font-bold bg-transparent rounded-full w-9 h-9 flex items-center justify-center"
               aria-label="Close preview"
             >
               ×
@@ -202,7 +202,7 @@ export default function ImageViewer() {
             <img
               src={images[previewIndex].image_url}
               alt={images[previewIndex].alt_text}
-              className="max-w-full max-h-[60vh] rounded-lg border border-[#353945] shadow-lg"
+              className="max-w-full max-h-[60vh] rounded-md shadow-lg"
               style={{ imageRendering: 'pixelated' }}
             />
             <div className="mt-4 text-center text-white text-lg font-semibold">

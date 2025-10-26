@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import RecentNotes from '@/components/RecentNotes'
-import FeaturedLinks from '@/components/FeaturedLinks'
-import Navbar from '@/components/Navbar'
+
+// TODO: Work on Search Feature for All Blogs
 
 export default function BlogsUnifiedPage() {
   const router = useRouter()
@@ -35,11 +35,11 @@ export default function BlogsUnifiedPage() {
         </div>
         <div className="win98-window-content bg-[#222222] p-4 max-h-[calc(100vh-150px)] overflow-y-auto">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-extrabold mb-6 mt-4 text-white text-center tracking-tight drop-shadow">All Blog Posts</h1>
-            <p className="mb-8 text-white text-md text-center opacity-80">
+            <h1 className="text-3xl font-extrabold mb-4 mt-12 text-white text-center tracking-tight drop-shadow">All Blog Posts</h1>
+            <p className="mb-6 text-white text-md text-center opacity-80">
               Browse all my recent and older blog posts in one place. Click any post to read more.
             </p>
-            <div className="py-2">
+            <div className="py-0">
               <RecentNotes showAll={true} className="gap-y-3 p-2" />
             </div>
             <hr className="my-8 border-gray-500 opacity-60" />

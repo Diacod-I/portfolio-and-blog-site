@@ -91,15 +91,15 @@ export default function ContactPage() {
         
         <div className="win98-window-content bg-[#222222] p-4 max-h-[calc(100vh-150px)] overflow-y-auto">
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4 mt-10 text-center text-white">Get in Touch with me!</h1>
+            <h1 className="text-2xl font-bold mb-6 mt-12 text-center text-white">Get in Touch with me!</h1>
             <p className="text-white text-justify">
-              <br/>Have a question or want to work together?<br/><br/>
+              Have a question or want to work together?<br/> <br/>
               Kindly ping my <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">socials directly</a> (much faster!) or fill out the <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">form</a> provided and I'll get back to you as soon as possible.
             </p>
 
-            <div className="mt-8 pt-8 border-t-2 border-[#808080]"/>
+            <div className="mt-8 pt-4 border-t-2 border-[#808080]"/>
 
-              <h2 id="other-ways" className="text-xl font-bold mb-4 text-center text-white">Socials</h2>
+              <h2 id="other-ways" className="text-xl font-bold mb-4 mt-4 text-center text-white">Socials</h2>
               <div className="space-y-2 text-white">
                 <p className="flex items-center gap-2">
                   <strong>Email:</strong> 

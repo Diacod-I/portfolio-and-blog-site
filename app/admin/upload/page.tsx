@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
 
+// Add Google Fonts import for Instrument Sans and Work Sans
+if (typeof window !== 'undefined') {
+  const fontLink = document.createElement('link');
+  fontLink.rel = 'stylesheet';
+  fontLink.href = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&family=Work+Sans:wght@400;600;700&display=swap';
+  document.head.appendChild(fontLink);
+}
+
 interface Photo {
   id: string
   image_url: string
@@ -50,6 +58,8 @@ export default function AdminUploadPage() {
     if (user) {
       // Query admin table
       const { data: adminRows } = await supabase.from('admins').select('email');
+      console.log('Raw adminRows:', adminRows)
+      console.log('Raw user object:', user)
       const ADMIN_EMAILS = adminRows?.map((row: { email: string }) => row.email.trim().toLowerCase()) || [];
       const userEmail = user.email?.trim().toLowerCase();
       console.log('User email:', userEmail)
@@ -246,9 +256,9 @@ export default function AdminUploadPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#008080] flex items-center justify-center">
-        <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-6">
-          <p className="font-['MS_Sans_Serif'] text-sm">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#181A20] font-[Instrument_Sans,Work_Sans,sans-serif]">
+        <div className="bg-[#23262F] shadow-xl rounded-xl p-8">
+          <p className="text-lg font-semibold text-gray-200">Loading...</p>
         </div>
       </div>
     )
@@ -256,15 +266,13 @@ export default function AdminUploadPage() {
 
   if (authError) {
     return (
-      <div className="min-h-screen bg-[#008080] flex items-center justify-center p-4">
-        <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-6 max-w-md w-full">
-          <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4 flex items-center">
-            <span className="text-white text-sm font-bold">Access Denied</span>
-          </div>
-          <p className="text-sm text-red-700 mb-2">{authError}</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#181A20] p-4 font-[Instrument_Sans,Work_Sans,sans-serif]">
+        <div className="bg-[#23262F] shadow-xl rounded-xl p-8 max-w-md w-full">
+          <h2 className="text-2xl font-bold text-red-400 mb-2">Access Denied</h2>
+          <p className="text-base text-gray-300 mb-4">{authError}</p>
           <button
             onClick={handleGoogleLogin}
-            className="w-full bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-2 font-['MS_Sans_Serif'] text-sm flex items-center justify-center gap-2 active:border-t-black active:border-l-black active:border-r-white active:border-b-white mt-2"
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
           >
             <img src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
             <span>Sign in with Google</span>
@@ -276,14 +284,12 @@ export default function AdminUploadPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#008080] flex items-center justify-center p-4">
-        <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-6 max-w-md w-full">
-          <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4 flex items-center">
-            <span className="text-white text-sm font-bold">Admin Login</span>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#181A20] p-4 font-[Instrument_Sans,Work_Sans,sans-serif]">
+        <div className="bg-[#23262F] shadow-xl rounded-xl p-8 max-w-md w-full">
+          <h2 className="text-2xl font-bold text-white text-center mb-4">Admin Login</h2>
           <button
             onClick={handleGoogleLogin}
-            className="w-full bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-2 font-['MS_Sans_Serif'] text-sm flex items-center justify-center gap-2 active:border-t-black active:border-l-black active:border-r-white active:border-b-white mt-2"
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
           >
             <img src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
             <span>Sign in with Google</span>
@@ -293,140 +299,125 @@ export default function AdminUploadPage() {
     )
   }
 
+  // Centered card layout for dashboard
   return (
-    <div className="min-h-screen bg-[#008080] p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4 mb-4">
-          <div className="flex justify-between items-center">
-            <h1 className="font-['MS_Sans_Serif'] text-lg font-bold">Photo Admin Dashboard</h1>
+    <div className="min-h-screen flex items-center justify-center bg-[#181A20] p-4 font-[Instrument_Sans,Work_Sans,sans-serif]">
+      <div className="bg-[#23262F] shadow-xl rounded-xl p-8 w-full max-w-3xl">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+          <h1 className="text-3xl font-bold text-white text-center md:text-left">Photo Admin Dashboard</h1>
+          <div className="flex items-center gap-4 justify-center md:justify-end">
+            <span className="text-gray-400 text-base">{user.email}</span>
             <button
               onClick={handleLogout}
-              className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-4 py-1 font-['MS_Sans_Serif'] text-sm active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+              className="bg-[#181A20] hover:bg-[#353945] text-gray-100 font-semibold py-2 px-4 rounded transition border border-[#353945]"
             >
               Logout
             </button>
           </div>
-          <p className="font-['MS_Sans_Serif'] text-sm mt-2">Logged in as: {user.email}</p>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4">
-            <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4">
-              <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Upload New Photo</span>
-            </div>
-            
-            <form onSubmit={handleUpload} className="space-y-3">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Upload Form */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-100 mb-4">Upload New Photo</h2>
+            <form onSubmit={handleUpload} className="space-y-4">
               <div>
-                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Upload Type:</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Upload Type</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2">
                     <input type="radio" value="file" checked={uploadType === 'file'} onChange={() => setUploadType('file')} />
-                    <span className="font-['MS_Sans_Serif'] text-sm">File Upload</span>
+                    <span className="text-gray-200">File Upload</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="radio" value="url" checked={uploadType === 'url'} onChange={() => setUploadType('url')} />
-                    <span className="font-['MS_Sans_Serif'] text-sm">Image URL</span>
+                    <span className="text-gray-200">Image URL</span>
                   </label>
                 </div>
               </div>
-              
               {uploadType === 'file' ? (
                 <div>
-                  <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Select Image:</label>
-                  <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full font-['MS_Sans_Serif'] text-sm" required />
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Select Image</label>
+                  <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full text-sm bg-[#181A20] text-gray-100 border border-[#353945] rounded" required />
                 </div>
               ) : (
                 <div>
-                  <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Image URL:</label>
-                  <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" required />
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Image URL</label>
+                  <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="w-full border border-[#353945] rounded px-3 py-2 text-sm bg-[#181A20] text-gray-100" required />
                 </div>
               )}
-              
               <div>
-                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Alt Text:</label>
-                <input type="text" value={altText} onChange={(e) => setAltText(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" required />
+                <label className="block text-sm font-medium text-gray-300 mb-1">Alt Text</label>
+                <input type="text" value={altText} onChange={(e) => setAltText(e.target.value)} className="w-full border border-[#353945] rounded px-3 py-2 text-sm bg-[#181A20] text-gray-100" required />
               </div>
-              
               <div>
-                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Description:</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" rows={3} required />
+                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-[#353945] rounded px-3 py-2 text-sm bg-[#181A20] text-gray-100" rows={3} required />
               </div>
-              
               <div>
-                <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Display Order:</label>
-                <input type="number" value={displayOrder} onChange={(e) => setDisplayOrder(parseInt(e.target.value))} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white" />
+                <label className="block text-sm font-medium text-gray-300 mb-1">Display Order</label>
+                <input type="number" value={displayOrder} onChange={(e) => setDisplayOrder(parseInt(e.target.value))} className="w-full border border-[#353945] rounded px-3 py-2 text-sm bg-[#181A20] text-gray-100" />
               </div>
-              
-              <div>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" checked={isVisible} onChange={(e) => setIsVisible(e.target.checked)} />
-                  <span className="font-['MS_Sans_Serif'] text-sm">Visible on site</span>
-                </label>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={isVisible} onChange={(e) => setIsVisible(e.target.checked)} />
+                <span className="text-sm text-gray-200">Visible on site</span>
               </div>
-              
               {uploadStatus && (
-                <p className={`font-['MS_Sans_Serif'] text-sm ${uploadStatus.includes('Error') ? 'text-red-700' : 'text-green-700'}`}>{uploadStatus}</p>
+                <p className={`text-sm ${uploadStatus.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{uploadStatus}</p>
               )}
-              
-              <button type="submit" disabled={uploading} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-1 font-['MS_Sans_Serif'] text-sm active:border-t-black active:border-l-black active:border-r-white active:border-b-white disabled:opacity-50">
+              <button type="submit" disabled={uploading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition disabled:opacity-50">
                 {uploading ? 'Uploading...' : 'Upload Photo'}
               </button>
             </form>
           </div>
-
-          <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-4">
-            <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4">
-              <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Existing Photos ({photos.length})</span>
-            </div>
-            
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+          {/* Existing Photos */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-100 mb-4">Existing Photos ({photos.length})</h2>
+            <div className="space-y-4 max-h-[600px] overflow-y-auto">
               {photos.map((photo) => (
-                <div key={photo.id} className="border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white p-2">
+                <div key={photo.id} className="bg-[#181A20] rounded-lg shadow flex flex-col md:flex-row gap-4 p-4 border border-[#353945]">
                   {editingPhoto?.id === photo.id ? (
-                    <form onSubmit={handleUpdate} className="space-y-2">
-                      <div className="flex gap-2">
-                        <img src={photo.image_url} alt={photo.alt_text} className="w-20 h-20 object-cover border border-black" />
-                        <div className="flex-1">
-                          <input type="text" value={editAltText} onChange={(e) => setEditAltText(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white mb-1" placeholder="Alt text" required />
-                          <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white" rows={2} placeholder="Description" required />
+                    <form onSubmit={handleUpdate} className="flex-1 space-y-2">
+                      <div className="flex gap-4 items-center">
+                        <img src={photo.image_url} alt={photo.alt_text} className="w-24 h-24 object-cover rounded border border-[#353945]" />
+                        <div className="flex-1 space-y-2">
+                          <input type="text" value={editAltText} onChange={(e) => setEditAltText(e.target.value)} className="w-full border border-[#353945] rounded px-2 py-1 text-sm bg-[#23262F] text-gray-100 mb-1" placeholder="Alt text" required />
+                          <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="w-full border border-[#353945] rounded px-2 py-1 text-sm bg-[#23262F] text-gray-100" rows={2} placeholder="Description" required />
                         </div>
                       </div>
-                      <div className="flex gap-2 items-center">
-                        <label className="font-['MS_Sans_Serif'] text-xs">Order:</label>
-                        <input type="number" value={editDisplayOrder} onChange={(e) => setEditDisplayOrder(parseInt(e.target.value))} className="w-20 border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-1 py-0.5 font-['MS_Sans_Serif'] text-xs bg-black text-white" />
+                      <div className="flex gap-4 items-center">
+                        <label className="text-sm text-gray-300">Order:</label>
+                        <input type="number" value={editDisplayOrder} onChange={(e) => setEditDisplayOrder(parseInt(e.target.value))} className="w-20 border border-[#353945] rounded px-2 py-1 text-sm bg-[#23262F] text-gray-100" />
                         <label className="flex items-center gap-1 ml-2">
                           <input type="checkbox" checked={editIsVisible} onChange={(e) => setEditIsVisible(e.target.checked)} />
-                          <span className="font-['MS_Sans_Serif'] text-xs">Visible</span>
+                          <span className="text-sm text-gray-200">Visible</span>
                         </label>
                       </div>
                       <div className="flex gap-2">
-                        <button type="submit" className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Save</button>
-                        <button type="button" onClick={cancelEditing} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Cancel</button>
+                        <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-4 rounded transition">Save</button>
+                        <button type="button" onClick={cancelEditing} className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1 px-4 rounded transition">Cancel</button>
                       </div>
                     </form>
                   ) : (
                     <>
-                      <div className="flex gap-2">
-                        <img src={photo.image_url} alt={photo.alt_text} className="w-20 h-20 object-cover border border-black" />
+                      <div className="flex gap-4 items-center">
+                        <img src={photo.image_url} alt={photo.alt_text} className="w-24 h-24 object-cover rounded border border-[#353945]" />
                         <div className="flex-1">
-                          <p className="font-['MS_Sans_Serif'] text-sm font-bold">{photo.alt_text}</p>
-                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-700">{photo.description}</p>
-                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-600 mt-1">Order: {photo.display_order}</p>
-                          <p className="font-['MS_Sans_Serif'] text-xs text-gray-600">Status: {photo.is_visible ? '👁️ Visible' : '🚫 Hidden'}</p>
+                          <p className="text-lg font-bold text-gray-100">{photo.alt_text}</p>
+                          <p className="text-sm text-gray-300">{photo.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">Order: {photo.display_order}</p>
+                          <p className="text-xs text-gray-500">Status: {photo.is_visible ? '👁️ Visible' : '🚫 Hidden'}</p>
                         </div>
                       </div>
                       <div className="flex gap-2 mt-2">
-                        <button onClick={() => startEditing(photo)} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Edit</button>
-                        <button onClick={() => toggleVisibility(photo.id, photo.is_visible)} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs active:border-t-black active:border-l-black active:border-r-white active:border-b-white">{photo.is_visible ? 'Hide' : 'Show'}</button>
-                        <button onClick={() => handleDelete(photo.id, photo.image_url)} className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-3 py-0.5 font-['MS_Sans_Serif'] text-xs text-red-700 active:border-t-black active:border-l-black active:border-r-white active:border-b-white">Delete</button>
+                        <button onClick={() => startEditing(photo)} className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-4 rounded transition">Edit</button>
+                        <button onClick={() => toggleVisibility(photo.id, photo.is_visible)} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-4 rounded transition">{photo.is_visible ? 'Hide' : 'Show'}</button>
+                        <button onClick={() => handleDelete(photo.id, photo.image_url)} className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded transition">Delete</button>
                       </div>
                     </>
                   )}
                 </div>
               ))}
-              
               {photos.length === 0 && (
-                <p className="font-['MS_Sans_Serif'] text-sm text-gray-600 text-center py-8">No photos yet. Upload your first photo!</p>
+                <p className="text-center text-gray-500 py-8">No photos yet. Upload your first photo!</p>
               )}
             </div>
           </div>

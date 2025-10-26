@@ -13,7 +13,7 @@ type Note = {
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-export default function RecentNotes() {
+export default function RecentNotes({ showAll = false }: { showAll?: boolean }) {
   const { data: notes, error } = useSWR<Note[]>('/api/notes', fetcher)
 
   if (error) {
@@ -31,9 +31,11 @@ export default function RecentNotes() {
     return <div className="text-sm">No recent blogs to show. Advith is writing them :)</div>
   }
 
+  const notesToShow = showAll ? notes : notes.slice(0, 5)
+
   return (
     <div className="grid">
-      {notes.map((note) => (
+      {notesToShow.map((note) => (
         <Link
         key={note.slug}
         href={`/blogs/${note.slug}`}

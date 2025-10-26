@@ -17,8 +17,6 @@ interface Photo {
 export default function AdminUploadPage() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
   
   // Upload form states
@@ -46,13 +44,24 @@ export default function AdminUploadPage() {
   }, [])
 
   async function checkUser() {
+    setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     setUser(user)
-    setLoading(false)
-    
     if (user) {
+      // Query admin table
+      const { data: adminRows } = await supabase.from('admins').select('email');
+      const ADMIN_EMAILS = adminRows?.map(row => row.email) || [];
+      if (!ADMIN_EMAILS.includes(user.email)) {
+        setAuthError('You are not authorized to access this dashboard.')
+        await supabase.auth.signOut()
+        setUser(null)
+        setPhotos([])
+        setLoading(false)
+        return
+      }
       fetchPhotos()
     }
+    setLoading(false)
   }
 
   async function fetchPhotos() {
@@ -68,34 +77,12 @@ export default function AdminUploadPage() {
     }
   }
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleGoogleLogin() {
     setAuthError('')
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
     if (error) {
-      setAuthError('Invalid credentials.')
-      return
+      setAuthError('Google sign-in failed.')
     }
-    
-    // Query admin table
-    const { data: adminRows } = await supabase.from('admins').select('email');
-    const ADMIN_EMAILS = adminRows.map(row => row.email);
-    
-    if (!ADMIN_EMAILS.includes(data.user.email)) {
-      setAuthError('You are not authorized to access this dashboard.')
-      await supabase.auth.signOut()
-      setUser(null)
-      setPhotos([])
-      return
-    }
-    
-    setUser(data.user)
-    fetchPhotos()
   }
 
   async function handleLogout() {
@@ -264,50 +251,40 @@ export default function AdminUploadPage() {
     )
   }
 
+  if (authError) {
+    return (
+      <div className="min-h-screen bg-[#008080] flex items-center justify-center p-4">
+        <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-6 max-w-md w-full">
+          <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4 flex items-center">
+            <span className="text-white text-sm font-bold">Access Denied</span>
+          </div>
+          <p className="text-sm text-red-700 mb-2">{authError}</p>
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-2 font-['MS_Sans_Serif'] text-sm flex items-center justify-center gap-2 active:border-t-black active:border-l-black active:border-r-white active:border-b-white mt-2"
+          >
+            <img src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
+            <span>Sign in with Google</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#008080] flex items-center justify-center p-4">
         <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-6 max-w-md w-full">
           <div className="bg-gradient-to-r from-[#000080] to-[#1084d0] px-1 py-0.5 mb-4 flex items-center">
-            <span className="font-['MS_Sans_Serif'] text-white text-sm font-bold">Admin Login</span>
+            <span className="text-white text-sm font-bold">Admin Login</span>
           </div>
-          
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Email:</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="font-['MS_Sans_Serif'] text-sm block mb-1">Password:</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border-2 border-t-[#7b7b7b] border-l-[#7b7b7b] border-r-white border-b-white px-2 py-1 font-['MS_Sans_Serif'] text-sm bg-black text-white"
-                required
-              />
-            </div>
-            
-            {authError && (
-              <p className="font-['MS_Sans_Serif'] text-sm text-red-700">{authError}</p>
-            )}
-            
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-1 font-['MS_Sans_Serif'] text-sm active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
-              >
-                Login
-              </button>
-            </div>
-          </form>
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-2 font-['MS_Sans_Serif'] text-sm flex items-center justify-center gap-2 active:border-t-black active:border-l-black active:border-r-white active:border-b-white mt-2"
+          >
+            <img src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
+            <span>Sign in with Google</span>
+          </button>
         </div>
       </div>
     )

@@ -8,7 +8,9 @@ export default function NotifySubscribersPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [subscriberCount, setSubscriberCount] = useState(0)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState('')
 
   useEffect(() => {
     checkAuth()
@@ -17,8 +19,28 @@ export default function NotifySubscribersPage() {
 
   async function checkAuth() {
     if (!supabase) return
-    const { data } = await supabase.auth.getSession()
-    setIsAuthenticated(!!data.session)
+    const { data: { user } } = await supabase.auth.getUser()
+    setUser(user)
+    setLoading(false)
+    if (user) {
+      // Query admin table
+      const { data: adminRows } = await supabase.from('admins').select('email');
+      const ADMIN_EMAILS = adminRows?.map(row => row.email) || [];
+      if (!ADMIN_EMAILS.includes(user.email)) {
+        setAuthError('You are not authorized to access this dashboard.')
+        await supabase.auth.signOut()
+        setUser(null)
+        return
+      }
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setAuthError('')
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    if (error) {
+      setAuthError('Google sign-in failed.')
+    }
   }
 
   async function getSubscriberCount() {
@@ -64,7 +86,40 @@ export default function NotifySubscribersPage() {
     }
   }
 
-  if (!isAuthenticated) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#008080] flex items-center justify-center">
+        <div className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black p-6">
+          <p className="font-['MS_Sans_Serif'] text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#008080] flex items-center justify-center p-4">
+        <div className="win98-window max-w-md w-full">
+          <div className="win98-titlebar">
+            <span>Admin Login</span>
+          </div>
+          <div className="p-6 bg-[#c0c0c0]">
+            {authError && (
+              <p className="text-red-700 mb-4">{authError}</p>
+            )}
+            <button
+              onClick={handleGoogleLogin}
+              className="w-full bg-[#c0c0c0] border-2 border-t-white border-l-white border-r-black border-b-black px-6 py-2 font-['MS_Sans_Serif'] text-sm flex items-center justify-center gap-2 active:border-t-black active:border-l-black active:border-r-white active:border-b-white mt-2"
+            >
+              <img src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
+              Sign in with Google
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  if (authError) {
     return (
       <div className="min-h-screen bg-[#008080] flex items-center justify-center p-4">
         <div className="win98-window max-w-md w-full">
@@ -72,7 +127,7 @@ export default function NotifySubscribersPage() {
             <span>Access Denied</span>
           </div>
           <div className="p-6 bg-[#c0c0c0]">
-            <p className="text-black mb-4">You must be logged in to access this page.</p>
+            <p className="text-black mb-4">{authError}</p>
             <a href="/admin/upload" className="win98-button px-4 py-2 inline-block">
               Go to Admin Login
             </a>

@@ -190,8 +190,14 @@ export default function ImageViewer() {
     <div className="win98-window flex-1 flex flex-col min-h-0">
       {/* Preview Modal */}
       {previewOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in">
-          <div className="relative bg-[#23262F] pb-2 pt-2 rounded-lg shadow-xl max-w-4xl w-full flex flex-col items-center">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <div
+            className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-2xl w-full flex flex-col items-center"
+            onClick={e => e.stopPropagation()}
+          >
             <button
               onClick={() => setPreviewOpen(false)}
               className="absolute -top-8 -right-8 text-gray-300 hover:text-white text-5xl font-bold bg-transparent rounded-full w-9 h-9 flex items-center justify-center"
@@ -202,7 +208,7 @@ export default function ImageViewer() {
             <img
               src={images[previewIndex].image_url}
               alt={images[previewIndex].alt_text}
-              className="max-w-[80vw] max-h-[70vh] rounded-lg shadow-2xl"
+              className="max-w-full max-h-[60vh] rounded-lg border border-[#353945] shadow-lg"
               style={{ imageRendering: 'pixelated' }}
             />
             <div className="mt-4 text-center text-white text-lg font-semibold">

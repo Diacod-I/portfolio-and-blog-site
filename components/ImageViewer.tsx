@@ -23,6 +23,7 @@ export default function ImageViewer() {
   const [prevIndex, setPrevIndex] = useState<number>(0)
   const [previewOpen, setPreviewOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number>(0);
 
   // Fetch photos from Supabase
   useEffect(() => {
@@ -189,8 +190,14 @@ export default function ImageViewer() {
     <div className="win98-window flex-1 flex flex-col min-h-0">
       {/* Preview Modal */}
       {previewOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in">
-          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-2xl w-full flex flex-col items-center">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <div
+            className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-2xl w-full flex flex-col items-center"
+            onClick={e => e.stopPropagation()}
+          >
             <button
               onClick={() => setPreviewOpen(false)}
               className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
@@ -199,13 +206,13 @@ export default function ImageViewer() {
               ×
             </button>
             <img
-              src={images[currentIndex].image_url}
-              alt={images[currentIndex].alt_text}
+              src={images[previewIndex].image_url}
+              alt={images[previewIndex].alt_text}
               className="max-w-full max-h-[60vh] rounded-lg border border-[#353945] shadow-lg"
               style={{ imageRendering: 'pixelated' }}
             />
             <div className="mt-4 text-center text-white text-lg font-semibold">
-              {images[currentIndex].description}
+              {images[previewIndex].description}
             </div>
           </div>
         </div>
@@ -252,7 +259,7 @@ export default function ImageViewer() {
                     {hoveredIdx === idx && (
                       <button
                         className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 transition-opacity group-hover:opacity-100 opacity-100"
-                        onClick={() => { setCurrentIndex(idx); setPreviewOpen(true); }}
+                        onClick={() => { setPreviewIndex(idx); setPreviewOpen(true); }}
                         style={{ zIndex: 20 }}
                       >
                         <span className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow-lg border border-[#353945] text-lg transition-all">Preview Image</span>

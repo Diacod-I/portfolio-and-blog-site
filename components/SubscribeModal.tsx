@@ -62,7 +62,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
             <span>Subscribe to Blog Updates</span>
           </div>
           <button 
-            className="win98-window-button font-bold"
+            className="win98-window-button font-bold text-2xl"
             onClick={onClose}
           >×</button>
         </div>

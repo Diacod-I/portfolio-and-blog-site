@@ -243,7 +243,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
                     <p className="font-bold mb-1">
-                      &gt; Fresh new blogs below 👇 and older ones <a href="/blog" className="text-blue-700 underline hover:text-blue-900">here</a>! Come one, come all!
+                      &gt; Fresh blogs below 👇 and older ones in <a href="/blog" className="text-blue-700 underline hover:text-blue-900">Blog</a>! Come one, come all!
                     </p>
                     <div className="overflow-y-auto border-2" style={{ maxHeight: 226 }}>
                     <RecentNotes />

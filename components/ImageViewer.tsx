@@ -218,7 +218,7 @@ export default function ImageViewer() {
             >
               ×
             </button>
-            <Image
+            <img
               src={images[currentIndex].image_url}
               alt={images[currentIndex].alt_text}
               className="max-w-full max-h-[60vh] rounded-lg border border-[#353945] shadow-lg"

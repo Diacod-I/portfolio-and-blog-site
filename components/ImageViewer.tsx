@@ -243,7 +243,7 @@ export default function ImageViewer() {
                     onMouseEnter={() => setHoveredIdx(idx)}
                     onMouseLeave={() => setHoveredIdx(null)}
                   >
-                    <Image
+                    <img
                       src={img.image_url}
                       alt={img.alt_text}
                       className="max-w-[650px] max-h-full w-auto h-auto object-contain"

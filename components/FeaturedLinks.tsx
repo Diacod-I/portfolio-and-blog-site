@@ -48,6 +48,8 @@ export default function FeaturedLinks() {
               <Image 
                 src={!link.icon_path || link.icon_path === "/" ? "/win98/internet.webp" : link.icon_path}
                 alt="" 
+                width={32}
+                height={32}
                 className="w-8 h-8 mr-2"
               />
               <div>

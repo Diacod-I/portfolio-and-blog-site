@@ -22,7 +22,8 @@ export default function UptimeCounter() {
             <Image 
                 src="/win98/monster-logo.webp" 
                 alt="Monster Energy"
-                className="w-4 h-8" 
+                className="w-4 h-8"
+                width={20} height={20} 
             />
         </div>
       </pre>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
 interface FooterConsoleProps {
-  activeApps?: { id: string; name: string; icon: string; isActive: boolean }[]
+  activeApps?: { id: string; name: string; icon: string; isActive: boolean, width: number, height: number }[]
   onAppClick?: (id: string) => void
 }
 
@@ -61,7 +61,7 @@ export default function FooterConsole({
             onClick={toggleStartMenu}
             type="button"
           >
-            <Image src="/win98/start.webp" alt="Start Button Icon" className="w-5 h-5" />
+            <Image src="/win98/start.webp" alt="Start Button Icon" width={20} height={20} className="w-5 h-5" />
             <span className='font-black text-[1.1em]'>Start</span>
           </button>
 
@@ -77,6 +77,7 @@ export default function FooterConsole({
                   <Image 
                     src="/club_penguin.gif" 
                     alt="Club Penguin Dancing" 
+                    width={192} height={80} 
                     className="w-48 h-auto"
                   />
                 </div>
@@ -105,7 +106,13 @@ export default function FooterConsole({
                     : ''
                 }`}
               >
-                <Image src={app.icon} alt={app.name+" Icon"} className="w-4 h-4" />
+                <Image
+                  src={app.icon}
+                  alt={app.name + " Icon"}
+                  width={app.width}
+                  height={app.height}
+                  className="w-4 h-4"
+                />
                 <span className="text-xs font-bold truncate">{app.name}</span>
               </button>
             ))}

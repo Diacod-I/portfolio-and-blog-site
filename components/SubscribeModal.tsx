@@ -59,7 +59,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
       >
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <Image src="/internet_shortcuts/rss_feed_logo.webp" alt="RSS" className="w-4 h-4" />
+            <Image src="/internet_shortcuts/rss_feed_logo.webp" alt="RSS" width={20} height={20} className="w-4 h-4" />
             <span>Subscribe to Blog Updates</span>
           </div>
           <button 

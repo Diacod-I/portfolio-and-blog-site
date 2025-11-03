@@ -60,7 +60,7 @@ export default function RecentNotes({ showAll = false, className }: RecentNotesP
                 }}
               >New</span>
             ) : (
-              <Image src="/win98/notes.webp" alt="" className="w-5 h-5" />
+              <Image src="/win98/notes.webp" alt="" width={20} height={20} className="w-5 h-5" />
             )}
             <div className="text-md flex items-center gap-1">
               {note.title}

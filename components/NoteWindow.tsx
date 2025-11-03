@@ -23,7 +23,7 @@ export default function NoteWindow({ title, children }: NoteWindowProps) {
       <div className="win98-window min-h-min max-h-full flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <Image src="/win98/notes.webp" alt="Notes" className="w-4 h-4" />
+            <Image src="/win98/notes.webp" alt="Notes" width={20} height={20} className="w-4 h-4" />
             <span>{title}</span>
           </div>
           <div className="flex gap-1">

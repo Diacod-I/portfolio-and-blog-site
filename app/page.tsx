@@ -9,6 +9,7 @@ import ImageViewer from '@/components/ImageViewer'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
 import useSWR from 'swr'
+import Image from 'next/image'
 
 export default function HomePage() {
   const [isAppOpen, setIsAppOpen] = useState(false)
@@ -18,6 +19,8 @@ export default function HomePage() {
     name: string;
     icon: string;
     isActive: boolean;
+    width: number;
+    height: number;
   }>>([])
 
   const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -50,7 +53,9 @@ export default function HomePage() {
           id: 'main-app',
           name: 'advith_krishnan.exe',
           icon: '/win98/advith_krishnan_exe.webp',
-          isActive: true
+          isActive: true,
+          width: 16,
+          height: 16
         }]
       }
       return prev.map(app => 
@@ -164,9 +169,11 @@ export default function HomePage() {
           <span className="absolute top-0 right-14 -translate-y-2 translate-x-2 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse-expand pointer-events-none"></span>
         )}
         <div>
-          <img
+          <Image
             src="/win98/advith_krishnan_exe.webp"
             alt="Application"
+            width={56}
+            height={56}
             className="w-14 h-14"
           />
         </div>
@@ -180,7 +187,13 @@ export default function HomePage() {
         <div className="win98-app-window fixed z-40 flex flex-col" style={{ top: '5px', right: '5px', bottom: '43px', left: '5px' }}>
           <div className="win98-titlebar">
             <div className="flex items-center gap-2">
-              <img src="/win98/advith_krishnan_exe.webp" alt="App Icon" className="w-4 h-4" />
+              <Image
+                src="/win98/advith_krishnan_exe.webp"
+                alt="App Icon"
+                width={16}
+                height={16}
+                className="w-4 h-4"
+              />
               <span>advith_krishnan.exe</span>
             </div>
             <div className="flex gap-2">
@@ -245,7 +258,7 @@ export default function HomePage() {
                     <p className="font-bold mb-1">
                       &gt; Fresh blogs below 👇 and older ones in <a href="/blog" className="text-blue-700 underline hover:text-blue-900">Blog</a>! Come one, come all!
                     </p>
-                    <div className="overflow-y-auto border-2" style={{ maxHeight: 226 }}>
+                    <div className="overflow-y-auto border-2" style={{ maxHeight: 240 }}>
                     <RecentNotes />
                     </div>
                   </div>
@@ -262,7 +275,7 @@ export default function HomePage() {
                    <p className="font-bold mb-1">
                     &gt; My online presence! (Still not famous tho)
                     </p>
-                    <div className="overflow-y-auto border-2" style={{ maxHeight: 226 }}>
+                    <div className="overflow-y-auto border-2" style={{ maxHeight: 240 }}>
                       <FeaturedLinks />
                     </div>
                   </div>

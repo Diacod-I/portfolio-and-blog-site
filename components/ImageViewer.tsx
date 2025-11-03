@@ -16,6 +16,7 @@ interface Photo {
 
 export default function ImageViewer() {
   const [images, setImages] = useState<Photo[]>([])
+  const [pendingGoTo, setPendingGoTo] = useState<number | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -24,7 +25,20 @@ export default function ImageViewer() {
   const [prevIndex, setPrevIndex] = useState<number>(0)
   const [previewOpen, setPreviewOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [pendingDirection, setPendingDirection] = useState<null | 'left' | 'right'>(null);
 
+  useEffect(() => {
+  if (pendingGoTo === null) return;
+  const timer = setTimeout(() => {
+    setCurrentIndex(pendingGoTo);
+    setIsTransitioning(false);
+    setPendingGoTo(null);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [pendingGoTo]); 
+  
+  
+  
   // Fetch photos from Supabase
   useEffect(() => {
     // Skip if Supabase isn't configured (e.g., during build)
@@ -97,11 +111,7 @@ export default function ImageViewer() {
       setPrevIndex(currentIndex);
       setSwipeDirection('left');
       setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-        setIsTransitioning(false);
-        setSwipeDirection(null);
-      }, 300);
+      setPendingDirection('left');
     }
   }
 
@@ -110,21 +120,30 @@ export default function ImageViewer() {
       setPrevIndex(currentIndex);
       setSwipeDirection('right');
       setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-        setIsTransitioning(false);
-        setSwipeDirection(null);
-      }, 300);
+      setPendingDirection('right');
     }
   }
 
+  // Handles the transition after 300ms
+  useEffect(() => {
+    if (!pendingDirection) return;
+    const timer = setTimeout(() => {
+      if (pendingDirection === 'left') {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      } else if (pendingDirection === 'right') {
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+      }
+      setIsTransitioning(false);
+      setSwipeDirection(null);
+      setPendingDirection(null);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [pendingDirection, images.length])
+
   const goToImage = (index: number) => {
     if (!isTransitioning && index !== currentIndex && images.length > 0) {
-      setIsTransitioning(true)
-      setTimeout(() => {
-        setCurrentIndex(index)
-        setIsTransitioning(false)
-      }, 300)
+      setIsTransitioning(true);
+      setPendingGoTo(index);
     }
   }
 

@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { MDXProvider } from '@mdx-js/react';
 import * as runtime from 'react/jsx-runtime';
 import { evaluate } from '@mdx-js/mdx';
+import Image from 'next/image';
 
 // Add Google Fonts import for Instrument Sans and Work Sans
 if (typeof window !== 'undefined') {
@@ -331,7 +332,7 @@ export default function AdminDashboardPage() {
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
           >
-            <img src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
+            <Image src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
             <span>Sign in with Google</span>
           </button>
         </div>
@@ -347,7 +348,7 @@ export default function AdminDashboardPage() {
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
           >
-            <img src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
+            <Image src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
             <span>Sign in with Google</span>
           </button>
         </div>
@@ -454,7 +455,7 @@ export default function AdminDashboardPage() {
                       <div key={photo.id} className="bg-[#181A20] rounded-lg shadow flex flex-col p-0 border border-[#353945] overflow-hidden">
                         {/* Image at top, 30% of card height */}
                         <div className="w-full" style={{ aspectRatio: '4/3', maxHeight: '300px', minHeight: '80px', overflow: 'hidden' }}>
-                          <img src={photo.image_url} alt={photo.alt_text} className="w-full h-full object-cover" />
+                          <Image src={photo.image_url} alt={photo.alt_text} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 flex flex-col gap-2 p-3">
                           {editingPhoto?.id === photo.id ? (

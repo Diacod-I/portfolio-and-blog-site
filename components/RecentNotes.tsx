@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
 import useSWR from 'swr'
+import Image from 'next/image'
 
 type Note = {
   title: string
@@ -59,7 +60,7 @@ export default function RecentNotes({ showAll = false, className }: RecentNotesP
                 }}
               >New</span>
             ) : (
-              <img src="/win98/notes.webp" alt="" className="w-5 h-5" />
+              <Image src="/win98/notes.webp" alt="" className="w-5 h-5" />
             )}
             <div className="text-md flex items-center gap-1">
               {note.title}

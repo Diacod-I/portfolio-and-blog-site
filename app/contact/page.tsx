@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function ContactPage() {
   const router = useRouter()
@@ -72,7 +73,7 @@ export default function ContactPage() {
       <div className="win98-window min-h-min max-h-full flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <img src="/win98/notepad.webp" alt="Contact" className="w-4 h-4" />
+            <Image src="/win98/notepad.webp" alt="Contact" className="w-4 h-4" />
             <span>Contact Me</span>
           </div>
           <div className="flex gap-1">

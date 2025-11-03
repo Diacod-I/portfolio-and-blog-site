@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import RecentNotes from '@/components/RecentNotes'
+import Image from 'next/image'
 
 // TODO: Work on Search Feature for All Blogs
 
@@ -19,7 +20,7 @@ export default function BlogsUnifiedPage() {
       <div className="win98-window min-h-min max-h-full flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <img src="/win98/notepad.webp" alt="Blogs" className="w-4 h-4" />
+            <Image src="/win98/notepad.webp" alt="Blogs" className="w-4 h-4" />
             <span>All Blog Posts</span>
           </div>
           <div className="flex gap-1">

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import useSWR from 'swr'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 import SubscribeModal from './SubscribeModal'
+import Image from 'next/image'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -44,7 +45,7 @@ export default function FeaturedLinks() {
               onClick={(e) => handleLinkClick(e, link)}
               className="win98-button p-2 flex items-center gap-2 no-underline text-black"
             >
-              <img 
+              <Image 
                 src={!link.icon_path || link.icon_path === "/" ? "/win98/internet.webp" : link.icon_path}
                 alt="" 
                 className="w-8 h-8 mr-2"

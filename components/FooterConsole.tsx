@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 interface FooterConsoleProps {
   activeApps?: { id: string; name: string; icon: string; isActive: boolean }[]
@@ -60,7 +61,7 @@ export default function FooterConsole({
             onClick={toggleStartMenu}
             type="button"
           >
-            <img src="/win98/start.webp" alt="Start Button Icon" className="w-5 h-5" />
+            <Image src="/win98/start.webp" alt="Start Button Icon" className="w-5 h-5" />
             <span className='font-black text-[1.1em]'>Start</span>
           </button>
 
@@ -73,7 +74,7 @@ export default function FooterConsole({
               <div className="bg-[#000080] absolute left-0 top-0 bottom-0 w-[23px]"></div>
               <div className="flex flex-col py-2 pl-[18px]">
                 <div className="flex items-center justify-center">
-                  <img 
+                  <Image 
                     src="/club_penguin.gif" 
                     alt="Club Penguin Dancing" 
                     className="w-48 h-auto"
@@ -104,7 +105,7 @@ export default function FooterConsole({
                     : ''
                 }`}
               >
-                <img src={app.icon} alt={app.name+" Icon"} className="w-4 h-4" />
+                <Image src={app.icon} alt={app.name+" Icon"} className="w-4 h-4" />
                 <span className="text-xs font-bold truncate">{app.name}</span>
               </button>
             ))}

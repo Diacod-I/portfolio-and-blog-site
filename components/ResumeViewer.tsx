@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function ResumeViewer() {
   const router = useRouter()
@@ -17,7 +18,7 @@ export default function ResumeViewer() {
       <div className="win98-window min-h-min max-h-full flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <img src="/win98/notes.webp" alt="Resume" className="w-4 h-4" />
+            <Image src="/win98/notes.webp" alt="Resume" className="w-4 h-4" />
             <span>Resume PDF Viewer</span>
           </div>
           <div className="flex gap-1">
@@ -38,7 +39,7 @@ export default function ResumeViewer() {
             download
             className="win98-button px-3 py-1 text-sm font-semibold flex items-center gap-1"
           >
-            <img src="/win98/notes.webp" alt="Download" className="w-4 h-4" />
+            <Image src="/win98/notes.webp" alt="Download" className="w-4 h-4" />
             Download PDF
           </a>
         </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import useSWR from 'swr'
+import Image from 'next/image'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -18,7 +19,7 @@ export default function UptimeCounter() {
         {`System Name: ${data.system}`}<br/>
         <div className="flex items-center gap-2">
           {`Monster Energy Drinks chugged (lifetime): ${data.monster_drinks_chugged}`}
-            <img 
+            <Image 
                 src="/win98/monster-logo.webp" 
                 alt="Monster Energy"
                 className="w-4 h-8" 

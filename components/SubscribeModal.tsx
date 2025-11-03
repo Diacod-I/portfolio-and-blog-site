@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 interface SubscribeModalProps {
   isOpen: boolean
@@ -58,7 +59,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
       >
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <img src="/internet_shortcuts/rss_feed_logo.webp" alt="RSS" className="w-4 h-4" />
+            <Image src="/internet_shortcuts/rss_feed_logo.webp" alt="RSS" className="w-4 h-4" />
             <span>Subscribe to Blog Updates</span>
           </div>
           <button 

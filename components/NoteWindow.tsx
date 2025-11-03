@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 interface NoteWindowProps {
   title: string
@@ -22,7 +23,7 @@ export default function NoteWindow({ title, children }: NoteWindowProps) {
       <div className="win98-window min-h-min max-h-full flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <img src="/win98/notes.webp" alt="Notes" className="w-4 h-4" />
+            <Image src="/win98/notes.webp" alt="Notes" className="w-4 h-4" />
             <span>{title}</span>
           </div>
           <div className="flex gap-1">

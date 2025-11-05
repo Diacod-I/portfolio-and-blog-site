@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import Image from 'next/image'
 
 interface Photo {
   id: string
@@ -16,7 +15,6 @@ interface Photo {
 
 export default function ImageViewer() {
   const [images, setImages] = useState<Photo[]>([])
-  const [pendingGoTo, setPendingGoTo] = useState<number | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -25,21 +23,7 @@ export default function ImageViewer() {
   const [prevIndex, setPrevIndex] = useState<number>(0)
   const [previewOpen, setPreviewOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const [pendingDirection, setPendingDirection] = useState<null | 'left' | 'right'>(null);
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-  if (pendingGoTo === null) return;
-  const timer = setTimeout(() => {
-    setCurrentIndex(pendingGoTo);
-    setIsTransitioning(false);
-    setPendingGoTo(null);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [pendingGoTo]); 
-  
-  
-  
   // Fetch photos from Supabase
   useEffect(() => {
     // Skip if Supabase isn't configured (e.g., during build)
@@ -112,7 +96,11 @@ export default function ImageViewer() {
       setPrevIndex(currentIndex);
       setSwipeDirection('left');
       setIsTransitioning(true);
-      setPendingDirection('left');
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+        setIsTransitioning(false);
+        setSwipeDirection(null);
+      }, 300);
     }
   }
 
@@ -121,30 +109,21 @@ export default function ImageViewer() {
       setPrevIndex(currentIndex);
       setSwipeDirection('right');
       setIsTransitioning(true);
-      setPendingDirection('right');
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+        setIsTransitioning(false);
+        setSwipeDirection(null);
+      }, 300);
     }
   }
 
-  // Handles the transition after 300ms
-  useEffect(() => {
-    if (!pendingDirection) return;
-    const timer = setTimeout(() => {
-      if (pendingDirection === 'left') {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-      } else if (pendingDirection === 'right') {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-      }
-      setIsTransitioning(false);
-      setSwipeDirection(null);
-      setPendingDirection(null);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [pendingDirection, images.length])
-
   const goToImage = (index: number) => {
     if (!isTransitioning && index !== currentIndex && images.length > 0) {
-      setIsTransitioning(true);
-      setPendingGoTo(index);
+      setIsTransitioning(true)
+      setTimeout(() => {
+        setCurrentIndex(index)
+        setIsTransitioning(false)
+      }, 300)
     }
   }
 
@@ -173,7 +152,7 @@ export default function ImageViewer() {
       <div className="win98-window flex-1 flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <Image src="/win98/photos.webp" alt="Advith Krishnan Photos" width={20} height={20} className="w-4 h-4" />
+            <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
             <span>Recent Highlights</span>
           </div>
         </div>
@@ -190,7 +169,7 @@ export default function ImageViewer() {
       <div className="win98-window flex-1 flex flex-col">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
-            <Image src="/win98/photos.webp" alt="Photos" width={20} height={20} className="w-4 h-4" />
+            <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
             <span>Recent Highlights</span>
           </div>
         </div>
@@ -211,29 +190,29 @@ export default function ImageViewer() {
       {/* Preview Modal */}
       {previewOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in">
-          <div className="relative bg-[#23262F] rounded-lg shadow-xl py-2 max-w-4xl w-full flex flex-col items-center">
+          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-2xl w-full flex flex-col items-center">
             <button
               onClick={() => setPreviewOpen(false)}
-              className="absolute -top-7 -right-7 text-gray-400 hover:text-white text-4xl font-bold bg-transparent rounded-full w-9 h-9 flex items-center justify-center"
+              className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
               aria-label="Close preview"
             >
               ×
             </button>
             <img
-              src={previewIndex !== null ? images[previewIndex].image_url : ''}
-              alt={previewIndex !== null ? images[previewIndex].alt_text : ''}
-              className="max-w-[90vw] max-h-[67vh] rounded-lg border border-[#353945] shadow-lg"
+              src={images[currentIndex].image_url}
+              alt={images[currentIndex].alt_text}
+              className="max-w-full max-h-[60vh] rounded-lg border border-[#353945] shadow-lg"
               style={{ imageRendering: 'pixelated' }}
             />
             <div className="mt-4 text-center text-white text-lg font-semibold">
-              {previewIndex !== null && images[previewIndex].description}
+              {images[currentIndex].description}
             </div>
           </div>
         </div>
       )}
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
-          <Image src="/win98/photos.webp" alt="Photos" width={20} height={20} className="w-4 h-4" />
+          <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
           <span>Recent Highlights</span>
         </div>
       </div>
@@ -266,14 +245,14 @@ export default function ImageViewer() {
                     <img
                       src={img.image_url}
                       alt={img.alt_text}
-                      className="max-w-[700px] max-h-full w-auto h-auto object-contain"
+                      className="max-w-[650px] max-h-full w-auto h-auto object-contain"
                       style={{ imageRendering: 'pixelated' }}
                     />
                     {/* Preview Image Button on Hover */}
                     {hoveredIdx === idx && (
                       <button
                         className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 transition-opacity group-hover:opacity-100 opacity-100"
-                        onClick={() => { setPreviewIndex(idx); setPreviewOpen(true); }}
+                        onClick={() => { setCurrentIndex(idx); setPreviewOpen(true); }}
                         style={{ zIndex: 20 }}
                       >
                         <span className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow-lg border border-[#353945] text-lg transition-all">Preview Image</span>

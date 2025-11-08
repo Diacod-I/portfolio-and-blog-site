@@ -46,15 +46,15 @@ export default function RootLayout({
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Advith Krishnan's Blogfolio" />
-        <meta property="og:description" content="Advith's Windows 98 themed Portfolio and Blog website" />
-        <meta property="og:url" content="https://adviths-blogfolio.vercel.app/" />
+        <meta property="og:description" content="Advith Krishnan's Windows 98 themed Portfolio and Blog website" />
+        <meta property="og:url" content="https://www.advithkrishnan.com" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://adviths-blogfolio.vercel.app/Advith_Krishnan.webp" />
+        <meta property="og:image" content="https://www.advithkrishnan.com/Advith_Krishnan.webp" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Advith's Blogfolio" />
-        <meta name="twitter:description" content="Advith's Windows 98 themed Portfolio and Blog website" />
-        <meta name="twitter:image" content="https://adviths-blogfolio.vercel.app/Advith_Krishnan.webp" />
-        <link rel="canonical" href="https://adviths-blogfolio.vercel.app/" />
+        <meta name="twitter:title" content="Advith Krishnan's Blogfolio" />
+        <meta name="twitter:description" content="Advith Krishnan's Windows 98 themed Portfolio and Blog website" />
+        <meta name="twitter:image" content="https://www.advithkrishnan.com/Advith_Krishnan.webp" />
+        <link rel="canonical" href="https://www.advithkrishnan.com/" />
         <meta name="google-site-verification" content="RrTfilKn-WFFA0PXcEwo9hea2TKx3epPIYedJuv9OBA" />
       </head>
       <body

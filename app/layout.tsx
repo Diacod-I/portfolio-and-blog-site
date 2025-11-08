@@ -55,7 +55,7 @@ export default function RootLayout({
         <meta name="twitter:description" content="Advith's Windows 98 themed Portfolio and Blog website" />
         <meta name="twitter:image" content="https://adviths-blogfolio.vercel.app/Advith_Krishnan.webp" />
         <link rel="canonical" href="https://adviths-blogfolio.vercel.app/" />
-        <meta name="google-site-verification" content="rwrUPTvLOeZKftnqY-8eFHQRbeLzHS5MfAdocp7rRos" />
+        <meta name="google-site-verification" content="RrTfilKn-WFFA0PXcEwo9hea2TKx3epPIYedJuv9OBA" />
       </head>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}

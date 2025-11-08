@@ -28,6 +28,8 @@ next-env.d.ts
 ehthumbs.db
 Thumbs.db
 
+*.sql
+
 /content/notes/draft_content/
 CONTACT_SETUP.md
 EMAIL_NOTIFICATIONS_SETUP.md

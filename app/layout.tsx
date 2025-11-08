@@ -41,7 +41,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
-        <meta name="keywords" content="Advith, Blog, Portfolio, Windows 98, Developer, Krishnan, Projects, Research, AI, Blogfolio, Software, Engineering, Engineer, Hire, Hiring, Developer, Advith Krishnan, Krishnan" />
+        <meta name="keywords" content="Advith, Blog, Portfolio, Windows 98, Developer, Krishnan, Projects, Research, AI, Blogfolio, Software, Engineering, Engineer, Hire, Hiring, Developer, Advith Krishnan" />
         <meta name="author" content="Advith Krishnan" />
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

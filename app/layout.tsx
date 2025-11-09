@@ -43,9 +43,10 @@ export default function RootLayout({
         <link rel="icon" href="https://www.advithkrishnan.com/favicon.ico" type="image/x-icon" />
         <link rel="shortcut icon" href="https://www.advithkrishnan.com/favicon.ico" />
         {/* A PNG variant that Google sometimes prefers for search snippets */}
-        <link rel="icon" href="https://www.advithkrishnan.com/favicon-48.png" sizes="48x48" type="image/png" />
+        <link rel="icon" href="https://www.advithkrishnan.com/favicon.png" sizes="48x48" type="image/png" />
+        <link rel="shortcut icon" href="https://www.advithkrishnan.com/favicon.png" />
         {/* Apple/Android touch icon for mobile/home-screen */}
-        <link rel="apple-touch-icon" href="https://www.advithkrishnan.com/apple-touch-icon.png" sizes="180x180" />
+        <link rel="apple-touch-icon" href="https://www.advithkrishnan.com/favicon.png" sizes="180x180" />
         {/* Theme color (helps Chrome on Android show a matching color) */}
         <meta name="theme-color" content="#0a0a0a" />
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />

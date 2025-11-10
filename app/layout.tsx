@@ -25,9 +25,9 @@ const vt323 = VT323({
 
 export const metadata: Metadata = {
   title: "Advith Krishnan's Blogfolio",
-  description: "Advith's Windows 98 themed Portfolio and Blog website",
+  description: "Advith Krishnan's Windows 98 themed Portfolio and Blog website",
   icons: {
-    icon: '/favicon.ico'
+    icon: 'https://www.advithkrishnan.com/favicon.ico'
   }
 }
 

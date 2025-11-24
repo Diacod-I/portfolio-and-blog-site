@@ -332,7 +332,8 @@ export default function AdminDashboardPage() {
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
           >
-            <Image src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
+            {/* added explicit width/height for local image */}
+            <Image src="/internet_shortcuts/google.webp" alt="Google" width={20} height={20} />
             <span>Sign in with Google</span>
           </button>
         </div>
@@ -348,7 +349,7 @@ export default function AdminDashboardPage() {
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
           >
-            <Image src="/internet_shortcuts/google.webp" alt="Google" className="w-5 h-5" />
+            <Image src="/internet_shortcuts/google.webp" alt="Google" width={20} height={20} />
             <span>Sign in with Google</span>
           </button>
         </div>
@@ -454,8 +455,16 @@ export default function AdminDashboardPage() {
                     {photos.map((photo) => (
                       <div key={photo.id} className="bg-[#181A20] rounded-lg shadow flex flex-col p-0 border border-[#353945] overflow-hidden">
                         {/* Image at top, 30% of card height */}
-                        <div className="w-full" style={{ aspectRatio: '4/3', maxHeight: '300px', minHeight: '80px', overflow: 'hidden' }}>
-                          <Image src={photo.image_url} alt={photo.alt_text} className="w-full h-full object-cover" />
+                        <div className="w-full relative" style={{ aspectRatio: '4/3', maxHeight: '300px', minHeight: '80px', overflow: 'hidden' }}>
+                          {/* use fill to avoid required width/height on remote images */}
+                          <Image
+                            src={photo.image_url}
+                            alt={photo.alt_text}
+                            fill
+                            style={{ objectFit: 'cover' }}
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            priority={false}
+                          />
                         </div>
                         <div className="flex-1 flex flex-col gap-2 p-3">
                           {editingPhoto?.id === photo.id ? (

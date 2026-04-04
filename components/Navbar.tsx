@@ -6,6 +6,7 @@ import ResumeButton from './ResumeButton'
 
 // TODO: Add "about page" content, then implement "projects page", then "gallery page".
 
+
 const routes = [
   { path: '/', label: 'Home' },
   // { path: '/about', label: 'About' },
@@ -18,17 +19,16 @@ const routes = [
 export default function Navbar() {
   const pathname = usePathname()
 
-  return (
-    <nav className="win98-window-navbar sticky top-0 z-50">
+  return ( 
+	  <nav className="win98-window-navbar sticky top-0 z-50">
       <div className="bg-[#c0c0c0] overflow-x-auto overflow-y-hidden">
         <div className="flex items-center justify-between min-w-max w-full">
           <div className="flex items-center gap-0.5">
             {routes.map(({ path, label }) => {
               const isActive = pathname === path
               return (
-                <>
+				<div key={path} className="flex items-center">
                   <Link
-                    key={path}
                     href={path}
                     className={`win98-navbar-button px-2 py-0.5 font-bold ${
                       isActive ? 'bg-[#a2a2a2] text-black hover:text-black border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white hover:border-t-[#808080] hover:border-l-[#808080] hover:border-b-white hover:border-r-white': ''
@@ -40,7 +40,7 @@ export default function Navbar() {
                   <div className="border-l-2 border-[#808080] h-7"></div>
                   <div className="border-l-2 border-[#ffffff] h-7"></div>
                   </div>
-                </>
+				</div>
               )
             })}
             <ResumeButton />

@@ -21,7 +21,6 @@ const nextConfig = {
       },
     ],
   },
-  swcMinify: true,
 };
 
 module.exports = withMDX(nextConfig);

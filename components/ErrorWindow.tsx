@@ -57,7 +57,7 @@ export default function ErrorWindow() {
         </div>
         <div className="win98-window-content p-6">
           <div className="flex items-start gap-4">
-            <Image src="/win98/error.webp" alt="Error" className="w-8 h-8" />
+            <Image src="/win98/error.webp" alt="Error" width={32} height={32} className="w-8 h-8" />
             <div>
               <h2 className="font-bold mb-4">Page Not Found</h2>
               <p className="mb-6">The requested page could not be found. Click 'OK' to return to Home.</p>

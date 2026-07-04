@@ -13,8 +13,8 @@
 import type { StaticImageData } from 'next/image'
  
 import ethglobal from '@/public/highlights/ethglobal.jpg'
-import linux from '@/public/highlights/linux.jpg'
-import icvgip from '@/public/highlights/icvgip.jpg'
+import linux from '@/public/highlights/linux.jpeg'
+import icvgip from '@/public/highlights/icvgip.jpeg'
 // ...import new photos here
  
 export interface Photo {

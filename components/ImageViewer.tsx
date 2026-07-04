@@ -1,143 +1,43 @@
 'use client'
-
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-
-interface Photo {
-  id: string
-  image_url: string
-  alt_text: string
-  description: string
-  uploaded_at: string
-  display_order: number | null
-  is_visible: boolean
-}
+import Image from 'next/image'
+import images from '@/data/highlights'
 
 export default function ImageViewer() {
-  const [images, setImages] = useState<Photo[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null)
-  const [prevIndex, setPrevIndex] = useState<number>(0)
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
 
-  // Fetch photos from Supabase
+  // Auto-scroll every 5 seconds (paused while the preview modal is open)
   useEffect(() => {
-    // Skip if Supabase isn't configured (e.g., during build)
-    if (!supabase) {
-      setLoading(false)
-      setError('Photo gallery not configured')
-      return
-    }
-
-    fetchPhotos()
-    
-    // Subscribe to real-time updates
-    const subscription = supabase
-      .channel('photos-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'photos' },
-        () => {
-          console.log('Photos updated, refetching...')
-          fetchPhotos()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
-  const fetchPhotos = async () => {
-    if (!supabase) return
-    
-    try {
-      const { data, error } = await supabase
-        .from('photos')
-        .select('*')
-        .eq('is_visible', true)
-        .order('display_order', { ascending: true })
-        .order('uploaded_at', { ascending: false })
-        .limit(10)
-
-      if (error) throw error
-
-      if (data && data.length > 0) {
-        setImages(data)
-        setError(null)
-      } else {
-        setError('No photos available')
-      }
-    } catch (err) {
-      console.error('Error fetching photos:', err)
-      setError('Failed to load photos')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Auto-scroll every 5 seconds
-  useEffect(() => {
-    if (images.length === 0) return
-
+    if (images.length === 0 || previewOpen) return
     const interval = setInterval(() => {
       nextImage()
     }, 5000)
-
     return () => clearInterval(interval)
-  }, [currentIndex, images.length])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, previewOpen])
 
   const nextImage = () => {
     if (!isTransitioning && images.length > 0) {
-      setPrevIndex(currentIndex);
-      setSwipeDirection('left');
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-        setIsTransitioning(false);
-        setSwipeDirection(null);
-      }, 300);
-    }
-  }
-
-  const prevImage = () => {
-    if (!isTransitioning && images.length > 0) {
-      setPrevIndex(currentIndex);
-      setSwipeDirection('right');
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-        setIsTransitioning(false);
-        setSwipeDirection(null);
-      }, 300);
-    }
-  }
-
-  const goToImage = (index: number) => {
-    if (!isTransitioning && index !== currentIndex && images.length > 0) {
       setIsTransitioning(true)
       setTimeout(() => {
-        setCurrentIndex(index)
+        setCurrentIndex((prev) => (prev + 1) % images.length)
         setIsTransitioning(false)
       }, 300)
     }
   }
 
-  // Format date to show recency
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-    
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return 'Yesterday'
-    if (diffDays < 7) return `${diffDays} days ago`
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const prevImage = () => {
+    if (!isTransitioning && images.length > 0) {
+      setIsTransitioning(true)
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+        setIsTransitioning(false)
+      }, 300)
+    }
   }
 
   const isRecent = (dateString: string) => {
@@ -147,8 +47,8 @@ export default function ImageViewer() {
     return diffDays < 7 // "New" if uploaded within 7 days
   }
 
-  // Loading state
-  if (loading) {
+  // Empty state (manifest has no visible photos)
+  if (images.length === 0) {
     return (
       <div className="win98-window flex-1 flex flex-col">
         <div className="win98-titlebar">
@@ -158,29 +58,7 @@ export default function ImageViewer() {
           </div>
         </div>
         <div className="flex-1 bg-[#c0c0c0] p-2 flex items-center justify-center">
-          <p className="text-xl mt-2">Loading photos...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Error state
-  if (error || images.length === 0) {
-    return (
-      <div className="win98-window flex-1 flex flex-col">
-        <div className="win98-titlebar">
-          <div className="flex items-center gap-2">
-            <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
-            <span>Recent Highlights</span>
-          </div>
-        </div>
-        <div className="flex-1 bg-[#c0c0c0] p-2 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-sm mb-2">{error || 'No photos available'}</p>
-            <button onClick={fetchPhotos} className="win98-button px-3 py-1 text-sm">
-              Retry
-            </button>
-          </div>
+          <p className="text-sm">No photos available</p>
         </div>
       </div>
     )
@@ -199,11 +77,13 @@ export default function ImageViewer() {
             >
               ×
             </button>
-            <img
-              src={images[previewIndex].image_url}
+            <Image
+              src={images[previewIndex].image}
               alt={images[previewIndex].alt_text}
-              className="max-w-full max-h-[60vh] rounded-lg border border-[#353945] shadow-lg"
-              style={{ imageRendering: 'pixelated' }}
+              sizes="(max-width: 768px) 100vw, 672px"
+              quality={85}
+              placeholder="blur"
+              className="max-w-full max-h-[60vh] w-auto h-auto rounded-lg border border-[#353945] shadow-lg"
             />
             <div className="mt-4 text-center text-white text-lg font-semibold">
               {images[previewIndex].description}
@@ -211,7 +91,7 @@ export default function ImageViewer() {
           </div>
         </div>
       )}
-       <div className="win98-titlebar">
+      <div className="win98-titlebar">
         <div className="flex items-center gap-2">
           <img src="/win98/photos.webp" alt="Photos" className="w-4 h-4" />
           <span>Recent Highlights</span>
@@ -223,6 +103,7 @@ export default function ImageViewer() {
             onClick={prevImage}
             className="win98-button absolute justify-center left-2 px-2 py-1 z-10 top-1/2 -translate-y-1/2"
             disabled={isTransitioning}
+            aria-label="Previous photo"
           >◀
           </button>
           <div className="w-full h-full flex flex-col items-center justify-center px-12 py-2">
@@ -243,11 +124,14 @@ export default function ImageViewer() {
                     onMouseEnter={() => setHoveredIdx(idx)}
                     onMouseLeave={() => setHoveredIdx(null)}
                   >
-                    <img
-                      src={img.image_url}
+                    <Image
+                      src={img.image}
                       alt={img.alt_text}
+                      sizes="650px"
+                      quality={80}
+                      priority={idx === 0}
+                      placeholder="blur"
                       className="max-w-[650px] max-h-full w-auto h-auto object-contain"
-                      style={{ imageRendering: 'pixelated' }}
                     />
                     {/* Preview Image Button on Hover */}
                     {hoveredIdx === idx && (
@@ -282,7 +166,7 @@ export default function ImageViewer() {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                   }}
                 >NEW</span>
-              )} 
+              )}
               </span>
               &nbsp;
                   {images[currentIndex].description}
@@ -294,6 +178,7 @@ export default function ImageViewer() {
             onClick={nextImage}
             className="win98-button absolute justify-center right-2 px-2 py-1 z-10 top-1/2 -translate-y-1/2"
             disabled={isTransitioning}
+            aria-label="Next photo"
           >▶
           </button>
         </div>

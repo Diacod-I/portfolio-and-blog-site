@@ -69,7 +69,7 @@ export default function ImageViewer() {
       {/* Preview Modal */}
       {previewOpen && previewIndex !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in">
-          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-2xl w-full flex flex-col items-center">
+          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-6xl w-full flex flex-col items-center">
             <button
               onClick={() => { setPreviewOpen(false); setPreviewIndex(null); }}
               className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
@@ -80,10 +80,10 @@ export default function ImageViewer() {
             <Image
               src={images[previewIndex].image}
               alt={images[previewIndex].alt_text}
-              sizes="(max-width: 768px) 100vw, 672px"
+              sizes="(max-width: 1536px) 100vw, 1536px"
               quality={85}
               placeholder="blur"
-              className="max-w-full max-h-[60vh] w-auto h-auto rounded-lg border border-[#353945] shadow-lg"
+              className="max-w-full max-h-[85vh] w-auto h-auto rounded-lg border border-[#353945] shadow-lg"
             />
             <div className="mt-4 text-center text-white text-lg font-semibold">
               {images[previewIndex].description}
@@ -120,18 +120,19 @@ export default function ImageViewer() {
                   <div
                     key={img.id}
                     style={{ width: `${100 / images.length}%` }}
-                    className="flex items-center justify-center flex-shrink-0 flex-grow-0 overflow-hidden max-w-[650px] w-full h-full group relative"
+                    className="flex items-center justify-center flex-shrink-0 flex-grow-0 overflow-hidden max-w-[650px] w-full aspect-[3/2] max-h-full group relative"
                     onMouseEnter={() => setHoveredIdx(idx)}
                     onMouseLeave={() => setHoveredIdx(null)}
                   >
                     <Image
                       src={img.image}
                       alt={img.alt_text}
+                      fill
                       sizes="650px"
                       quality={80}
                       priority={idx === 0}
                       placeholder="blur"
-                      className="max-w-[650px] max-h-full w-auto h-auto object-contain"
+                      className="object-contain"
                     />
                     {/* Preview Image Button on Hover */}
                     {hoveredIdx === idx && (

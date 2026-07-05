@@ -29,7 +29,7 @@ export default function CreditsPage() {
             <li>UI Icons: <a href="https://win98icons.alexmeub.com/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Win98 Icons by Alex Meub</a></li>
             <li>All icons and images used are either original, free for personal use, or properly attributed.</li>
             <li>Club Penguin GIF: <a href="https://clubpenguin.fandom.com/wiki/Dance" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Club Penguin Wiki</a></li>
-            <li>MDX/Markdown blog system: <a href="https://mdxjs.com/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">MDX.js</a></li>
+            <li>MDX/Markdown blog system: <a href="https://mdxjs.com/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">MDX.js</a> (MIT License) </li>
             <li>Portfolio and blog code: <a href="https://github.com/Diacod-I/portfolio-and-blog-site" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">GitHub</a></li>
             <li>Fonts: Inter, JetBrains Mono, VT323 via Google Fonts</li>
             <li>Next.js framework: <a href="https://nextjs.org/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Next.js</a> (MIT License)</li>

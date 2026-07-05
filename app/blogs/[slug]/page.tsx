@@ -57,8 +57,26 @@ export default async function NotePage({ params }: NotePageProps) {
   })
   const { default: MDXContent } = await run(compiled, runtime)
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: note.title,
+    description: note.excerpt,
+    datePublished: note.date,
+    author: {
+      '@type': 'Person',
+      name: note.author,
+      url: SITE_URL,
+    },
+    mainEntityOfPage: `${SITE_URL}/blogs/${slug}`,
+  }
+
   return (
     <NoteWindow title={note.title}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article>
         <h1 className="text-3xl font-bold mb-2 text-white">
           {note.title}

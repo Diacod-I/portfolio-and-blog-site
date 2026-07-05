@@ -97,57 +97,6 @@ export default function ContactPage() {
               </div>
 
             <div className="mt-8 pt-8 border-t-2 border-[#808080]">
-              <h2 className="text-xl font-bold mb-4 text-center text-white">Email Form</h2>
-              <p className="text-sm text-gray-400 mb-4 text-center">
-                Fills out an email in your mail app — nothing is sent through this site.
-              </p>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-white font-bold mb-1">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full win98-inset bg-white px-2 py-1 text-black"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="subject" className="block text-white font-bold mb-1">
-                    Subject <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    required
-                    value={formData.subject}
-                    onChange={handleChange}
-                    className="w-full win98-inset bg-white px-2 py-1 text-black"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="message" className="block text-white font-bold mb-1">
-                    Message <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={6}
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="w-full win98-inset bg-white px-2 py-1 text-black"
-                  />
-                </div>
-                <button type="submit" className="win98-button px-4 py-2 font-bold">
-                  Open in Mail App
-                </button>
-              </form>
             </div>
           </div>
         </div>

@@ -33,11 +33,8 @@ export default function CreditsPage() {
             <li>Portfolio and blog code: <a href="https://github.com/Diacod-I/portfolio-and-blog-site" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">GitHub</a></li>
             <li>Fonts: Inter, JetBrains Mono, VT323 via Google Fonts</li>
             <li>Next.js framework: <a href="https://nextjs.org/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Next.js</a> (MIT License)</li>
-            <li>Supabase backend: <a href="https://supabase.com/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Supabase</a> (Apache 2.0 License)</li>
-            <li>Resend email API: <a href="https://resend.com/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Resend</a></li>
             <li>Tailwind CSS: <a href="https://tailwindcss.com/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Tailwind CSS</a> (MIT License)</li>
             <li>Framer Motion: <a href="https://www.framer.com/motion/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Framer Motion</a> (MIT License)</li>
-            <li>SWR: <a href="https://swr.vercel.app/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">SWR</a> (MIT License)</li>
             <li>Date-fns: <a href="https://date-fns.org/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">date-fns</a> (MIT License)</li>
           </ul>
           <h2 className="text-lg font-bold mb-2">Licenses</h2>

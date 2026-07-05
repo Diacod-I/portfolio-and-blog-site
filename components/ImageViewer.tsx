@@ -72,12 +72,12 @@ export default function ImageViewer() {
           <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 flex flex-col items-center">
             <button
               onClick={() => { setPreviewOpen(false); setPreviewIndex(null); }}
-              className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
+              className="absolute top-0 right-0 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] hover:bg-[#666666] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
               aria-label="Close preview"
             >
               ×
             </button>
-            <div className="relative w-[min(1400px,90vw)] h-[min(933px,75vh)] rounded-lg overflow-hidden border border-[#353945] shadow-lg">
+            <div className="relative w-[min(1400px,90vw)] h-[min(933px,75vh)] rounded-lg overflow-hidden shadow-lg">
               <Image
                 src={images[previewIndex].image}
                 alt={images[previewIndex].alt_text}

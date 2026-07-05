@@ -1,9 +1,9 @@
 [
     {
-        "title": "Subscribe to my Blog!",
-        "url": "/blogs",
-        "icon_path": "/internet_shortcuts/rss_feed_logo.webp",
-        "description": "Never miss an update on my blog. Be notified via email!"
+        "title": "Substack",
+        "url": "https://substack.com/@advithkrishnan",
+        "icon_path": "/internet_shortcuts/substack.webp",
+        "description": "Never miss an update on my blog. Subscribe!"
     },
     {
         "title": "LinkedIn",

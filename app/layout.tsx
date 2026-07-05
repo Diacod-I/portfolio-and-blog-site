@@ -1,6 +1,5 @@
 import './globals.css'
 import { Inter, JetBrains_Mono, VT323 } from 'next/font/google'
-import { Providers } from './providers'
 import { Analytics } from "@vercel/analytics/next"
 import { Metadata } from 'next'
 
@@ -81,12 +80,10 @@ export default function RootLayout({
         <meta name="google-site-verification" content="RrTfilKn-WFFA0PXcEwo9hea2TKx3epPIYedJuv9OBA" />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}>
-        <Providers>
-          <div className="min-h-screen">
-            {children}
-            <Analytics />
-          </div>
-        </Providers>
+        <div className="min-h-screen">
+          {children}
+          <Analytics />
+        </div>
       </body>
     </html>
   )

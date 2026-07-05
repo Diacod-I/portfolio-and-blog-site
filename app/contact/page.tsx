@@ -95,13 +95,10 @@ export default function ContactPage() {
             <h1 className="text-2xl font-bold mb-6 mt-12 text-center text-white">Get in Touch with me!</h1>
             <p className="text-white text-justify">
               Have a question or want to work together?<br/> <br/>
-              Kindly ping my <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">socials directly</a> (much faster!) or fill out the <a href="#other-ways" className="text-blue-400 underline hover:text-blue-600 mx-1">form</a> provided and I'll get back to you as soon as possible.
+              Kindly ping my socials below and I'll get back to you as soon as possible.
             </p>
 
-            <div className="mt-8 pt-4 border-t-2 border-[#808080]"/>
-
-              <h2 id="other-ways" className="text-xl font-bold mb-4 mt-4 text-center text-white">Socials</h2>
-              <div className="space-y-2 text-white">
+              <div className="mt-8 space-y-2 text-white">
                 <p className="flex items-center gap-2">
                   <strong>Email:</strong> 
                   <a href="mailto:advithkrishnan@gmail.com" className="text-blue-600 hover:underline">
@@ -115,108 +112,19 @@ export default function ContactPage() {
                   </a>
                 </p>
                 <p className="flex items-center gap-2">
-                  <strong>GitHub:</strong>
-                  <a href="https://github.com/Diacod-I" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    Diacod-I
-                  </a>
-                </p>
-                <p className="flex items-center gap-2">
                   <strong>Twitter/X:</strong>
                   <a href="https://x.com/advith_krishnan" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     @advith_krishnan
                   </a>
                 </p>
+                <p className="flex items-center gap-2">
+                  <strong>Substack:</strong>
+                  <a href="https://substack.com/@advithkrishnan" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    @advithkrishnan
+                  </a>
+                </p>
               </div>
-
             <div className="mt-8 pt-8 border-t-2 border-[#808080]"/>
-
-            <h2 id="form" className="text-xl text-center font-bold mb-4 text-white">Email Form</h2>
-
-            <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-              <div>
-                <label htmlFor="name" className="block text-sm font-bold mb-1 text-white">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-bold mb-1 text-white">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="block text-sm font-bold mb-1 text-white">
-                  Subject <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-bold mb-1 text-white">
-                  Message <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={6}
-                  className="w-full px-2 py-1 border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-white text-black resize-none"
-                />
-              </div>
-
-              <div className="flex gap-2 items-center">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="win98-button px-4 py-2 font-bold disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Sending...' : 'Send Message'}
-                </button>
-
-                {submitStatus === 'success' && (
-                  <div className="flex items-center gap-2 text-green-700 font-bold">
-                    <span>✓</span>
-                    <span>Message sent successfully!</span>
-                  </div>
-                )}
-
-                {submitStatus === 'error' && (
-                  <div className="flex items-center gap-2 text-red-700 font-bold">
-                    <span>✗</span>
-                    <span>{errorMessage || 'Failed to send message. Please try again.'}</span>
-                  </div>
-                )}
-              </div>
-            </form>
           </div>
         </div>
       </div>

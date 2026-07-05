@@ -275,7 +275,7 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
                     </div>
                   </div>
                   <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
-                   <p className="font-bold mb-1">
+                    <p className="font-bold mb-1">
                     &gt; My online presence! (Still not famous tho)
                     </p>
                     <div className="overflow-y-auto border-2" style={{ maxHeight: 240 }}>

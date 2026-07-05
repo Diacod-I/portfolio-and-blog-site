@@ -20,7 +20,7 @@ type RecentNotesProps = {
 
 export default function RecentNotes({ notes, showAll = false, className }: RecentNotesProps) {
   if (notes.length === 0) {
-    return <div className="text-sm">No recent blogs to show. Advith is writing them :)</div>
+    return <div className="text-sm">No recent blogs to show right now. Advith is writing them :)</div>
   }
 
   const notesToShow = showAll ? notes : notes.slice(0, 5)

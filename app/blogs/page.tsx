@@ -41,11 +41,10 @@ export default async function BlogsUnifiedPage() {
             <p className="mb-6 text-white text-md text-center opacity-80">
               Browse all my recent and older blog posts in one place. Click any post to read more.
             </p>
-            <div className="py-0">
+            <div className="py-0 text-gray-400 text-center">
               <RecentNotes notes={notes} showAll={true} className="gap-y-3 p-2" />
             </div>
-            <hr className="my-8 border-gray-500 opacity-60" />
-            <p className="text-center mt-6 text-gray-400 italic">More coming soon....</p>
+            <hr className="my-4 border-gray-500 opacity-60" />
           </div>
         </div>
       </div>

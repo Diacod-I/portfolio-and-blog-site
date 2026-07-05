@@ -71,8 +71,8 @@ export default function Navbar() {
             </div>
             <button
               className="win98-navbar-button px-2 font-bold flex items-center gap-1 bg-gradient-to-br from-pink-500 via-pink-700 to-purple-900 text-pink-100 shadow-md border-pink-700 hover:from-pink-600 hover:to-purple-800 transition-colors duration-200"
-              onClick={() => window.open('https://www.buymeacoffee.com/advithk', '_blank')}
-              title="Donate"
+              onClick={() => window.open('https://github.com/sponsors/Diacod-I', '_blank')}
+              title="Sponsor me on GitHub"
               style={{
                 backgroundImage: 'linear-gradient(120deg, #e75480 0%, #b4005a 40%, #5a189a 100%)',
                 color: '#fff',
@@ -81,7 +81,7 @@ export default function Navbar() {
                 fontWeight: 700
               }}
             >
-              Donate! ❤️
+              Sponsor! 💖
             </button>
           </div>
         </div>

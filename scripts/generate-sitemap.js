@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const DOMAIN = 'https://adviths-blogfolio.vercel.app'
+const DOMAIN = 'https://advithkrishnan.com'
 const BLOG_DIR = path.join(__dirname, '../content/notes')
 const SITEMAP_PATH = path.join(__dirname, '../public/sitemap.xml')
 

@@ -1,12 +1,11 @@
-import { promises as fs } from 'fs'
-import path from 'path'
-import matter from 'gray-matter'
 import { notFound } from 'next/navigation'
-import { compile } from '@mdx-js/mdx'
-import { run } from '@mdx-js/mdx'
+import { compile, run } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
 import NoteWindow from '@/components/NoteWindow'
 import { Metadata } from 'next'
+import { getAllNotes, getNote } from '@/lib/notes'
+
+const SITE_URL = 'https://www.advithkrishnan.com'
 
 interface NotePageProps {
   params: Promise<{
@@ -14,24 +13,35 @@ interface NotePageProps {
   }>
 }
 
+// Pre-render every published post at build time → static HTML on the CDN,
+// no MDX compilation per request, no serverless cold start.
+export async function generateStaticParams() {
+  const notes = await getAllNotes()
+  return notes.map((note) => ({ slug: note.slug }))
+}
+
+// Any slug not returned above (drafts, typos) → 404 instead of
+// falling back to on-demand server rendering.
+export const dynamicParams = false
+
 export async function generateMetadata({ params }: NotePageProps): Promise<Metadata> {
   const { slug } = await params
-
-  const filePath = path.join(process.cwd(), 'content', 'notes', `${slug}.mdx`)
-  const fileContent = await fs.readFile(filePath, 'utf8')
-  const { data } = matter(fileContent)
+  const note = await getNote(slug)
+  if (!note) return {}
 
   return {
-    title: `${data.title} | Advith Krishnan`,
-    description: data.description || data.excerpt,
+    title: `${note.title} | Advith Krishnan`,
+    description: note.excerpt,
     alternates: {
-      canonical: `https://adviths-blogfolio.vercel.app/blogs/${slug}`,
+      canonical: `${SITE_URL}/blogs/${slug}`,
     },
     openGraph: {
-      title: data.title,
-      description: data.description || data.excerpt,
-      url: `https://adviths-blogfolio.vercel.app/blogs/${slug}`,
+      title: note.title,
+      description: note.excerpt,
+      url: `${SITE_URL}/blogs/${slug}`,
       type: 'article',
+      publishedTime: note.date,
+      authors: [note.author],
     },
   }
 }
@@ -39,36 +49,31 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
 export default async function NotePage({ params }: NotePageProps) {
   const { slug } = await params
 
-  try {
-    const filePath = path.join(process.cwd(), 'content', 'notes', `${slug}.mdx`)
-    const fileContent = await fs.readFile(filePath, 'utf8')
-    const { data, content } = matter(fileContent)
+  const note = await getNote(slug)
+  if (!note) notFound()
 
-    const compiled = await compile(content, {
-      outputFormat: 'function-body',
-    })
+  const compiled = await compile(note.content, {
+    outputFormat: 'function-body',
+  })
+  const { default: MDXContent } = await run(compiled, runtime)
 
-    const { default: MDXContent } = await run(compiled, runtime)
+  return (
+    <NoteWindow title={note.title}>
+      <article>
+        <h1 className="text-3xl font-bold mb-2 text-white">
+          {note.title}
+        </h1>
 
-    return (
-      <NoteWindow title={data.title}>
-        <article>
-          <h1 className="text-3xl font-bold mb-2 text-white">
-            {data.title}
-          </h1>
+        <div className="text-sm text-gray-400 mb-8">
+          Author: {note.author} <br />
+          Date: {new Date(note.date).toLocaleDateString()} ·{' '}
+          {note.readingTimeMinutes} min read
+        </div>
 
-          <div className="text-sm text-gray-400 mb-8">
-            Author: Advith Krishnan <br />
-            Date: {new Date(data.date).toLocaleDateString()}
-          </div>
-
-          <div className="prose prose-invert max-w-none">
-            <MDXContent />
-          </div>
-        </article>
-      </NoteWindow>
-    )
-  } catch {
-    notFound()
-  }
+        <div className="prose prose-invert max-w-none">
+          <MDXContent />
+        </div>
+      </article>
+    </NoteWindow>
+  )
 }

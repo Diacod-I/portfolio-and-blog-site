@@ -1,7 +1,7 @@
 [
     {
         "title": "Subscribe to my Blog!",
-        "url": "/subscribe",
+        "url": "/blogs",
         "icon_path": "/internet_shortcuts/rss_feed_logo.webp",
         "description": "Never miss an update on my blog. Be notified via email!"
     },

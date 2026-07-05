@@ -1,7 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect, useRef } from 'react'
-import UptimeCounter from '@/components/UptimeCounter'
+import { useState, useEffect, useRef } from 'react'
 import RecentNotes from '@/components/RecentNotes'
 import FeaturedLinks from '@/components/FeaturedLinks'
 import Navbar from '@/components/Navbar'

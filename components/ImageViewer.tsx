@@ -69,7 +69,7 @@ export default function ImageViewer() {
       {/* Preview Modal */}
       {previewOpen && previewIndex !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in">
-          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 max-w-6xl w-full flex flex-col items-center">
+          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 flex flex-col items-center">
             <button
               onClick={() => { setPreviewOpen(false); setPreviewIndex(null); }}
               className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
@@ -77,14 +77,18 @@ export default function ImageViewer() {
             >
               ×
             </button>
-            <Image
-              src={images[previewIndex].image}
-              alt={images[previewIndex].alt_text}
-              sizes="(max-width: 1536px) 100vw, 1536px"
-              quality={85}
-              placeholder="blur"
-              className="max-w-full max-h-[85vh] w-auto h-auto rounded-lg border border-[#353945] shadow-lg"
-            />
+            <div className="relative w-[min(1400px,90vw)] h-[min(933px,75vh)] rounded-lg overflow-hidden border border-[#353945] shadow-lg">
+              <Image
+                src={images[previewIndex].image}
+                alt={images[previewIndex].alt_text}
+                fill
+                sizes="1400px"
+                quality={85}
+                placeholder="blur"
+                className="object-contain"
+                style={{ imageRendering: 'pixelated' }}
+              />
+            </div>
             <div className="mt-4 text-center text-white text-lg font-semibold">
               {images[previewIndex].description}
             </div>
@@ -133,6 +137,7 @@ export default function ImageViewer() {
                       priority={idx === 0}
                       placeholder="blur"
                       className="object-contain"
+                      style={{ imageRendering: 'pixelated' }}
                     />
                     {/* Preview Image Button on Hover */}
                     {hoveredIdx === idx && (

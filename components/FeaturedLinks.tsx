@@ -1,27 +1,19 @@
 'use client'
 
+// Still a client component (SubscribeModal state), but data now arrives as
+// props from the server — no fetching, no loading/error states.
+
 import { useState } from 'react'
-import useSWR from 'swr'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 import SubscribeModal from './SubscribeModal'
 import Image from 'next/image'
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+type FeaturedLinksProps = {
+  links: FeaturedLink[]
+}
 
-export default function FeaturedLinks() {
-  const { data: links, error } = useSWR<FeaturedLink[]>('/api/featured', fetcher)
+export default function FeaturedLinks({ links }: FeaturedLinksProps) {
   const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false)
-
-  if (error) {
-    return <div className="text-sm">Error loading links. Please try again later.</div>
-  }
-
-  if (!links) {
-    return <div className="win98-window items-center flex gap-4 p-2">
-      <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
-      <span>Loading shortcuts...</span>
-    </div>
-  }
 
   function handleLinkClick(e: React.MouseEvent, link: FeaturedLink) {
     if (link.url === '/subscribe') {
@@ -35,19 +27,20 @@ export default function FeaturedLinks() {
       <div className="grid">
         {links.map((link) => {
           const isSubscribeLink = link.url === '/subscribe'
-          
+          const isInternal = link.url.startsWith('/')
+
           return (
             <a
               key={link.url}
               href={link.url}
-              target={isSubscribeLink ? undefined : "_blank"}
-              rel={isSubscribeLink ? undefined : "noopener noreferrer"}
+              target={isInternal ? undefined : "_blank"}
+              rel={isInternal ? undefined : "noopener noreferrer"}
               onClick={(e) => handleLinkClick(e, link)}
               className="win98-button p-2 flex items-center gap-2 no-underline text-black"
             >
-              <Image 
+              <Image
                 src={!link.icon_path || link.icon_path === "/" ? "/win98/internet.webp" : link.icon_path}
-                alt="" 
+                alt=""
                 width={32}
                 height={32}
                 className="w-8 h-8 mr-2"
@@ -63,9 +56,9 @@ export default function FeaturedLinks() {
         })}
       </div>
 
-      <SubscribeModal 
-        isOpen={isSubscribeModalOpen} 
-        onClose={() => setIsSubscribeModalOpen(false)} 
+      <SubscribeModal
+        isOpen={isSubscribeModalOpen}
+        onClose={() => setIsSubscribeModalOpen(false)}
       />
     </>
   )

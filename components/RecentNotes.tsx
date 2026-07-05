@@ -1,9 +1,9 @@
-'use client'
-
 import Link from 'next/link'
 import { format } from 'date-fns'
-import useSWR from 'swr'
 import Image from 'next/image'
+
+// No 'use client' and no data fetching: notes arrive as props from a server
+// component, so this renders in both server and client trees.
 
 type Note = {
   title: string
@@ -12,27 +12,13 @@ type Note = {
   excerpt?: string
 }
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
-
 type RecentNotesProps = {
+  notes: Note[]
   showAll?: boolean
   className?: string
 }
 
-export default function RecentNotes({ showAll = false, className }: RecentNotesProps) {
-  const { data: notes, error } = useSWR<Note[]>('/api/notes', fetcher)
-
-  if (error) {
-    return <div className="text-sm">Error loading blogs. Please try again later.</div>
-  }
-
-  if (!notes) {
-    return <div className="win98-window items-center flex gap-4 p-2">
-      <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
-      <span>Loading blogs...</span>
-    </div>
-  }
-
+export default function RecentNotes({ notes, showAll = false, className }: RecentNotesProps) {
   if (notes.length === 0) {
     return <div className="text-sm">No recent blogs to show. Advith is writing them :)</div>
   }
@@ -70,7 +56,7 @@ export default function RecentNotes({ showAll = false, className }: RecentNotesP
             <div className="text-xs text-[#444]">{note.excerpt}</div>
           )}
           <div className="text-sm text-[#232323] flex items-center gap-2">
-            {format(new Date(note.date), 'MMM dd, yyyy')} 
+            {format(new Date(note.date), 'MMM dd, yyyy')}
           </div>
         </Link>
       ))}

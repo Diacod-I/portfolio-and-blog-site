@@ -11,15 +11,6 @@ const nextConfig = {
     // keep your formats + cache TTL
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,
-    // allow Supabase storage host
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'ttpljybsuarsntidclmc.supabase.co',
-        port: '',
-        pathname: '/storage/v1/**',
-      },
-    ],
   },
 };
 

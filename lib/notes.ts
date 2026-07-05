@@ -16,18 +16,37 @@ export type Note = {
   excerpt?: string
   status: 'Published' | 'Draft'
   readingTimeMinutes: number
+  /** Public path to the post's thumbnail (1280x720 recommended), or null */
+  thumbnail: string | null
 }
 
 export type NoteWithContent = Note & { content: string }
 
 const NOTES_DIR = path.join(process.cwd(), 'content', 'notes')
+const THUMBS_DIR = path.join(process.cwd(), 'public', 'thumbnails')
+const THUMB_EXTENSIONS = ['webp', 'png', 'jpg', 'jpeg']
+
+// Convention: public/thumbnails/<slug>.webp (or png/jpg). A `thumbnail`
+// frontmatter field overrides the convention. Checked at build time.
+async function findThumbnail(slug: string, frontmatterValue?: string): Promise<string | null> {
+  if (frontmatterValue) return frontmatterValue
+  for (const ext of THUMB_EXTENSIONS) {
+    try {
+      await fs.access(path.join(THUMBS_DIR, `${slug}.${ext}`))
+      return `/thumbnails/${slug}.${ext}`
+    } catch {
+      // keep trying extensions
+    }
+  }
+  return null
+}
 
 function estimateReadingTime(content: string): number {
   const words = content.trim().split(/\s+/).length
   return Math.max(1, Math.round(words / 200))
 }
 
-function parseNote(slug: string, fileContent: string): NoteWithContent {
+async function parseNote(slug: string, fileContent: string): Promise<NoteWithContent> {
   const { data, content } = matter(fileContent)
   return {
     slug,
@@ -38,6 +57,7 @@ function parseNote(slug: string, fileContent: string): NoteWithContent {
     // Anything not explicitly "Published" is a draft. Fail closed.
     status: data.status === 'Published' ? 'Published' : 'Draft',
     readingTimeMinutes: estimateReadingTime(content),
+    thumbnail: await findThumbnail(slug, data.thumbnail),
     content,
   }
 }
@@ -57,7 +77,7 @@ export const getAllNotes = cache(async (): Promise<Note[]> => {
       .map(async (file) => {
         try {
           const fileContent = await fs.readFile(path.join(NOTES_DIR, file), 'utf8')
-          const { content: _content, ...note } = parseNote(
+          const { content: _content, ...note } = await parseNote(
             file.replace(/\.mdx$/, ''),
             fileContent
           )
@@ -89,7 +109,7 @@ export const getNote = cache(async (slug: string): Promise<NoteWithContent | nul
 
   try {
     const fileContent = await fs.readFile(path.join(NOTES_DIR, `${slug}.mdx`), 'utf8')
-    const note = parseNote(slug, fileContent)
+    const note = await parseNote(slug, fileContent)
     return note.status === 'Published' ? note : null
   } catch {
     return null

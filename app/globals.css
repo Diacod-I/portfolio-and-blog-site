@@ -122,6 +122,35 @@
   box-shadow: inset 1px 1px #fff;
 }
 
+/* Firefox: match the win98 scrollbar (webkit rules above don't apply there) */
+* {
+  scrollbar-color: #dfdfdf #c0c0c0;
+}
+
+/* Touch devices: nav buttons and window controls get comfortable hit areas */
+@media (pointer: coarse) {
+  .win98-navbar-button {
+    min-height: 40px;
+  }
+  .win98-window-button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .win98-button {
+    min-height: 40px;
+  }
+}
+
+/* Respect reduced-motion: stop decorative loops (badges, pulses, gradients) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient,
+  .animate-pulse-expand,
+  .animate-gradient-pulse,
+  .animate-pulse-spiky {
+    animation: none !important;
+  }
+}
+
 @keyframes gradientFlow {
   0% { background-position-x: 0px; }
   100% { background-position-x: 200px; }

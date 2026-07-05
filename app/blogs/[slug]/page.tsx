@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
 import { compile, run } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
 import NoteWindow from '@/components/NoteWindow'
+import SubstackCTA from '@/components/SubstackCTA'
 import { Metadata } from 'next'
 import { getAllNotes, getNote } from '@/lib/notes'
 
@@ -42,6 +45,8 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
       type: 'article',
       publishedTime: note.date,
       authors: [note.author],
+      // Real thumbnail wins over the generated win98 card when present
+      ...(note.thumbnail && { images: [{ url: note.thumbnail, width: 1280, height: 720 }] }),
     },
   }
 }
@@ -51,6 +56,11 @@ export default async function NotePage({ params }: NotePageProps) {
 
   const note = await getNote(slug)
   if (!note) notFound()
+
+  // Up to 2 other published posts for "See also"
+  const seeAlso = (await getAllNotes())
+    .filter((n) => n.slug !== slug)
+    .slice(0, 2)
 
   const compiled = await compile(note.content, {
     outputFormat: 'function-body',
@@ -72,26 +82,55 @@ export default async function NotePage({ params }: NotePageProps) {
   }
 
   return (
-    <NoteWindow title={note.title}>
+    <NoteWindow
+      title={note.title}
+      date={note.date}
+      readingTimeMinutes={note.readingTimeMinutes}
+      author={note.author}
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <article>
-        <h1 className="text-3xl font-bold mb-2 text-white">
+
+        {/* {note.thumbnail && (
+          <Image
+            src={note.thumbnail}
+            alt=""
+            width={1280}
+            height={720}
+            priority
+            className="w-full max-w-3xl h-auto mb-8 border-2 border-[#808080]"
+          />
+        )} */}
+        <h1 className="text-3xl font-bold mb-8 text-white">
           {note.title}
         </h1>
-
-        <div className="text-sm text-gray-400 mb-8">
-          Author: {note.author} <br />
-          Date: {new Date(note.date).toLocaleDateString()} ·{' '}
-          {note.readingTimeMinutes} min read
-        </div>
 
         <div className="prose prose-invert max-w-none">
           <MDXContent />
         </div>
       </article>
+
+      {/* See also: other published posts as shortcut icons */}
+      {seeAlso.length > 0 && (
+        <div className="mt-10 pt-4 border-t-2 border-[#808080]">
+          <p className="font-bold text-white mb-2">See also:</p>
+          <div className="flex flex-wrap gap-4">
+            {seeAlso.map((n) => (
+              <Link
+                key={n.slug}
+                href={`/blogs/${n.slug}`}
+                className="win98-button p-2 flex items-center gap-2 no-underline text-black max-w-xs"
+              >
+                <Image src="/win98/notes.webp" alt="" width={20} height={20} className="w-5 h-5 shrink-0" />
+                <span className="font-bold text-sm truncate">{n.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </NoteWindow>
   )
 }

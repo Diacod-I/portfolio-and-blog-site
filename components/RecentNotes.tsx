@@ -10,6 +10,7 @@ type Note = {
   slug: string
   date: string
   excerpt?: string
+  thumbnail?: string | null
 }
 
 type RecentNotesProps = {
@@ -33,21 +34,20 @@ export default function RecentNotes({ notes, showAll = false, className }: Recen
         <Link
         key={note.slug}
         href={`/blogs/${note.slug}`}
-        className="win98-button p-2 flex flex-col gap-1 no-underline text-black font-bold"
+        className="win98-button p-2 flex gap-2 no-underline text-black font-bold"
         >
+          {note.thumbnail && (
+            <Image
+              src={note.thumbnail}
+              alt=""
+              width={96}
+              height={54}
+              className="w-24 h-[54px] object-cover shrink-0 border border-[#808080] self-center"
+            />
+          )}
+          <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2">
-            {new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) ? (
-              <span
-                className="text-[#000] text-[10px] font-extrabold px-2 py-0.5 rounded animate-gradient-pulse"
-                style={{
-                  background: 'repeating-linear-gradient(90deg, #ffb6ec 0px, #ffecb6 40px, #b6ffec 80px, #b6ecff 120px, #ecb6ff 160px, #ffb6ec 200px)',
-                  backgroundSize: '200px 100%',
-                  backgroundPosition: '0 0'
-                }}
-              >New</span>
-            ) : (
-              <Image src="/win98/notes.webp" alt="" width={20} height={20} className="w-5 h-5" />
-            )}
+            <Image src="/win98/notes.webp" alt="" width={20} height={20} className="w-5 h-5" />
             <div className="text-md flex items-center gap-1">
               {note.title}
             </div>
@@ -56,7 +56,18 @@ export default function RecentNotes({ notes, showAll = false, className }: Recen
             <div className="text-xs text-[#444]">{note.excerpt}</div>
           )}
           <div className="text-sm text-[#232323] flex items-center gap-2">
+            {new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+              <span
+                className="text-[#000] text-[12px] font-extrabold px-2 py-0.5 rounded animate-gradient-pulse"
+                style={{
+                  background: 'repeating-linear-gradient(90deg, #ffb6ec 0px, #ffecb6 40px, #b6ffec 80px, #b6ecff 120px, #ecb6ff 160px, #ffb6ec 200px)',
+                  backgroundSize: '200px 100%',
+                  backgroundPosition: '0 0'
+                }}
+              >New</span>
+            )}
             {format(new Date(note.date), 'MMM dd, yyyy')}
+          </div>
           </div>
         </Link>
       ))}

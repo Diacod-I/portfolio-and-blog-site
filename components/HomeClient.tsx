@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import ImageViewer from '@/components/ImageViewer'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
+import ScrollPanel from '@/components/ScrollPanel'
 import Image from 'next/image'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
@@ -31,6 +32,28 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
   const hasNewBlog = notes.some(
     note => new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   )
+
+  // First-visit hint: if the window was never opened and the visitor hasn't
+  // interacted for 3s, point at the .exe icon. Once per session.
+  const [showHint, setShowHint] = useState(false)
+  useEffect(() => {
+    if (isAppOpen || sessionStorage.getItem('desktop-hint-shown')) return
+    const timer = setTimeout(() => {
+      setShowHint(true)
+      sessionStorage.setItem('desktop-hint-shown', '1')
+    }, 3000)
+    const dismiss = () => {
+      clearTimeout(timer)
+      setShowHint(false)
+    }
+    window.addEventListener('pointerdown', dismiss)
+    window.addEventListener('keydown', dismiss)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('pointerdown', dismiss)
+      window.removeEventListener('keydown', dismiss)
+    }
+  }, [isAppOpen])
 
   const handleAppOpen = async () => {
     if (!isAppOpen) {
@@ -187,6 +210,22 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
         </span>
       </button>
 
+      {/* Win98 tooltip hint for first-time visitors */}
+      {showHint && !isAppOpen && (
+        <div
+          role="status"
+          className="absolute left-32 top-8 z-30 px-2 py-1 text-sm text-black pointer-events-none"
+          style={{
+            backgroundColor: '#ffffe1',
+            border: '1px solid #000000',
+            boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+            fontFamily: 'monospace',
+          }}
+        >
+          💡 Double-click to open!
+        </div>
+      )}
+
       {/* Application Window */}
       {isAppOpen && (
         <div className="win98-app-window fixed z-40 flex flex-col" style={{ top: '5px', right: '5px', bottom: '43px', left: '5px' }}>
@@ -261,9 +300,9 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
                     <p className="font-bold mb-1">
                       &gt; Fresh blogs below 👇 and older ones in <a href="/blogs" className="text-blue-700 underline hover:text-blue-900">Blog</a>! Come one, come all!
                     </p>
-                    <div className="overflow-y-auto border-2" style={{ maxHeight: 240 }}>
-                    <RecentNotes notes={notes} />
-                    </div>
+                    <ScrollPanel maxHeight={240} className="border-2" nudgeId="recent-notes">
+                      <RecentNotes notes={notes} />
+                    </ScrollPanel>
                   </div>
                 </div>
                 {/* Internet Shortcuts */}
@@ -278,9 +317,9 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
                     <p className="font-bold mb-1">
                     &gt; My online presence! (Still not famous tho)
                     </p>
-                    <div className="overflow-y-auto border-2" style={{ maxHeight: 240 }}>
+                    <ScrollPanel maxHeight={240} className="border-2" nudgeId="featured-links">
                       <FeaturedLinks links={featured} />
-                    </div>
+                    </ScrollPanel>
                   </div>
                 </div>
               </div>

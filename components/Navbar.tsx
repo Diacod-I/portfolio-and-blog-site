@@ -21,9 +21,11 @@ export default function Navbar() {
 
   return ( 
 	  <nav className="win98-window-navbar sticky top-0 z-50">
-      <div className="bg-[#c0c0c0] overflow-x-auto overflow-y-hidden">
-        <div className="flex items-center justify-between min-w-max w-full">
-          <div className="flex items-center gap-0.5">
+      {/* flex-wrap instead of horizontal scroll: on narrow screens the bar
+          stacks into two rows (nav tabs, then Star/Donate) — nothing hidden */}
+      <div className="bg-[#c0c0c0]">
+        <div className="flex flex-wrap items-center justify-between w-full gap-y-1">
+          <div className="flex flex-wrap items-center gap-0.5">
             {routes.map(({ path, label }) => {
               const isActive = pathname === path
               return (
@@ -49,7 +51,7 @@ export default function Navbar() {
             <div className="border-l-2 border-[#ffffff] h-7"></div>
             </div>
           </div>
-          <div className="flex items-center gap-1 mr-2">
+          <div className="flex flex-wrap items-center gap-1 mr-2">
             <button
               className="win98-navbar-button px-2 font-bold flex items-center gap-1 bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 text-yellow-900 shadow-md border-yellow-400 hover:from-yellow-200 hover:to-yellow-400 transition-colors duration-200"
               onClick={() => window.open('https://github.com/Diacod-I/portfolio-and-blog-site', '_blank')}

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import images from '@/data/highlights'
 
@@ -9,6 +9,32 @@ export default function ImageViewer() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const triggerRef = useRef<HTMLElement | null>(null)
+
+  const openPreview = (idx: number) => {
+    triggerRef.current = document.activeElement as HTMLElement
+    setPreviewIndex(idx)
+    setPreviewOpen(true)
+  }
+
+  const closePreview = () => {
+    setPreviewOpen(false)
+    setPreviewIndex(null)
+    triggerRef.current?.focus()
+  }
+
+  // Modal a11y: focus the close button on open, Esc closes
+  useEffect(() => {
+    if (!previewOpen) return
+    closeButtonRef.current?.focus()
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closePreview()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewOpen])
 
   // Auto-scroll every 5 seconds (paused while the preview modal is open)
   useEffect(() => {
@@ -68,10 +94,20 @@ export default function ImageViewer() {
     <div className="win98-window flex-1 flex flex-col min-h-0">
       {/* Preview Modal */}
       {previewOpen && previewIndex !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in">
-          <div className="relative bg-[#23262F] rounded-lg shadow-xl p-4 flex flex-col items-center">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fade-in"
+          onClick={closePreview}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={images[previewIndex].description || 'Photo preview'}
+            className="relative bg-[#23262F] rounded-lg shadow-xl p-4 flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              onClick={() => { setPreviewOpen(false); setPreviewIndex(null); }}
+              ref={closeButtonRef}
+              onClick={closePreview}
               className="absolute top-0 right-0 text-gray-400 hover:text-white text-2xl font-bold bg-[#181A20] hover:bg-[#666666] rounded-full w-9 h-9 flex items-center justify-center border border-[#353945]"
               aria-label="Close preview"
             >
@@ -143,7 +179,7 @@ export default function ImageViewer() {
                     {hoveredIdx === idx && (
                       <button
                         className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 transition-opacity group-hover:opacity-100 opacity-100"
-                        onClick={() => { setPreviewIndex(idx); setPreviewOpen(true); }}
+                        onClick={() => openPreview(idx)}
                         style={{ zIndex: 20 }}
                       >
                         <span className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow-lg border border-[#353945] text-lg transition-all">Preview Image</span>

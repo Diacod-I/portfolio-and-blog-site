@@ -28,8 +28,12 @@ export default function WindowsLoader() {
         </div>
       </div>
       <div className="p-4 bg-[#c0c0c0] flex items-center gap-4">
-        <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
-        <span>Loading advith.exe...</span>
+        {/* shrink-0: without it, a narrow flex row (e.g. this window on a
+            phone-width screen) squeezes the circle's width but not its
+            height, turning it into an oval. min-w-0 on the text lets it
+            wrap instead of forcing the circle to give up its space. */}
+        <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8 shrink-0"></div>
+        <span className="min-w-0">Loading advith.exe...</span>
       </div>
     </div>
   )

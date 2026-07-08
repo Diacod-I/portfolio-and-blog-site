@@ -29,6 +29,21 @@ export default function SubstackToast({ visible, onDismiss }: SubstackToastProps
   const [rect, setRect] = useState<Rect | null>(null)
   const [maximized, setMaximized] = useState(false)
   const preMaximizeRect = useRef<Rect | null>(null)
+  // Same <640px breakpoint Win98Window itself uses for "small screen". Real
+  // app windows go full-bleed there by design (see Win98Window's defaultInset
+  // fallback), which is right for actual apps — but this is a one-off nudge,
+  // not an app someone opened on purpose, so a near-fullscreen window for it
+  // is the wrong call. On small screens it renders as a small, non-draggable
+  // banner pinned to the bottom instead of a Win98Window at all.
+  const [isSmallScreen, setIsSmallScreen] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const update = () => setIsSmallScreen(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   // Land it bottom-right, like the old fixed toast, the moment it becomes
   // visible — computed from the actual viewport (not guessed) so it's
@@ -55,6 +70,42 @@ export default function SubstackToast({ visible, onDismiss }: SubstackToastProps
   }
 
   if (!visible) return null
+
+  if (isSmallScreen) {
+    return (
+      <div
+        role="status"
+        className="fixed bottom-2 left-2 right-2 z-[9000] win98-window shadow-lg"
+      >
+        <div className="win98-titlebar">
+          <div className="flex items-center gap-2">
+            <span>📬 Post Notification</span>
+          </div>
+          <button
+            onClick={onDismiss}
+            className="win98-window-button font-bold text-xl"
+            aria-label="Dismiss notification"
+          >
+            ×
+          </button>
+        </div>
+        <div className="bg-[#c0c0c0] p-2 flex flex-col gap-2">
+          <p className="text-black text-xs">
+            <strong>Enjoying the blog?</strong> Get new posts straight to your
+            inbox — free, via Substack.
+          </p>
+          <a
+            href={SUBSTACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="win98-button px-3 py-1 font-bold text-black no-underline text-center text-sm"
+          >
+            Subscribe ✉️
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Win98Window

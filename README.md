@@ -40,11 +40,15 @@ windows_portfolio/
 
 ## License
 
-This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License. 
-To view a copy of this license, visit [CC BY-NC-ND 4.0](http://creativecommons.org/licenses/by-nc-nd/4.0/).
+Content (blog posts, original writing, and original photos) is licensed
+under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
+International License. To view a copy of this license, visit
+[CC BY-NC-ND 4.0](http://creativecommons.org/licenses/by-nc-nd/4.0/).
 
-You may not use the material for commercial purposes.
-You may not distribute modified versions of this work.
-You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+The source code is **all rights reserved** — published for portfolio and
+reference purposes only, not licensed for reuse. (Creative Commons
+licenses aren't intended for software, so code is deliberately excluded
+from the CC terms above.)
 
-This restriction is intended to protect the originality of the Windows 98 UI spin created by Advith Krishnan.
+See [LICENSE.md](./LICENSE.md) for the full terms, and [CREDITS.md](./CREDITS.md)
+(or the in-app Credits window) for third-party attributions.

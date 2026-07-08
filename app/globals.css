@@ -72,12 +72,16 @@
 
   .win98-taskbar {
     /* z-[9990]: the taskbar (and the start menu inside it) must always sit
-       above app windows, whose z-index grows with every focus (40 + n) */
+       above app windows, whose z-index grows with every focus (40 + n).
+       This has to stay `fixed`, not `sticky` — sticky only holds within its
+       normal document-flow position, and this element sits right after a
+       full h-screen desktop div, so as sticky it rendered a full viewport
+       below the fold (invisible, unreachable — no page scroll to reveal
+       it). That silently swallowed the whole taskbar, Start button
+       included, on mobile. */
     @apply fixed bottom-0 left-0 right-0 bg-[#c0c0c0] border-t-2 border-white p-1 flex items-center z-[9990]
            will-change-transform transform-gpu text-black dark:text-black;
     height: 38px;
-    position: -webkit-sticky;
-    position: sticky;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }

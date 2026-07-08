@@ -41,7 +41,7 @@ export default function CreditsWindow() {
           </a>
         </li>
         <li>
-          Click Sound Effect by <a href="https://pixabay.com/users/matthewvakaliuk73627-48347364/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=290204">Matthew Vakalyuk</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=290204">MatthewVakaliuk73627</a> on Pixabay
+          Click Sound Effect by <a href="https://pixabay.com/users/matthewvakaliuk73627-48347364/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=290204" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Matthew Vakalyuk</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=290204">MatthewVakaliuk73627</a> on Pixabay
         </li>
         <li>
           MDX/Markdown blog system:{' '}

@@ -15,6 +15,7 @@ import type { StaticImageData } from 'next/image'
 import ethglobal from '@/public/highlights/ethglobal.jpg'
 import linux from '@/public/highlights/linux.jpeg'
 import icvgip from '@/public/highlights/icvgip.jpeg'
+import kartik_talwar from '@/public/highlights/kartik_talwar.jpeg'
 // ...import new photos here
  
 export interface Photo {
@@ -50,6 +51,13 @@ const allHighlights: Photo[] = [
     description: 'ICVGIP 2024 Paper Presentation for "ViDAS: Vision-based Danger Assessment and Scoring", IIIT Bangalore',
     uploaded_at: '2024-12-15',
   },
+  {
+    id: 'kartik_talwar',
+    image: kartik_talwar,
+    alt_text: 'Met Mr. Kartik Talwar',
+    description: 'Met Mr. Kartik Talwar (Co-founder of ETHGlobal)',
+    uploaded_at: '2025-09-27'
+  }
 ]
  
 const highlights: Photo[] = allHighlights

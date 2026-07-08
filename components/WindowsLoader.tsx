@@ -26,7 +26,7 @@ export default function WindowsLoader() {
       </div>
       <div className="p-4 bg-[#c0c0c0] flex items-center gap-4">
         <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8"></div>
-        <span>Loading advith_krishnan.exe...</span>
+        <span>Loading advith.exe...</span>
       </div>
     </div>
   )

@@ -43,6 +43,15 @@
     background: linear-gradient(90deg, #000080 0%, #1f8af4 100%);
   }
 
+  /* Classic win98 "inactive window" titlebar: same layout, desaturated
+     gray gradient instead of the blue "active" one. This is the hint that
+     lets you tell at a glance which of two visible app windows currently
+     has focus (see FooterConsole's pressed-in taskbar button for the same
+     signal on the taskbar side). */
+  .win98-titlebar-inactive {
+    background: linear-gradient(90deg, #7f7f7f 0%, #b5b5b5 100%);
+  }
+
   .win98-button {
     @apply bg-[#c5c5c5] border-2 border-t-[#f0f0f0] border-l-[#f0f0f0] border-b-[#808080] border-r-[#808080] 
            hover:bg-[#d5d5d5] transition-colors
@@ -62,7 +71,9 @@
   }
 
   .win98-taskbar {
-    @apply fixed bottom-0 left-0 right-0 bg-[#c0c0c0] border-t-2 border-white p-1 flex items-center z-50
+    /* z-[9990]: the taskbar (and the start menu inside it) must always sit
+       above app windows, whose z-index grows with every focus (40 + n) */
+    @apply fixed bottom-0 left-0 right-0 bg-[#c0c0c0] border-t-2 border-white p-1 flex items-center z-[9990]
            will-change-transform transform-gpu text-black dark:text-black;
     height: 38px;
     position: -webkit-sticky;

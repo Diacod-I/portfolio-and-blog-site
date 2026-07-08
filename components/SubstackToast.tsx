@@ -1,8 +1,8 @@
 'use client'
 
 // Fixed bottom-right "system tray notification" version of the Substack CTA.
-// Controlled by the parent (BlogsExplorerShell) so the Explorer window can
-// resize when the toast is dismissed.
+// Controlled by the parent (HomeClient) — shown once per session whenever
+// the Blogs window is open on the list view.
 
 const SUBSTACK_URL = 'https://substack.com/@advithkrishnan'
 

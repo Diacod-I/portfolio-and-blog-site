@@ -1,25 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
+import { Reorder } from 'framer-motion'
 
-interface FooterConsoleProps {
-  activeApps?: { id: string; name: string; icon: string; isActive: boolean, width: number, height: number }[]
-  onAppClick?: (id: string) => void
+export type TaskbarApp = {
+  id: string
+  name: string
+  icon: string
+  /** true when the app is open and focused (pressed-in button) */
+  isActive: boolean
 }
 
-export default function FooterConsole({ 
-  activeApps = [], 
-  onAppClick = () => {} 
+interface FooterConsoleProps {
+  /** Apps with a taskbar presence (open or minimized), in user order */
+  activeApps?: TaskbarApp[]
+  /** Click: minimize if focused, restore+focus otherwise */
+  onAppClick?: (id: string) => void
+  /** Drag-to-reorder taskbar buttons */
+  onReorder?: (ids: string[]) => void
+}
+
+export default function FooterConsole({
+  activeApps = [],
+  onAppClick = () => {},
+  onReorder = () => {},
 }: FooterConsoleProps) {
   const [time, setTime] = useState<string>('')
   const [mounted, setMounted] = useState(false)
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false)
+  // True while a taskbar button is being dragged (and for one tick after,
+  // so the click that fires on release is suppressed but the next one isn't)
+  const isDragging = useRef(false)
 
   useEffect(() => {
     setMounted(true)
     const updateTime = () => setTime(new Date().toLocaleTimeString())
-    updateTime() // Set initial time
+    updateTime()
     const timer = setInterval(updateTime, 1000)
     return () => clearInterval(timer)
   }, [])
@@ -35,11 +52,10 @@ export default function FooterConsole({
       }
     }
 
-    // Add slight delay to avoid immediate closure
     setTimeout(() => {
       document.addEventListener('click', handleClickOutside)
     }, 0)
-    
+
     return () => {
       document.removeEventListener('click', handleClickOutside)
     }
@@ -51,12 +67,17 @@ export default function FooterConsole({
     setIsStartMenuOpen(prev => !prev)
   }
 
+  const handleAppClick = (id: string) => {
+    if (isDragging.current) return
+    onAppClick(id)
+  }
+
   return (
     <footer className="win98-taskbar">
       <div className="flex items-center w-full min-w-0">
         {/* Start Button - Always visible */}
         <div className="relative flex-shrink-0">
-          <button 
+          <button
             className={`win98-start-button ${isStartMenuOpen ? 'active' : ''}`}
             onClick={toggleStartMenu}
             type="button"
@@ -66,18 +87,18 @@ export default function FooterConsole({
           </button>
 
           {isStartMenuOpen && (
-            <div 
-              className="win98-start-menu absolute bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-transparent"
-              style={{ zIndex: 9999 }}
+            <div
+              className="win98-start-menu absolute z-99999 bottom-full left-0 mb-1 w-64 bg-[#c0c0c0] border-2 border-white border-r-black border-b-transparent"
+              style={{ zIndex: 99999 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-[#000080] absolute left-0 top-0 bottom-0 w-[23px]"></div>
               <div className="flex flex-col py-2 pl-[18px]">
                 <div className="flex items-center justify-center">
-                  <Image 
-                    src="/club_penguin.gif" 
-                    alt="Club Penguin Dancing" 
-                    width={192} height={80} 
+                  <Image
+                    src="/club_penguin.gif"
+                    alt="Club Penguin Dancing"
+                    width={192} height={80}
                     className="w-48 h-auto"
                   />
                 </div>
@@ -92,41 +113,59 @@ export default function FooterConsole({
         {/* Separator */}
         <div className="border-l-2 border-[#808080] ml-2 h-8 flex-shrink-0"></div>
         <div className="border-l-2 border-[#ffffff] h-8 mr-2 flex-shrink-0"></div>
-        
-        {/* App buttons - Scrollable on mobile */}
+
+        {/* App buttons: drag to reorder, click to minimize/restore */}
         <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden">
-          <div className="flex items-center gap-2 min-w-max pr-2">
+          <Reorder.Group
+            axis="x"
+            values={activeApps.map((a) => a.id)}
+            onReorder={onReorder}
+            className="flex items-center gap-2 min-w-max pr-2 list-none m-0 p-0"
+          >
             {activeApps.map((app) => (
-              <button
+              <Reorder.Item
                 key={app.id}
-                onClick={() => onAppClick(app.id)}
-                className={`win98-button flex items-center gap-2 px-2 py-1 min-w-[120px] flex-shrink-0 ${
-                  app.isActive 
-                    ? 'bg-[#c3c3c3] border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white' 
-                    : ''
-                }`}
+                value={app.id}
+                onDragStart={() => { isDragging.current = true }}
+                onDragEnd={() => {
+                  // Let the release-click fire (and be suppressed) first
+                  setTimeout(() => { isDragging.current = false }, 50)
+                }}
+                whileDrag={{ scale: 1.05, zIndex: 60 }}
+                className="list-none relative"
+                style={{ touchAction: 'none' }}
               >
-                <Image
-                  src={app.icon}
-                  alt={app.name + " Icon"}
-                  width={app.width}
-                  height={app.height}
-                  className="w-4 h-4"
-                />
-                <span className="text-xs font-bold truncate">{app.name}</span>
-              </button>
+                <button
+                  onClick={() => handleAppClick(app.id)}
+                  className={`win98-button flex items-center gap-2 px-2 py-1 min-w-[120px] flex-shrink-0 select-none ${
+                    app.isActive
+                      ? 'bg-[#c3c3c3] border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white'
+                      : ''
+                  }`}
+                >
+                  <Image
+                    src={app.icon}
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="w-4 h-4 pointer-events-none"
+                    draggable={false}
+                  />
+                  <span className="text-xs font-bold truncate pointer-events-none">{app.name}</span>
+                </button>
+              </Reorder.Item>
             ))}
-          </div>
+          </Reorder.Group>
         </div>
         {/* Copyright notice */}
-        <p className="ml-auto px-2 text-[11px] text-[#444] font-mono opacity-70">
+        <p className="ml-auto px-2 text-[11px] text-[#444] font-mono opacity-70 hidden md:block">
           © 2025 Advith Krishnan. <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" className="hover:underline">CC BY-NC-ND 4.0</a>. <a href="/credits" className="text-[11px] text-[#444] font-mono hover:underline">Credits & attributions provided.</a>
         </p>
-        
+
         {/* Separator */}
         <div className="border-l-2 border-[#808080] h-8 flex-shrink-0"></div>
         <div className="border-l-2 border-[#ffffff] mr-2 h-8 flex-shrink-0"></div>
-        
+
         {/* Clock - Always visible */}
         <div className="px-2 win98-taskbar-time flex-shrink-0">
           <span className="text-xs whitespace-nowrap">{mounted ? time : ''}</span>

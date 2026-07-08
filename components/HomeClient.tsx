@@ -1,43 +1,148 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import RecentNotes from '@/components/RecentNotes'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import Image from 'next/image'
 import FeaturedLinks from '@/components/FeaturedLinks'
 import Navbar from '@/components/Navbar'
-import ImageViewer from '@/components/ImageViewer'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
 import ScrollPanel from '@/components/ScrollPanel'
-import Image from 'next/image'
+import ExplorerBlogList from '@/components/ExplorerBlogList'
+import BlogPostView from '@/components/BlogPostView'
+import SubstackToast from '@/components/SubstackToast'
+import GalleryWindow from '@/components/GalleryWindow'
+import DesktopIcon, { GridCell } from '@/components/DesktopIcon'
+import Win98Window from '@/components/Win98Window'
+import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
+import highlights from '@/data/highlights'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
+
+// What the Blogs window shows: the Explorer-style list (default), or a
+// single post (used when landing on /blogs/[slug] — see that route, which
+// compiles the MDX server-side and hands the rendered element down here).
+export type BlogsView =
+  | { mode: 'list' }
+  | { mode: 'post'; note: Note; seeAlso: Note[]; content: React.ReactNode }
 
 type HomeClientProps = {
   notes: Note[]
   featured: FeaturedLink[]
+  forceOpenApp?: AppId
+  blogsView?: BlogsView
 }
 
-export default function HomeClient({ notes, featured }: HomeClientProps) {
-  const [isAppOpen, setIsAppOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeApps, setActiveApps] = useState<Array<{
-    id: string;
-    name: string;
-    icon: string;
-    isActive: boolean;
-    width: number;
-    height: number;
-  }>>([])
+// ---- App registry -----------------------------------------------------------
+const APPS: Record<AppId, { name: string; icon: string }> = {
+  advith: { name: 'advith.exe', icon: '/win98/advith_krishnan_exe.webp' },
+  blogs: { name: 'Blogs', icon: '/win98/notepad.webp' },
+  gallery: { name: 'Gallery', icon: '/win98/photos.webp' },
+}
 
+const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
+  advith: { col: 0, row: 1 },
+  blogs: { col: 0, row: 0 },
+  gallery: { col: 0, row: 2 },
+}
+
+const ICON_POS_KEY = 'desktop-icon-cells-v1'
+
+export default function HomeClient({
+  notes,
+  featured,
+  forceOpenApp,
+  blogsView = { mode: 'list' },
+}: HomeClientProps) {
+  const [isLoading, setIsLoading] = useState(false)
+
+  // ---- Window manager state ---------------------------------------------------
+  // Lives in a zustand store (not useState) so window position/size,
+  // open/minimized/z-order and taskbar order survive navigating away from
+  // "/" (which unmounts this component) and back.
+  const wins = useWindowStore(s => s.wins)
+  const taskOrder = useWindowStore(s => s.taskOrder)
+  const registerApp = useWindowStore(s => s.registerApp)
+  const focusApp = useWindowStore(s => s.focusApp)
+  const storeMinimizeApp = useWindowStore(s => s.minimizeApp)
+  const storeCloseApp = useWindowStore(s => s.closeApp)
+  const setRect = useWindowStore(s => s.setRect)
+  const toggleMaximize = useWindowStore(s => s.toggleMaximize)
+  const setTaskOrder = useWindowStore(s => s.setTaskOrder)
+
+  // Pull persisted window state back in from sessionStorage after mount
+  // (skipped automatically during SSR/first paint to avoid a hydration
+  // mismatch — see skipHydration in lib/store/windowStore.ts).
+  useEffect(() => {
+    useWindowStore.persist.rehydrate()
+  }, [])
+
+  const focusedId = (Object.entries(wins) as [AppId, WinState][])
+    .filter(([, w]) => w.status === 'open')
+    .sort((a, b) => b[1].z - a[1].z)[0]?.[0]
+
+  const openApp = useCallback(async (id: AppId) => {
+    registerApp(id)
+    if (id === 'advith' && wins.advith.status === 'closed') {
+      setIsLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      setIsLoading(false)
+    }
+    focusApp(id)
+  }, [wins.advith.status, focusApp, registerApp])
+
+  const minimizeApp = storeMinimizeApp
+  const closeApp = storeCloseApp
+
+  // Taskbar click: minimize when focused, restore + focus otherwise (win98 rule)
+  const handleTaskbarClick = (id: string) => {
+    const appId = id as AppId
+    if (wins[appId].status === 'open' && focusedId === appId) {
+      minimizeApp(appId)
+    } else {
+      focusApp(appId)
+    }
+  }
+
+  // ---- Desktop icon grid ------------------------------------------------------
+  const [iconCells, setIconCells] = useState<Record<AppId, GridCell>>(DEFAULT_ICON_CELLS)
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(ICON_POS_KEY)
+      if (saved) setIconCells({ ...DEFAULT_ICON_CELLS, ...JSON.parse(saved) })
+    } catch { /* corrupted storage: keep defaults */ }
+  }, [])
+
+  const moveIcon = (id: string, cell: GridCell) => {
+    const appId = id as AppId
+    setIconCells(prev => {
+      // Win98 collision rule: occupied cell → take nearest free cell below
+      const occupied = (c: GridCell) =>
+        (Object.entries(prev) as [AppId, GridCell][]).some(
+          ([other, oc]) => other !== appId && oc.col === c.col && oc.row === c.row
+        )
+      let target = cell
+      while (occupied(target)) target = { col: target.col, row: target.row + 1 }
+      const next = { ...prev, [appId]: target }
+      try { localStorage.setItem(ICON_POS_KEY, JSON.stringify(next)) } catch { /* private mode */ }
+      return next
+    })
+  }
+
+  // ---- Misc desktop behavior --------------------------------------------------
   const hasNewBlog = notes.some(
     note => new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   )
+  const hasNewHighlight = highlights.some(
+    photo => new Date(photo.uploaded_at) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  )
 
-  // First-visit hint: if the window was never opened and the visitor hasn't
-  // interacted for 3s, point at the .exe icon. Once per session.
+  // First-visit hint (once per session)
   const [showHint, setShowHint] = useState(false)
+  const anyOpen =
+    wins.advith.status !== 'closed' || wins.blogs.status !== 'closed' || wins.gallery.status !== 'closed'
   useEffect(() => {
-    if (isAppOpen || sessionStorage.getItem('desktop-hint-shown')) return
+    if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
     const timer = setTimeout(() => {
       setShowHint(true)
       sessionStorage.setItem('desktop-hint-shown', '1')
@@ -53,51 +158,49 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
       window.removeEventListener('pointerdown', dismiss)
       window.removeEventListener('keydown', dismiss)
     }
-  }, [isAppOpen])
+  }, [anyOpen])
 
-  const handleAppOpen = async () => {
-    if (!isAppOpen) {
-      setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setIsAppOpen(true)
-      setIsLoading(false)
-      window.history.replaceState({}, '', '/?app=open')
-    }
-  }
-
-  const handleAppClick = (id: string) => {
-    if (id === 'main-app') {
-      setIsAppOpen(prev => !prev)
-      setActiveApps(prev => prev.map(app =>
-        app.id === id ? { ...app, isActive: !app.isActive } : app
-      ))
-    }
-  }
-
-  useEffect(() => {
-    setActiveApps(prev => {
-      if (isAppOpen && !prev.some(app => app.id === 'main-app')) {
-        return [{
-          id: 'main-app',
-          name: 'advith_krishnan.exe',
-          icon: '/win98/advith_krishnan_exe.webp',
-          isActive: true,
-          width: 16,
-          height: 16
-        }]
-      }
-      return prev.map(app =>
-        app.id === 'main-app' ? { ...app, isActive: isAppOpen } : app
-      )
-    })
-  }, [isAppOpen])
-
+  // Deep links: /?app=open (or /?app=advith) → advith window, /?app=blogs →
+  // blogs window. Other pages (ErrorWindow, NoteWindow, ResumeViewer, the
+  // Contact/Credits pages) still route in with these query strings, so we
+  // keep reading them — but once consumed, drop the query so the URL
+  // settles back to plain "/", same as clicking an icon.
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
-    if (searchParams.get('app') === 'open') {
-      setIsAppOpen(true)
+    const app = searchParams.get('app')
+    if (app === 'open' || app === 'advith') {
+      // focusApp registers the window on the taskbar as well as opening it
+      focusApp('advith')
+    } else if (app === 'blogs') {
+      focusApp('blogs')
+    }
+    if (app) {
+      window.history.replaceState({}, '', '/')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // /blogs and /blogs/[slug] pass forceOpenApp="blogs" so those routes land
+  // with the Blogs window already open — no query string involved, unlike
+  // the deep link above, so this doesn't touch the URL at all.
+  useEffect(() => {
+    if (forceOpenApp) focusApp(forceOpenApp)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Substack subscribe toast: shown once per session whenever the Blogs
+  // window is open on the list view (ported from the old standalone
+  // /blogs page, now that /blogs renders through this same shell).
+  const [toastVisible, setToastVisible] = useState(false)
+  useEffect(() => {
+    if (!sessionStorage.getItem('substack-toast-dismissed')) {
+      setToastVisible(true)
     }
   }, [])
+  const dismissToast = () => {
+    setToastVisible(false)
+    sessionStorage.setItem('substack-toast-dismissed', '1')
+  }
 
   // Morphing animation for roles with cryptic letters
   const roles = [
@@ -110,7 +213,6 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
   const [displayText, setDisplayText] = useState(roles[0]);
   const morphing = useRef(false);
 
-  // Helper for random cryptic chars
   const randomChar = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
     return chars[Math.floor(Math.random() * chars.length)];
@@ -124,9 +226,8 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
     const morphTo = roles[(roleIndex + 1) % roles.length];
     morphing.current = true;
 
-    // 1. Animate random strings of same length for 0.5s (500ms)
     let morphFrame = 0;
-    const morphFrames = 500 / 40; // 0.5s at 40ms per frame
+    const morphFrames = 500 / 40;
     const morph = () => {
       setDisplayText(() => {
         let cryptic = '';
@@ -139,7 +240,6 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
       if (morphFrame < morphFrames) {
         morphTimeout = setTimeout(morph, 40);
       } else {
-        // 2. Reveal actual text, one character at a time
         let revealFrame = 0;
         const reveal = () => {
           setDisplayText(() => {
@@ -158,7 +258,6 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
             revealTimeout = setTimeout(reveal, 40);
           } else {
             setDisplayText(morphTo);
-            // 3. Hold the final text for 2s before next morph
             holdTimeout = setTimeout(() => {
               setRoleIndex((prev) => (prev + 1) % roles.length);
               morphing.current = false;
@@ -178,6 +277,15 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
     // eslint-disable-next-line
   }, [roleIndex]);
 
+  const taskbarApps = taskOrder
+    .filter(id => wins[id].status !== 'closed')
+    .map(id => ({
+      id,
+      name: APPS[id].name,
+      icon: APPS[id].icon,
+      isActive: wins[id].status === 'open' && focusedId === id,
+    }))
+
   return (
     <>
       <div
@@ -188,30 +296,39 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
           backgroundPosition: 'center'
         }}
       >
-      {/* Desktop Icon */}
-      <button
-        onClick={handleAppOpen}
-        className="flex flex-col items-center gap-2 p-2 relative"
-      >
-        {hasNewBlog && (
-          <span className="absolute top-0 right-14 -translate-y-2 translate-x-2 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse-expand pointer-events-none"></span>
-        )}
-        <div>
-          <Image
-            src="/win98/advith_krishnan_exe.webp"
-            alt="Application"
-            width={56}
-            height={56}
-            className="w-14 h-14"
-          />
-        </div>
-        <span className={`win98-app-name ${isAppOpen ? 'active' : ''}`}>
-          advith_krishnan.exe
-        </span>
-      </button>
+      {/* Desktop icons: draggable, snap to invisible grid, order persisted */}
+      <DesktopIcon
+        id="blogs"
+        label="Blogs"
+        icon={APPS.blogs.icon}
+        cell={iconCells.blogs}
+        showBadge={hasNewBlog}
+        isActive={wins.blogs.status !== 'closed'}
+        onOpen={() => openApp('blogs')}
+        onMove={moveIcon}
+      />
+      <DesktopIcon
+        id="gallery"
+        label="Gallery"
+        icon={APPS.gallery.icon}
+        cell={iconCells.gallery}
+        showBadge={hasNewHighlight}
+        isActive={wins.gallery.status !== 'closed'}
+        onOpen={() => openApp('gallery')}
+        onMove={moveIcon}
+      />
+      <DesktopIcon
+        id="advith"
+        label="advith.exe"
+        icon={APPS.advith.icon}
+        cell={iconCells.advith}
+        isActive={wins.advith.status !== 'closed'}
+        onOpen={() => openApp('advith')}
+        onMove={moveIcon}
+      />
 
       {/* Win98 tooltip hint for first-time visitors */}
-      {showHint && !isAppOpen && (
+      {showHint && !anyOpen && (
         <div
           role="status"
           className="absolute left-32 top-8 z-30 px-2 py-1 text-sm text-black pointer-events-none"
@@ -222,116 +339,178 @@ export default function HomeClient({ notes, featured }: HomeClientProps) {
             fontFamily: 'monospace',
           }}
         >
-          💡 Double-click to open!
+          💡 You can drag the apps around and click to open them!
         </div>
       )}
 
-      {/* Application Window */}
-      {isAppOpen && (
-        <div className="win98-app-window fixed z-40 flex flex-col" style={{ top: '5px', right: '5px', bottom: '43px', left: '5px' }}>
-          <div className="win98-titlebar">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/win98/advith_krishnan_exe.webp"
-                alt="App Icon"
-                width={16}
-                height={16}
-                className="w-4 h-4"
-              />
-              <span>advith_krishnan.exe</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                className="win98-window-button font-bold text-xl flex items-center justify-center"
-                style={{ paddingBottom: '4px' }}
-                onClick={() => {
-                  setIsAppOpen(false);
-                  setActiveApps(prev => prev.map(app =>
-                    app.id === 'main-app' ? { ...app, isActive: false } : app
-                  ));
-                }}
-              >_</button>
-              <button
-                className="win98-window-button font-bold text-2xl"
-                onClick={() => {
-                  setTimeout(() => {
-                    setIsAppOpen(false);
-                    setActiveApps(prev => prev.filter(app => app.id !== 'main-app'));
-                    window.history.replaceState({}, '', '/');
-                  }, 400);
-                }}
-              >×</button>
-            </div>
-          </div>
+      {/* ---- advith.exe window ---- */}
+      {wins.advith.status !== 'closed' && (
+        <Win98Window
+          title="advith.exe"
+          icon={APPS.advith.icon}
+          zIndex={40 + wins.advith.z}
+          minimized={wins.advith.status === 'minimized'}
+          isFocused={focusedId === 'advith'}
+          maximized={wins.advith.maximized}
+          defaultInset={{ top: 5, right: 5, bottom: 43, left: 5 }}
+          rect={wins.advith.rect}
+          onRectChange={(r) => setRect('advith', r)}
+          onFocus={() => focusApp('advith')}
+          onMinimize={() => minimizeApp('advith')}
+          onToggleMaximize={() => toggleMaximize('advith')}
+          onClose={() => closeApp('advith')}
+        >
             <Navbar />
           <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 flex-1 min-h-0 h-full overflow-y-auto">
-              {/* Left Column */}
-              <div className="flex flex-col gap-2 h-full flex-1">
-                <h1 className="text-white text-3xl font-bold">
-                  👋 Hi, I'm Advith Krishnan!
-                </h1>
-                <span className="text-white text-md min-h-[28px]">
-                  &gt; {" "} <span
-                    className="inline-block transition-opacity duration-300"
-                    style={{ fontFamily: 'monospace, monospace', letterSpacing: '0.5px' }}
-                  >
-                    {displayText.trim()}
-                  </span>
-                  &nbsp;who works on cool stuff!
-                </span>
-                {/* Image Viewer - now fills left column */}
-                <div className="flex-1">
-                  <ImageViewer />
-                </div>
-              </div>
+            <div className="flex-1 min-h-0 overflow-y-auto p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Internet Shortcuts — a card at the top right (stacks on top on mobile) */}
+                {/* <div className="order-1 md:order-2 w-full md:w-72 flex-shrink-0">
+                  <div className="win98-window flex flex-col">
+                    <div className="win98-titlebar">
+                      <div className="flex items-center gap-2">
+                        <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
+                        <span>Internet Shortcuts</span>
+                      </div>
+                    </div>
+                    <div className="bg-[#f0f0f0] border-2 p-2">
+                      <p className="font-bold mb-1 text-sm">
+                        &gt; My online presence! (Still not famous tho)
+                      </p>
+                      <ScrollPanel maxHeight={320} className="border-2" nudgeId="featured-links">
+                        <FeaturedLinks links={featured} />
+                      </ScrollPanel>
+                    </div>
+                  </div>
+                </div> */}
 
-              {/* Right Column */}
-              <div className="flex flex-col h-full gap-4">
-                {/* Recent Blogs */}
-                <div className="win98-window flex-1 flex flex-col">
-                  <div className="win98-titlebar">
-                    <div className="flex items-center gap-2">
-                      <img src="/win98/notepad.webp" alt="Notes" className="w-4 h-4" />
-                      <span>Recent Blog Posts</span>
+                {/* About/bio — fills the remaining space */}
+                <div className="order-2 md:order-1 flex-1 min-w-0 flex flex-col gap-3">
+                  <h1 className="text-white text-3xl font-bold">
+                    👋 Hi, I&apos;m Advith Krishnan!
+                  </h1>
+                  <span className="text-white text-md min-h-[28px]">
+                    &gt; {" "} <span
+                      className="inline-block transition-opacity duration-300"
+                      style={{ fontFamily: 'monospace, monospace', letterSpacing: '0.5px' }}
+                    >
+                      {displayText.trim()}
+                    </span>
+                    &nbsp;who works on cool stuff!
+                  </span>
+
+                  {/* TODO: replace with real bio copy */}
+                  {/* Plain block (not flex) so the floated photo lets the
+                      justified paragraphs wrap around it, old-homepage style. */}
+                  <div className="text-white text-sm leading-relaxed mt-1">
+                    <div className="float-right relative ml-4 mb-3 w-40 sm:w-56 aspect-square border-2 border-[#808080] overflow-hidden">
+                      <Image
+                        src="/Advith_Krishnan.webp"
+                        alt="Advith Krishnan"
+                        fill
+                        sizes="(max-width: 640px) 160px, 224px"
+                        className="object-cover"
+                      />
                     </div>
-                  </div>
-                  <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
-                    <p className="font-bold mb-1">
-                      &gt; Fresh blogs below 👇 and older ones in <a href="/blogs" className="text-blue-700 underline hover:text-blue-900">Blogs</a>! Come one, come all!
+                    <p className="text-justify mb-3">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+                      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+                      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+                      commodo consequat.
                     </p>
-                    <ScrollPanel maxHeight={240} className="border-2" nudgeId="recent-notes">
-                      <RecentNotes notes={notes} />
-                    </ScrollPanel>
-                  </div>
-                </div>
-                
-                {/* Internet Shortcuts */}
-                <div className="win98-window flex-1 flex flex-col">
-                  <div className="win98-titlebar">
-                    <div className="flex items-center gap-2">
-                      <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
-                      <span>Internet Shortcuts</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 bg-[#f0f0f0] border-2 p-2">
-                    <p className="font-bold mb-1">
-                    &gt; My online presence! (Still not famous tho)
+                    <p className="text-justify mb-3">
+                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
+                      dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+                      proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                     </p>
-                    <ScrollPanel maxHeight={240} className="border-2" nudgeId="featured-links">
-                      <FeaturedLinks links={featured} />
-                    </ScrollPanel>
+                    <p className="text-justify mb-3">
+                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+                      accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab
+                      illo inventore veritatis et quasi architecto beatae vitae dicta sunt
+                      explicabo.
+                    </p>
+                    <p className="text-justify">
+                      Take a look through my{' '}
+                      <button onClick={() => openApp('gallery')} className="text-sky-300 underline hover:text-sky-200 font-bold">
+                        Gallery
+                      </button>{' '}
+                      for photos from my life, or read my latest thoughts over on{' '}
+                      <button onClick={() => openApp('blogs')} className="text-sky-300 underline hover:text-sky-200 font-bold">
+                        Blogs
+                      </button>.
+                    </p>
+                    <div className="clear-both" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </Win98Window>
+      )}
+
+      {/* ---- Gallery window (FastStone-style photo viewer) ---- */}
+      {wins.gallery.status !== 'closed' && (
+        <Win98Window
+          title="Gallery"
+          icon={APPS.gallery.icon}
+          zIndex={40 + wins.gallery.z}
+          minimized={wins.gallery.status === 'minimized'}
+          isFocused={focusedId === 'gallery'}
+          maximized={wins.gallery.maximized}
+          defaultInset={{ top: 40, right: 16, bottom: 43, left: 60 }}
+          rect={wins.gallery.rect}
+          onRectChange={(r) => setRect('gallery', r)}
+          onFocus={() => focusApp('gallery')}
+          onMinimize={() => minimizeApp('gallery')}
+          onToggleMaximize={() => toggleMaximize('gallery')}
+          onClose={() => closeApp('gallery')}
+        >
+          <div className="win98-window-content bg-[#A6A6A6] flex-1 min-h-0 flex flex-col overflow-hidden">
+            <GalleryWindow />
+          </div>
+        </Win98Window>
+      )}
+
+      {/* ---- Blogs window: list view, or a single post when blogsView.mode
+           is 'post' (landed here via /blogs/[slug] — see that route) ---- */}
+      {wins.blogs.status !== 'closed' && (
+        <Win98Window
+          title="Advith's Blogs"
+          icon={APPS.blogs.icon}
+          zIndex={40 + wins.blogs.z}
+          minimized={wins.blogs.status === 'minimized'}
+          isFocused={focusedId === 'blogs'}
+          maximized={wins.blogs.maximized}
+          defaultInset={{ top: 24, right: 24, bottom: 43, left: 24 }}
+          rect={wins.blogs.rect}
+          onRectChange={(r) => setRect('blogs', r)}
+          onFocus={() => focusApp('blogs')}
+          onMinimize={() => minimizeApp('blogs')}
+          onToggleMaximize={() => toggleMaximize('blogs')}
+          onClose={() => closeApp('blogs')}
+        >
+          <div className="win98-window-content bg-[#A6A6A6] flex-1 min-h-0 flex flex-col overflow-hidden">
+            {blogsView.mode === 'post' ? (
+              <BlogPostView note={blogsView.note} seeAlso={blogsView.seeAlso} content={blogsView.content} />
+            ) : (
+              <ExplorerBlogList notes={notes} />
+            )}
+          </div>
+        </Win98Window>
       )}
 
       {isLoading && <WindowsLoader />}
+
+      <SubstackToast
+        visible={toastVisible && wins.blogs.status !== 'closed' && blogsView.mode === 'list'}
+        onDismiss={dismissToast}
+      />
     </div>
-    <FooterConsole activeApps={activeApps} onAppClick={handleAppClick} />
+    <FooterConsole
+      activeApps={taskbarApps}
+      onAppClick={handleTaskbarClick}
+      onReorder={(ids) => setTaskOrder(ids as AppId[])}
+    />
     </>
   )
 }

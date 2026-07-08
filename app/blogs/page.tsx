@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
-import BlogsExplorerShell from '@/components/BlogsExplorerShell'
+import HomeClient from '@/components/HomeClient'
 import { getAllNotes } from '@/lib/notes'
+import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 
 export const metadata: Metadata = {
   title: 'All Blog Posts | Advith Krishnan',
@@ -10,10 +11,12 @@ export const metadata: Metadata = {
   },
 }
 
-// Server component: note list is read from the repo at build time.
-// Window chrome + toast interplay live in BlogsExplorerShell (client).
+// Renders the same desktop as "/" (icons, taskbar, other windows persist via
+// the zustand store) with the Blogs window forced open on the list view —
+// so following a link straight to /blogs feels like the real app, not a
+// separate isolated page.
 export default async function BlogsUnifiedPage() {
-  const notes = await getAllNotes()
+  const [notes, featured] = await Promise.all([getAllNotes(), getFeaturedLinks()])
 
-  return <BlogsExplorerShell notes={notes} />
+  return <HomeClient notes={notes} featured={featured} forceOpenApp="blogs" />
 }

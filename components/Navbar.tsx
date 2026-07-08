@@ -10,7 +10,7 @@ import ResumeButton from './ResumeButton'
 const routes = [
   { path: '/', label: 'Home' },
   // { path: '/about', label: 'About' },
-  { path: '/blogs', label: 'Blog' },
+  // { path: '/blogs', label: 'Blogs' },
   { path: '/contact', label: 'Contact' },
   // { path: '/gallery', label: 'Gallery' },
   // { path: '/projects', label: 'Projects' }

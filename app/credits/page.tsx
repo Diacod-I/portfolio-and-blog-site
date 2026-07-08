@@ -19,12 +19,13 @@ export default function CreditsPage() {
           <span>Credits & Attributions</span>
           <button
             className="win98-window-button font-bold text-2xl px-2 py-0.5"
-            onClick={() => router.push('/?app=open')}
+            onClick={() => router.push('/')}
           >×</button>
         </div>
         <div className="win98-window-content p-6 overflow-x-auto overflow-y-auto max-h-[70vh]">
           <h2 className="text-lg font-bold mb-2">Credits</h2>
           <ul className="list-disc ml-6 mb-4">
+            <li>Website design idea inspired from <a href="https://98.js.org" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">98.js</a></li>
             <li>Windows 98 UI inspired by Microsoft Windows 98</li>
             <li>UI Icons: <a href="https://win98icons.alexmeub.com/" target="_blank" rel="noopener noreferrer" className="underline text-blue-700">Win98 Icons by Alex Meub</a></li>
             <li>All icons and images used are either original, free for personal use, or properly attributed.</li>

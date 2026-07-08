@@ -17,7 +17,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type AppId = 'advith' | 'blogs' | 'gallery'
+export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits'
 export type WinStatus = 'closed' | 'open' | 'minimized'
 export type Rect = { x: number; y: number; w: number; h: number }
 export type WinState = {
@@ -33,6 +33,9 @@ const initialWins: Record<AppId, WinState> = {
   advith: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   blogs: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   gallery: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
+  // No desktop icon (see HomeClient) — only reachable via the "Credits &
+  // attributions" link, same as a real OS app you launch without pinning it.
+  credits: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
 }
 
 type WindowStore = {
@@ -105,10 +108,10 @@ export const useWindowStore = create<WindowStore>()(
       setTaskOrder: (ids) => set({ taskOrder: ids }),
     }),
     {
-      // Bumped to v3: added the 'gallery' app. Older persisted state (v2)
-      // wouldn't have a wins.gallery entry, which would crash on read —
+      // Bumped to v4: added the 'credits' app. Older persisted state
+      // wouldn't have a wins.credits entry, which would crash on read —
       // bumping the key just starts fresh instead of trying to migrate.
-      name: 'win98-window-state-v3',
+      name: 'win98-window-state-v4',
       storage: createJSONStorage(() => sessionStorage),
       // Next.js server-renders this "use client" module too, where
       // sessionStorage doesn't exist. Skip the automatic hydration and

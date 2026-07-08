@@ -105,7 +105,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
                   href={`/blogs/${note.slug}`}
                   className="grid bg-zinc-700 sm:grid-cols-[1fr_130px_110px] items-center px-2 py-2 no-underline text-black hover:bg-[#000080] hover:text-white group border-b border-[#e5e5e5]"
                 >
-                  <span className="flex items-center gap-3 min-w-0 ">
+                  <span className="flex items-center gap-3 min-w-0 pr-6">
                     {note.thumbnail ? (
                       <Image
                         src={note.thumbnail}
@@ -159,7 +159,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
       {/* Status bar */}
       <div className="flex items-center justify-between bg-[#c0c0c0] border-t-2 border-[#dfdfdf] px-2 py-0.5 text-black text-xs">
         <span>
-          {visible.length} object{visible.length === 1 ? '' : 's'}
+          {visible.length} blog post{visible.length === 1 ? '' : 's'}
           {query.trim() ? ` (filtered from ${notes.length})` : ''}
         </span>
       </div>

@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import FeaturedLinks from '@/components/FeaturedLinks'
-import Navbar from '@/components/Navbar'
+import Navbar, { type HomeTab } from '@/components/Navbar'
+import ContactView from '@/components/ContactView'
+import ResumeView from '@/components/ResumeView'
+import CreditsWindow from '@/components/CreditsWindow'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
 import ScrollPanel from '@/components/ScrollPanel'
@@ -30,6 +33,8 @@ type HomeClientProps = {
   featured: FeaturedLink[]
   forceOpenApp?: AppId
   blogsView?: BlogsView
+  /** Which advith.exe tab to land on. Defaults to 'home'. */
+  initialHomeTab?: HomeTab
 }
 
 // ---- App registry -----------------------------------------------------------
@@ -37,12 +42,17 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   advith: { name: 'advith.exe', icon: '/win98/advith_krishnan_exe.webp' },
   blogs: { name: 'Blogs', icon: '/win98/notepad.webp' },
   gallery: { name: 'Gallery', icon: '/win98/photos.webp' },
+  credits: { name: 'Credits', icon: '/win98/info.webp' },
 }
 
+// Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
+// but 'credits' never gets a <DesktopIcon /> rendered — see the JSX below.
+// It's launched from the taskbar's "Credits" link, not pinned to the desktop.
 const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
   advith: { col: 0, row: 1 },
   blogs: { col: 0, row: 0 },
   gallery: { col: 0, row: 2 },
+  credits: { col: 0, row: 3 },
 }
 
 const ICON_POS_KEY = 'desktop-icon-cells-v1'
@@ -52,8 +62,12 @@ export default function HomeClient({
   featured,
   forceOpenApp,
   blogsView = { mode: 'list' },
+  initialHomeTab = 'home',
 }: HomeClientProps) {
   const [isLoading, setIsLoading] = useState(false)
+  // advith.exe's Home/Contact/Resume tabs — local state, no navigation
+  // involved (see Navbar). Seeded once from whichever route we landed on.
+  const [homeTab, setHomeTab] = useState<HomeTab>(initialHomeTab)
 
   // ---- Window manager state ---------------------------------------------------
   // Lives in a zustand store (not useState) so window position/size,
@@ -140,7 +154,10 @@ export default function HomeClient({
   // First-visit hint (once per session)
   const [showHint, setShowHint] = useState(false)
   const anyOpen =
-    wins.advith.status !== 'closed' || wins.blogs.status !== 'closed' || wins.gallery.status !== 'closed'
+    wins.advith.status !== 'closed' ||
+    wins.blogs.status !== 'closed' ||
+    wins.gallery.status !== 'closed' ||
+    wins.credits.status !== 'closed'
   useEffect(() => {
     if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
     const timer = setTimeout(() => {
@@ -161,10 +178,11 @@ export default function HomeClient({
   }, [anyOpen])
 
   // Deep links: /?app=open (or /?app=advith) → advith window, /?app=blogs →
-  // blogs window. Other pages (ErrorWindow, NoteWindow, ResumeViewer, the
-  // Contact/Credits pages) still route in with these query strings, so we
-  // keep reading them — but once consumed, drop the query so the URL
-  // settles back to plain "/", same as clicking an icon.
+  // blogs window. Any other page (e.g. ErrorWindow, or old bookmarked links)
+  // that still routes in with these query strings keeps working — but once
+  // consumed, drop the query so the URL settles back to plain "/", same as
+  // clicking an icon. (Contact/Resume/Credits route in via forceOpenApp +
+  // initialHomeTab instead — see app/contact, app/resume, app/credits.)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
     const app = searchParams.get('app')
@@ -353,6 +371,8 @@ export default function HomeClient({
           isFocused={focusedId === 'advith'}
           maximized={wins.advith.maximized}
           defaultInset={{ top: 5, right: 5, bottom: 43, left: 5 }}
+          defaultSize={{ w: 860, h: 580 }}
+          cardOffset={{ x: 0, y: -10 }}
           rect={wins.advith.rect}
           onRectChange={(r) => setRect('advith', r)}
           onFocus={() => focusApp('advith')}
@@ -360,8 +380,15 @@ export default function HomeClient({
           onToggleMaximize={() => toggleMaximize('advith')}
           onClose={() => closeApp('advith')}
         >
-            <Navbar />
+            <Navbar activeTab={homeTab} onTabChange={setHomeTab} />
           <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
+            {homeTab === 'contact' ? (
+              <div className="flex-1 min-h-0 overflow-y-auto p-4">
+                <ContactView />
+              </div>
+            ) : homeTab === 'resume' ? (
+              <ResumeView />
+            ) : (
             <div className="flex-1 min-h-0 overflow-y-auto p-4">
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Internet Shortcuts — a card at the top right (stacks on top on mobile) */}
@@ -444,6 +471,7 @@ export default function HomeClient({
                 </div>
               </div>
             </div>
+            )}
           </div>
         </Win98Window>
       )}
@@ -458,6 +486,8 @@ export default function HomeClient({
           isFocused={focusedId === 'gallery'}
           maximized={wins.gallery.maximized}
           defaultInset={{ top: 40, right: 16, bottom: 43, left: 60 }}
+          defaultSize={{ w: 720, h: 520 }}
+          cardOffset={{ x: -70, y: 30 }}
           rect={wins.gallery.rect}
           onRectChange={(r) => setRect('gallery', r)}
           onFocus={() => focusApp('gallery')}
@@ -482,6 +512,8 @@ export default function HomeClient({
           isFocused={focusedId === 'blogs'}
           maximized={wins.blogs.maximized}
           defaultInset={{ top: 24, right: 24, bottom: 43, left: 24 }}
+          defaultSize={{ w: 680, h: 500 }}
+          cardOffset={{ x: 70, y: -30 }}
           rect={wins.blogs.rect}
           onRectChange={(r) => setRect('blogs', r)}
           onFocus={() => focusApp('blogs')}
@@ -499,6 +531,32 @@ export default function HomeClient({
         </Win98Window>
       )}
 
+      {/* ---- Credits window: launched from the taskbar's "Credits &
+           attributions" link — not pinned to the desktop, see APPS/DEFAULT_ICON_CELLS ---- */}
+      {wins.credits.status !== 'closed' && (
+        <Win98Window
+          title="Credits"
+          icon={APPS.credits.icon}
+          zIndex={40 + wins.credits.z}
+          minimized={wins.credits.status === 'minimized'}
+          isFocused={focusedId === 'credits'}
+          maximized={wins.credits.maximized}
+          defaultInset={{ top: 60, right: 40, bottom: 43, left: 100 }}
+          defaultSize={{ w: 600, h: 520 }}
+          cardOffset={{ x: 20, y: 60 }}
+          rect={wins.credits.rect}
+          onRectChange={(r) => setRect('credits', r)}
+          onFocus={() => focusApp('credits')}
+          onMinimize={() => minimizeApp('credits')}
+          onToggleMaximize={() => toggleMaximize('credits')}
+          onClose={() => closeApp('credits')}
+        >
+          <div className="win98-window-content flex-1 min-h-0 flex flex-col overflow-hidden">
+            <CreditsWindow />
+          </div>
+        </Win98Window>
+      )}
+
       {isLoading && <WindowsLoader />}
 
       <SubstackToast
@@ -510,6 +568,7 @@ export default function HomeClient({
       activeApps={taskbarApps}
       onAppClick={handleTaskbarClick}
       onReorder={(ids) => setTaskOrder(ids as AppId[])}
+      onCreditsClick={() => openApp('credits')}
     />
     </>
   )

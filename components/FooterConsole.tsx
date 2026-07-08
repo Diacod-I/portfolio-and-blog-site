@@ -19,12 +19,15 @@ interface FooterConsoleProps {
   onAppClick?: (id: string) => void
   /** Drag-to-reorder taskbar buttons */
   onReorder?: (ids: string[]) => void
+  /** Opens the Credits app window (not a page navigation — see HomeClient) */
+  onCreditsClick?: () => void
 }
 
 export default function FooterConsole({
   activeApps = [],
   onAppClick = () => {},
   onReorder = () => {},
+  onCreditsClick,
 }: FooterConsoleProps) {
   const [time, setTime] = useState<string>('')
   const [mounted, setMounted] = useState(false)
@@ -159,7 +162,7 @@ export default function FooterConsole({
         </div>
         {/* Copyright notice */}
         <p className="ml-auto px-2 text-[11px] text-[#444] font-mono opacity-70 hidden md:block">
-          © 2025 Advith Krishnan. <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" className="hover:underline">CC BY-NC-ND 4.0</a>. <a href="/credits" className="text-[11px] text-[#444] font-mono hover:underline">Credits & attributions provided.</a>
+          © 2025 Advith Krishnan. <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" className="hover:underline">CC BY-NC-ND 4.0</a>. <button type="button" onClick={onCreditsClick} className="text-[11px] text-[#444] font-mono hover:underline">Credits & attributions provided.</button>
         </p>
 
         {/* Separator */}

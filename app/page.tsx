@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import HomeClient from '@/components/HomeClient'
-import { getRecentNotes } from '@/lib/notes'
+import { getAllNotes } from '@/lib/notes'
 import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 
 export const metadata: Metadata = {
@@ -28,8 +28,10 @@ const personJsonLd = {
 // Server component: reads repo content at build time and passes it down.
 // All interactivity lives in HomeClient.
 export default async function HomePage() {
+  // Full list: the Blogs window (reachable from any route via forceOpenApp)
+  // needs the complete set, not just a "recent" slice.
   const [notes, featured] = await Promise.all([
-    getRecentNotes(5),
+    getAllNotes(),
     getFeaturedLinks(),
   ])
 

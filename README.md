@@ -3,8 +3,8 @@
 A nostalgic Windows 98-inspired portfolio and blog website built with Next.js and Tailwind CSS.
 
 <p align="center">
-  <a href="https://adviths-blogfolio.vercel.app/" target="_blank">
-    <img src="https://api.microlink.io/?url=https://adviths-blogfolio.vercel.app/&screenshot=true&meta=false&embed=screenshot.url&colorScheme=dark" alt="Advith's Blogfolio" width="800px" />
+  <a href="https://advithkrishnan.com" target="_blank">
+    <img src="https://api.microlink.io/?url=https://advithkrishnan.com/&screenshot=true&meta=false&embed=screenshot.url&colorScheme=dark" alt="Advith's Blog" width="800px" />
   </a>
 </p>
 

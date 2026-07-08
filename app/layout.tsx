@@ -2,6 +2,7 @@ import './globals.css'
 import { Inter, JetBrains_Mono, VT323 } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import { Metadata, Viewport } from 'next'
+import SoundEffects from '@/components/SoundEffects'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -81,10 +82,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
+        <link rel="preload" href="/win98/click.mp3" as="audio" type="audio/mpeg" />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}>
         <div className="min-h-screen">
           {children}
+          <SoundEffects />
           <Analytics />
         </div>
       </body>

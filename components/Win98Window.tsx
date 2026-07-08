@@ -17,6 +17,9 @@ const TITLEBAR_KEEP_VISIBLE = 100 // px of titlebar that must stay on screen
 
 type Rect = { x: number; y: number; w: number; h: number }
 type Inset = { top: number; right: number; bottom: number; left: number }
+// Which edges a resize handle moves — 'n'/'s' vertical, 'e'/'w' horizontal,
+// corners combine one of each.
+type ResizeDir = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
 type Win98WindowProps = {
   title: string
@@ -29,7 +32,16 @@ type Win98WindowProps = {
   /** True when the window fills the screen (up to the taskbar). Disables
    *  drag/resize, same as a real maximized window. */
   maximized: boolean
+  /** Mobile-only (<640px) fallback frame: full-bleed inset from the screen
+   *  edges. Desktop uses defaultSize instead — see below. */
   defaultInset: Inset
+  /** Desktop default size before the user has dragged/resized: a modest
+   *  centered "card", like a real app opening — not a near-fullscreen pane.
+   *  Clamped to the viewport so it never overflows on smaller windows. */
+  defaultSize: { w: number; h: number }
+  /** Small pixel nudge off dead-center, so multiple freshly-opened windows
+   *  cascade a little instead of stacking exactly on top of each other. */
+  cardOffset?: { x: number; y: number }
   /** Controlled rect: null = default inset frame (responsive); Rect = user-placed.
    *  Lives in a zustand store (see lib/store/windowStore.ts) so it survives
    *  this component unmounting when the user navigates away and back. */
@@ -89,6 +101,8 @@ export default function Win98Window({
   isFocused,
   maximized,
   defaultInset,
+  defaultSize,
+  cardOffset = { x: 0, y: 0 },
   rect,
   onRectChange,
   onFocus,
@@ -149,27 +163,65 @@ export default function Win98Window({
     e.currentTarget.releasePointerCapture(e.pointerId)
   }
 
-  // ---- Resize (bottom-right grip) ----------------------------------------------
-  const resizeStart = useRef<{ px: number; py: number; r: Rect } | null>(null)
+  // ---- Resize (all 4 edges + 4 corners, like a real OS window) ----------------
+  // Each handle just tags which edges it moves ('n'/'s' vertical, 'e'/'w'
+  // horizontal, corners combine one of each). computeResize below is the only
+  // place that knows how a given edge combination maps pointer delta -> rect.
+  const resizeStart = useRef<{ px: number; py: number; r: Rect; dir: ResizeDir } | null>(null)
 
-  const onGripPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const computeResize = (dir: ResizeDir, r: Rect, dx: number, dy: number): Rect => {
+    let { x, y, w, h } = r
+    const maxW = window.innerWidth
+    const maxH = window.innerHeight - TASKBAR_H
+
+    // East/south edges grow away from their fixed opposite edge — same math
+    // as the original bottom-right-only grip.
+    if (dir.includes('e')) {
+      w = Math.min(Math.max(r.w + dx, MIN_W), maxW - r.x - 4)
+    }
+    if (dir.includes('s')) {
+      h = Math.min(Math.max(r.h + dy, MIN_H), maxH - r.y)
+    }
+    // West/north edges move the origin too, keeping the opposite (right/
+    // bottom) edge fixed in place — like dragging a real window's left or
+    // top border.
+    if (dir.includes('w')) {
+      let newW = Math.max(r.w - dx, MIN_W)
+      let newX = r.x + r.w - newW
+      if (newX < 0) {
+        newX = 0
+        newW = r.x + r.w
+      }
+      x = newX
+      w = newW
+    }
+    if (dir.includes('n')) {
+      let newH = Math.max(r.h - dy, MIN_H)
+      let newY = r.y + r.h - newH
+      if (newY < 0) {
+        newY = 0
+        newH = r.y + r.h
+      }
+      y = newY
+      h = newH
+    }
+    return { x, y, w, h }
+  }
+
+  const onResizePointerDown = (dir: ResizeDir) => (e: React.PointerEvent<HTMLDivElement>) => {
     if (!canDragResize) return
     e.stopPropagation()
-    resizeStart.current = { px: e.clientX, py: e.clientY, r: currentRect() }
+    resizeStart.current = { px: e.clientX, py: e.clientY, r: currentRect(), dir }
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
-  const onGripPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onResizePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const s = resizeStart.current
     if (!s) return
-    onRectChange({
-      ...s.r,
-      w: Math.min(Math.max(s.r.w + (e.clientX - s.px), MIN_W), window.innerWidth - s.r.x - 4),
-      h: Math.min(Math.max(s.r.h + (e.clientY - s.py), MIN_H), window.innerHeight - TASKBAR_H - s.r.y),
-    })
+    onRectChange(computeResize(s.dir, s.r, e.clientX - s.px, e.clientY - s.py))
   }
 
-  const onGripPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onResizePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     resizeStart.current = null
     e.currentTarget.releasePointerCapture(e.pointerId)
   }
@@ -178,12 +230,28 @@ export default function Win98Window({
     ? { left: 0, top: 0, right: 0, bottom: TASKBAR_H }
     : rect && interactive
       ? { left: rect.x, top: rect.y, width: rect.w, height: rect.h }
-      : {
-          top: defaultInset.top,
-          right: defaultInset.right,
-          bottom: defaultInset.bottom,
-          left: defaultInset.left,
-        }
+      : isSmallScreen
+        // Mobile, never interacted with yet: full-bleed inset frame — a small
+        // centered card would leave awkward gaps on a phone screen.
+        ? {
+            top: defaultInset.top,
+            right: defaultInset.right,
+            bottom: defaultInset.bottom,
+            left: defaultInset.left,
+          }
+        // Desktop, never interacted with yet: a modest centered card, like a
+        // real app opening — not a near-fullscreen pane. currentRect() picks
+        // up wherever this actually lands on screen the moment the user
+        // starts dragging/resizing it.
+        : {
+            top: `calc(50% + ${cardOffset.y}px)`,
+            left: `calc(50% + ${cardOffset.x}px)`,
+            transform: 'translate(-50%, -50%)',
+            width: defaultSize.w,
+            height: defaultSize.h,
+            maxWidth: '92vw',
+            maxHeight: `calc(100vh - ${TASKBAR_H + 24}px)`,
+          }
 
   return (
     <div
@@ -240,21 +308,83 @@ export default function Win98Window({
 
       {children}
 
-      {/* Bottom-right resize grip (win98 diagonal ridges) */}
+      {/* Resize handles: 4 edges + 4 corners, like a real OS window. Edge
+          strips are thin bands along each side; corner squares sit on top
+          of them (later in the DOM = higher paint priority) so diagonal
+          drags near a corner grab the corner, not an edge. Bottom-right
+          keeps the classic win98 diagonal-ridge grip glyph. */}
       {canDragResize && (
-        <div
-          className="absolute bottom-0 right-0 w-4 h-4"
-          style={{ cursor: 'nwse-resize', touchAction: 'none' }}
-          onPointerDown={onGripPointerDown}
-          onPointerMove={onGripPointerMove}
-          onPointerUp={onGripPointerUp}
-          aria-hidden="true"
-        >
-          <svg viewBox="0 0 16 16" className="w-4 h-4" shapeRendering="crispEdges">
-            <path d="M15 5 L5 15 M15 9 L9 15 M15 13 L13 15" stroke="#808080" strokeWidth="1" fill="none" />
-            <path d="M15 6 L6 15 M15 10 L10 15 M15 14 L14 15" stroke="#ffffff" strokeWidth="1" fill="none" />
-          </svg>
-        </div>
+        <>
+          <div
+            className="absolute top-0 left-2.5 right-2.5 h-1.5"
+            style={{ cursor: 'ns-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('n')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute bottom-0 left-2.5 right-2.5 h-1.5"
+            style={{ cursor: 'ns-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('s')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute left-0 top-2.5 bottom-2.5 w-1.5"
+            style={{ cursor: 'ew-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('w')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute right-0 top-2.5 bottom-2.5 w-1.5"
+            style={{ cursor: 'ew-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('e')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute top-0 left-0 w-2.5 h-2.5"
+            style={{ cursor: 'nwse-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('nw')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute top-0 right-0 w-2.5 h-2.5"
+            style={{ cursor: 'nesw-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('ne')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute bottom-0 left-0 w-2.5 h-2.5"
+            style={{ cursor: 'nesw-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('sw')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4"
+            style={{ cursor: 'nwse-resize', touchAction: 'none' }}
+            onPointerDown={onResizePointerDown('se')}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 16 16" className="w-4 h-4" shapeRendering="crispEdges">
+              <path d="M15 5 L5 15 M15 9 L9 15 M15 13 L13 15" stroke="#808080" strokeWidth="1" fill="none" />
+              <path d="M15 6 L6 15 M15 10 L10 15 M15 14 L14 15" stroke="#ffffff" strokeWidth="1" fill="none" />
+            </svg>
+          </div>
+        </>
       )}
     </div>
   )

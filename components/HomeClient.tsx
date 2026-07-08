@@ -541,7 +541,11 @@ export default function HomeClient({
           minimized={wins.credits.status === 'minimized'}
           isFocused={focusedId === 'credits'}
           maximized={wins.credits.maximized}
-          defaultInset={{ top: 60, right: 40, bottom: 43, left: 100 }}
+          /* left/right kept modest (unlike the old 100px left) — on a phone
+             this defaultInset is the *only* frame (drag/resize are disabled
+             there), so a wide left margin just wastes width and wraps text
+             hard. Desktop uses defaultSize/cardOffset below instead. */
+          defaultInset={{ top: 24, right: 16, bottom: 43, left: 16 }}
           defaultSize={{ w: 600, h: 520 }}
           cardOffset={{ x: 20, y: 60 }}
           rect={wins.credits.rect}

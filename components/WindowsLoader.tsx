@@ -17,7 +17,10 @@ export default function WindowsLoader() {
   if (!isVisible) return null
 
   return (
-    <div className="win98-window fixed z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-[200px]">
+    <div
+      className="win98-window fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-[200px]"
+      style={{ zIndex: 20000 }}
+    >
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
           <Image src="/win98/info.webp" alt="Loading" width={20} height={20} className="w-4 h-4" />

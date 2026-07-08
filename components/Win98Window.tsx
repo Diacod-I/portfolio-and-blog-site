@@ -13,7 +13,6 @@ import Image from 'next/image'
 const TASKBAR_H = 43
 const MIN_W = 360
 const MIN_H = 240
-const TITLEBAR_KEEP_VISIBLE = 100 // px of titlebar that must stay on screen
 
 type Rect = { x: number; y: number; w: number; h: number }
 type Inset = { top: number; right: number; bottom: number; left: number }
@@ -127,6 +126,26 @@ export default function Win98Window({
   // where you drag a maximized titlebar to restore it first.
   const canDragResize = interactive && !maximized
 
+  // Safety net beyond the live drag/resize clamps below: a rect persisted
+  // from a previous session (see lib/store/windowStore.ts), or one that was
+  // fine before the browser window itself got resized, could still be
+  // sitting partly behind the taskbar or off-screen. Pull it back into the
+  // work area on mount and whenever the viewport resizes.
+  useEffect(() => {
+    if (maximized || !rect) return
+    const clampToBounds = () => {
+      const maxX = Math.max(0, window.innerWidth - rect.w)
+      const maxY = Math.max(0, window.innerHeight - TASKBAR_H - rect.h)
+      const x = Math.min(Math.max(rect.x, 0), maxX)
+      const y = Math.min(Math.max(rect.y, 0), maxY)
+      if (x !== rect.x || y !== rect.y) onRectChange({ ...rect, x, y })
+    }
+    clampToBounds()
+    window.addEventListener('resize', clampToBounds)
+    return () => window.removeEventListener('resize', clampToBounds)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rect, maximized])
+
   /** Current rect: state if set, otherwise measured from the DOM */
   const currentRect = (): Rect => {
     if (rect) return rect
@@ -151,10 +170,14 @@ export default function Win98Window({
     if (!s) return
     const nx = s.r.x + (e.clientX - s.px)
     const ny = s.r.y + (e.clientY - s.py)
+    // Fully contained within the desktop work area (viewport minus the
+    // taskbar) — not just a visible titlebar sliver. Otherwise a tall/wide
+    // window could be dragged mostly behind the taskbar or off-screen,
+    // which reads as the window "disappearing".
     onRectChange({
       ...s.r,
-      x: Math.min(Math.max(nx, TITLEBAR_KEEP_VISIBLE - s.r.w), window.innerWidth - TITLEBAR_KEEP_VISIBLE),
-      y: Math.min(Math.max(ny, 0), window.innerHeight - TASKBAR_H - 30),
+      x: Math.min(Math.max(nx, 0), Math.max(0, window.innerWidth - s.r.w)),
+      y: Math.min(Math.max(ny, 0), Math.max(0, window.innerHeight - TASKBAR_H - s.r.h)),
     })
   }
 
@@ -256,7 +279,11 @@ export default function Win98Window({
   return (
     <div
       ref={rootRef}
-      className="win98-app-window fixed flex flex-col"
+      // overflow-hidden as a safety net: if a window's content ever demands
+      // more height/width than its current rect (e.g. a child with too tall
+      // a min-height), it gets clipped to the frame instead of visually
+      // spilling out past the window's own border.
+      className="win98-app-window fixed flex flex-col overflow-hidden"
       style={{
         ...frameStyle,
         zIndex,

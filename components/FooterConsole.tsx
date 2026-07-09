@@ -108,20 +108,6 @@ export default function FooterConsole({
                 <p className="ml-2 text-center text-sm font-semibold">
                   Hope you are having a great day! :)
                 </p>
-                {/* The taskbar's own Credits link is hidden below md (see
-                    below) to avoid crowding a phone-width taskbar — this is
-                    the entry point that's always reachable regardless of
-                    screen size, same as a real Start menu "About" item. */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsStartMenuOpen(false)
-                    onCreditsClick?.()
-                  }}
-                  className="mt-2 mx-2 text-xs text-center text-[#000080] hover:underline"
-                >
-                  Credits &amp; attributions
-                </button>
               </div>
             </div>
           )}
@@ -176,7 +162,7 @@ export default function FooterConsole({
         </div>
         {/* Copyright notice */}
         <p className="ml-auto px-2 text-[11px] text-[#444] font-mono opacity-70 hidden md:block">
-          © 2025 Advith Krishnan. <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" className="hover:underline">CC BY-NC-ND 4.0</a>. <button type="button" onClick={onCreditsClick} className="text-[11px] text-[#444] font-mono hover:underline">Credits & attributions provided.</button>
+          © 2025 Advith Krishnan. <button type="button" onClick={onCreditsClick} className="text-[11px] text-[#444] font-mono hover:underline">Credits & License provided.</button>
         </p>
 
         {/* Separator */}

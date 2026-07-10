@@ -7,6 +7,7 @@
 
 const README = `POP.TXT
 
+Press SPACE to skip the opening scenes
 Pause ............... Esc
 Show time left ...... Space
 Restart level ....... Ctrl + A

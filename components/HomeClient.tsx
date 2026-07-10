@@ -577,7 +577,7 @@ export default function HomeClient({
            attributions" link — not pinned to the desktop, see APPS/DEFAULT_ICON_CELLS ---- */}
       {wins.credits.status !== 'closed' && (
         <Win98Window
-          title="Credits"
+          title="Credits and License"
           icon={APPS.credits.icon}
           zIndex={40 + wins.credits.z}
           minimized={wins.credits.status === 'minimized'}

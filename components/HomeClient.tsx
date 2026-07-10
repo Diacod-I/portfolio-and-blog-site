@@ -14,6 +14,8 @@ import ExplorerBlogList from '@/components/ExplorerBlogList'
 import BlogPostView from '@/components/BlogPostView'
 import SubstackToast from '@/components/SubstackToast'
 import GalleryWindow from '@/components/GalleryWindow'
+import PrinceOfPersiaWindow from '@/components/PrinceOfPersiaWindow'
+import PrinceOfPersiaReadmeWindow from '@/components/PrinceOfPersiaReadmeWindow'
 import DesktopIcon, { GridCell } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
@@ -43,6 +45,8 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   blogs: { name: 'Blogs', icon: '/win98/notepad.webp' },
   gallery: { name: 'Gallery', icon: '/win98/photos.webp' },
   credits: { name: 'Credits', icon: '/win98/info.webp' },
+  pop: { name: 'Prince of Persia', icon: '/win98/pop.png' },
+  popReadme: { name: 'POP.TXT - Notepad', icon: '/win98/notepad.webp' },
 }
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
@@ -53,9 +57,19 @@ const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
   blogs: { col: 0, row: 0 },
   gallery: { col: 0, row: 2 },
   credits: { col: 0, row: 3 },
+  pop: { col: 0, row: 4 },
+  popReadme: { col: 0, row: 5 },
 }
 
 const ICON_POS_KEY = 'desktop-icon-cells-v1'
+
+// Apps that never render a <DesktopIcon /> (see the JSX below) — 'credits'
+// and 'popReadme' still need a reserved DEFAULT_ICON_CELLS entry
+// (Record<AppId, ...> requires one), but since no icon is ever drawn there,
+// that cell must not count as "occupied" in moveIcon's collision check
+// below. Otherwise it's an invisible dead cell nothing can ever be dropped
+// on or swapped with — which is exactly the "glitched cell" bug this fixes.
+const NO_DESKTOP_ICON: AppId[] = ['credits', 'popReadme']
 
 export default function HomeClient({
   notes,
@@ -123,7 +137,20 @@ export default function HomeClient({
   useEffect(() => {
     try {
       const saved = localStorage.getItem(ICON_POS_KEY)
-      if (saved) setIconCells({ ...DEFAULT_ICON_CELLS, ...JSON.parse(saved) })
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Only keep keys that are still valid AppIds. Renaming an AppId
+        // (e.g. the old 'doom'/'doomReadme' → 'pop'/'popReadme') leaves the
+        // stale key sitting in this saved blob forever — blindly spreading
+        // it back in re-introduces an invisible phantom occupant in the
+        // collision map below. That's what caused the "credits cell
+        // glitch" to resurface: the NO_DESKTOP_ICON fix itself was fine,
+        // it just doesn't know about IDs that no longer exist.
+        const sanitized = Object.fromEntries(
+          Object.entries(parsed).filter(([id]) => id in DEFAULT_ICON_CELLS)
+        )
+        setIconCells({ ...DEFAULT_ICON_CELLS, ...sanitized })
+      }
     } catch { /* corrupted storage: keep defaults */ }
   }, [])
 
@@ -133,7 +160,11 @@ export default function HomeClient({
       // Win98 collision rule: occupied cell → take nearest free cell below
       const occupied = (c: GridCell) =>
         (Object.entries(prev) as [AppId, GridCell][]).some(
-          ([other, oc]) => other !== appId && oc.col === c.col && oc.row === c.row
+          ([other, oc]) =>
+            other !== appId &&
+            !NO_DESKTOP_ICON.includes(other) &&
+            oc.col === c.col &&
+            oc.row === c.row
         )
       let target = cell
       while (occupied(target)) target = { col: target.col, row: target.row + 1 }
@@ -157,7 +188,9 @@ export default function HomeClient({
     wins.advith.status !== 'closed' ||
     wins.blogs.status !== 'closed' ||
     wins.gallery.status !== 'closed' ||
-    wins.credits.status !== 'closed'
+    wins.credits.status !== 'closed' ||
+    wins.pop.status !== 'closed' ||
+    wins.popReadme.status !== 'closed'
   useEffect(() => {
     if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
     const timer = setTimeout(() => {
@@ -342,6 +375,15 @@ export default function HomeClient({
         cell={iconCells.advith}
         isActive={wins.advith.status !== 'closed'}
         onOpen={() => openApp('advith')}
+        onMove={moveIcon}
+      />
+      <DesktopIcon
+        id="pop"
+        label="Prince of Persia"
+        icon={APPS.pop.icon}
+        cell={iconCells.pop}
+        isActive={wins.pop.status !== 'closed'}
+        onOpen={() => openApp('pop')}
         onMove={moveIcon}
       />
 
@@ -558,6 +600,58 @@ export default function HomeClient({
           <div className="win98-window-content flex-1 min-h-0 flex flex-col overflow-hidden">
             <CreditsWindow />
           </div>
+        </Win98Window>
+      )}
+
+      {/* ---- Prince of Persia window: the real 1990 game, emulated
+           in-browser (see PrinceOfPersiaWindow.tsx) — replaced the earlier
+           Doom app entirely after Doom's Fire key turned out unreliable
+           in Mac browsers across every free embed available ---- */}
+      {wins.pop.status !== 'closed' && (
+        <Win98Window
+          title="Prince of Persia"
+          icon={APPS.pop.icon}
+          zIndex={40 + wins.pop.z}
+          minimized={wins.pop.status === 'minimized'}
+          isFocused={focusedId === 'pop'}
+          maximized={wins.pop.maximized}
+          defaultInset={{ top: 32, right: 16, bottom: 43, left: 40 }}
+          defaultSize={{ w: 640, h: 520 }}
+          cardOffset={{ x: -40, y: -50 }}
+          rect={wins.pop.rect}
+          onRectChange={(r) => setRect('pop', r)}
+          onFocus={() => focusApp('pop')}
+          onMinimize={() => minimizeApp('pop')}
+          onToggleMaximize={() => toggleMaximize('pop')}
+          onClose={() => closeApp('pop')}
+        >
+          <div className="win98-window-content bg-black flex-1 min-h-0 flex flex-col overflow-hidden">
+            <PrinceOfPersiaWindow onOpenControls={() => openApp('popReadme')} />
+          </div>
+        </Win98Window>
+      )}
+
+      {/* ---- POP.TXT - Notepad: controls reference, opened from a button
+           inside the Prince of Persia window (see PrinceOfPersiaWindow.tsx) ---- */}
+      {wins.popReadme.status !== 'closed' && (
+        <Win98Window
+          title="POP.TXT - Notepad"
+          icon={APPS.popReadme.icon}
+          zIndex={40 + wins.popReadme.z}
+          minimized={wins.popReadme.status === 'minimized'}
+          isFocused={focusedId === 'popReadme'}
+          maximized={wins.popReadme.maximized}
+          defaultInset={{ top: 24, right: 16, bottom: 43, left: 16 }}
+          defaultSize={{ w: 440, h: 380 }}
+          cardOffset={{ x: 60, y: 40 }}
+          rect={wins.popReadme.rect}
+          onRectChange={(r) => setRect('popReadme', r)}
+          onFocus={() => focusApp('popReadme')}
+          onMinimize={() => minimizeApp('popReadme')}
+          onToggleMaximize={() => toggleMaximize('popReadme')}
+          onClose={() => closeApp('popReadme')}
+        >
+          <PrinceOfPersiaReadmeWindow />
         </Win98Window>
       )}
 

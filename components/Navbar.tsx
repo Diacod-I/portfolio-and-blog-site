@@ -54,16 +54,13 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
             </div>
           </div>
           <div className="flex flex-nowrap items-center gap-1 mr-2 flex-shrink-0">
+            {/* Flat win98-navbar-button at rest (same as Home/Contact/Resume) —
+                the gold gradient only shows up on hover, so it reads as an
+                accent instead of a modern-web button sitting in Win98 chrome. */}
             <button
-              className="win98-navbar-button px-2 font-bold flex items-center gap-1 flex-shrink-0 whitespace-nowrap bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 text-yellow-900 shadow-md border-yellow-400 hover:from-yellow-200 hover:to-yellow-400 transition-colors duration-200"
+              className="win98-navbar-button px-2 py-0.5 font-bold flex items-center gap-1 flex-shrink-0 whitespace-nowrap hover:!text-black hover:bg-[linear-gradient(120deg,#fffbe6_0%,#ffe066_40%,#ffd700_100%)] hover:shadow-md"
               onClick={() => window.open('https://github.com/Diacod-I/portfolio-and-blog-site', '_blank')}
               title="Star this repo on GitHub"
-              style={{
-                backgroundImage: 'linear-gradient(120deg, #fffbe6 0%, #ffe066 40%, #ffd700 100%)',
-                color: '#000000',
-                borderColor: '#ffd700',
-                fontWeight: 700
-              }}
             >
               Star on GitHub! ⭐
             </button>
@@ -72,16 +69,9 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
             <div className="border-l-2 border-[#ffffff] h-7"></div>
             </div>
             <button
-              className="win98-navbar-button px-2 font-bold flex items-center gap-1 flex-shrink-0 whitespace-nowrap bg-gradient-to-br from-pink-500 via-pink-700 to-purple-900 text-pink-100 shadow-md border-pink-700 hover:from-pink-600 hover:to-purple-800 transition-colors duration-200"
+              className="win98-navbar-button px-2 py-0.5 font-bold flex items-center gap-1 flex-shrink-0 whitespace-nowrap hover:!text-white hover:bg-[linear-gradient(120deg,#e75480_0%,#b4005a_40%,#5a189a_100%)] hover:[text-shadow:0_1px_4px_#b4005a] hover:shadow-md"
               onClick={() => window.open('https://github.com/sponsors/Diacod-I', '_blank')}
               title="Sponsor me on GitHub"
-              style={{
-                backgroundImage: 'linear-gradient(120deg, #e75480 0%, #b4005a 40%, #5a189a 100%)',
-                color: '#fff',
-                textShadow: '0 1px 4px #b4005a, 0 0px 1px #5a189a',
-                borderColor: '#b4005a',
-                fontWeight: 700
-              }}
             >
               Sponsor! 💖
             </button>

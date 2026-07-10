@@ -128,8 +128,13 @@ export default function DesktopIcon({
       }}
       aria-label={`Open ${label}`}
     >
-      <div className="relative pointer-events-none">
-        <Image src={icon} alt="" width={56} height={56} className="w-14 h-14" draggable={false} />
+      <div className="relative pointer-events-none w-14 h-14">
+        {/* fill + object-contain instead of a fixed width/height: some icons
+            (e.g. Doom's logo) aren't square like the rest, and a fixed
+            width/height on next/image stretches a non-square source to
+            fit exactly — this letterboxes it within the same 56x56 slot
+            instead of distorting it. */}
+        <Image src={icon} alt="" fill sizes="56px" className="object-contain" draggable={false} />
         {showBadge && (
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse-expand"></span>
         )}

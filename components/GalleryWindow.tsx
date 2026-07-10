@@ -8,7 +8,7 @@
 // (the old Recent Highlights carousel didn't do this, which is why it broke
 // on resize).
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import highlights from '@/data/highlights'
 
@@ -18,8 +18,27 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+// The caption box is flex-shrink-0 and sized by its text content, so on a
+// short window it doesn't shrink along with everything else — it just eats
+// space from the image above it (worse the longer the caption text is).
+// Below this measured height of the main-viewer column, drop the caption
+// entirely so the window can shrink further without squashing the photo.
+const HIDE_CAPTION_BELOW = 260
+
 export default function GalleryWindow() {
   const [selected, setSelected] = useState(0)
+  const viewerRef = useRef<HTMLDivElement>(null)
+  const [compact, setCompact] = useState(false)
+
+  useEffect(() => {
+    const el = viewerRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      setCompact(entry.contentRect.height < HIDE_CAPTION_BELOW)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   if (highlights.length === 0) {
     return (
@@ -72,7 +91,7 @@ export default function GalleryWindow() {
       </div>
 
       {/* Main viewer */}
-      <div className="flex-1 min-w-0 min-h-0 flex flex-col p-2 gap-2">
+      <div ref={viewerRef} className="flex-1 min-w-0 min-h-0 flex flex-col p-2 gap-2">
         <div className="relative flex-1 min-h-0 bg-black border-2 border-[#808080]">
           <Image
             key={photo.id}
@@ -103,9 +122,11 @@ export default function GalleryWindow() {
             </>
           )}
         </div>
-        <div className="win98-inset bg-white border border-black p-2 flex-shrink-0 min-h-0">
-          <p className="text-sm font-semibold break-words">{photo.description}</p>
-        </div>
+        {!compact && (
+          <div className="win98-inset bg-white border border-black p-2 flex-shrink-0 min-h-0">
+            <p className="text-sm font-semibold break-words">{photo.description}</p>
+          </div>
+        )}
         <div className="flex items-center justify-between flex-shrink-0 text-xs font-mono px-1 text-black">
           <span>{formatDate(photo.uploaded_at)}</span>
           <span>{selected + 1} / {highlights.length}</span>

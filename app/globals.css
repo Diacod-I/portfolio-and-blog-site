@@ -61,7 +61,7 @@
 
     .win98-navbar-button {
     @apply bg-[#c0c0c0] border-2 border-transparent
-           hover:border-t-white hover:border-l-white hover:border-b-[#808080] hover:border-r-[#808080] 
+           hover:border-t-white hover:border-l-white hover:border-b-[#808080] hover:border-r-[#808080]
            active:border-t-[#808080] active:border-l-[#808080] active:border-b-white active:border-r-white
            transition-colors text-black hover:text-[#f9f9f9];
   }

@@ -303,7 +303,7 @@ export default function Win98Window({
         }}
       >
         <div className="flex items-center gap-2 pointer-events-none">
-          <Image src={icon} alt="" width={16} height={16} className="w-4 h-4" draggable={false} />
+          <Image src={icon} alt="" width={16} height={16} className="w-4 h-4 object-contain" draggable={false} />
           <span>{title}</span>
         </div>
         <div className="flex gap-2">

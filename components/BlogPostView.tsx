@@ -38,7 +38,7 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
 
       <div className="flex-1 min-h-0 overflow-y-auto p-4 text-white">
         <h1 className="text-3xl font-bold mb-6">{note.title}</h1>
-        <div className="prose prose-invert max-w-none">{content}</div>
+        <div className="prose prose-invert max-w-none text-justify">{content}</div>
 
         {seeAlso.length > 0 && (
           <div className="mt-10 pt-4 border-t-2 border-[#808080]">

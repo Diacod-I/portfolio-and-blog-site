@@ -120,7 +120,7 @@ export default function FooterConsole({
                   }}
                   className="mt-2 mx-2 text-xs text-center text-[#000080] hover:underline"
                 >
-                  Credits &amp; attributions
+                  Credits &amp; Licenses.
                 </button>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function FooterConsole({
                     alt=""
                     width={16}
                     height={16}
-                    className="w-4 h-4 pointer-events-none"
+                    className="w-4 h-4 pointer-events-none object-contain"
                     draggable={false}
                   />
                   <span className="text-xs font-bold truncate pointer-events-none">{app.name}</span>
@@ -176,7 +176,7 @@ export default function FooterConsole({
         </div>
         {/* Copyright notice */}
         <p className="ml-auto px-2 text-[11px] text-[#444] font-mono opacity-70 hidden md:block">
-          © 2025 Advith Krishnan. <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" className="hover:underline">CC BY-NC-ND 4.0</a>. <button type="button" onClick={onCreditsClick} className="text-[11px] text-[#444] font-mono hover:underline">Credits & attributions provided.</button>
+          © 2024-{new Date().getFullYear()} Advith Krishnan. <button type="button" onClick={onCreditsClick} className="text-[11px] text-[#444] font-mono hover:underline">Credits & Licenses provided.</button>
         </p>
 
         {/* Separator */}

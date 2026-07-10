@@ -14,7 +14,7 @@ const h3Class = 'font-bold text-sm mt-3 mb-1'
 
 export default function CreditsWindow() {
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-[#f3f3f3] text-black">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 pr-8 bg-[#f3f3f3] text-black text-justify">
       <h2 className="text-lg font-bold mb-2">Credits</h2>
 
       <h3 className={h3Class}>Design &amp; Inspiration</h3>
@@ -90,6 +90,37 @@ export default function CreditsWindow() {
         <li>
           Inter, JetBrains Mono, and VT323 — served via Google Fonts through
           next/font, each under the SIL Open Font License.
+        </li>
+      </ul>
+
+      <h3 className={h3Class}>Games</h3>
+      <ul className="list-disc ml-6 mb-2">
+        <li>
+          Prince of Persia, created by{' '}
+          <a
+            href="https://www.jordanmechner.com/en/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            Jordan Mechner
+          </a>{' '}
+          and originally published by Broderbund for the Apple II in 1989.
+          The 1990 MS-DOS version played here is embedded via{' '}
+          <a
+            href="https://archive.org/details/msdos_Prince_of_Persia_1990"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            archive.org&apos;s in-browser MS-DOS emulation
+          </a>
+          . The game is not hosted or redistributed by this site — the embed
+          loads directly from archive.org, in keeping with the overall
+          nostalgic, Windows 98-era style of this project. Prince of Persia
+          is a trademark of Ubisoft Entertainment; this is an independent,
+          non-commercial fan project and is not affiliated with, endorsed
+          by, or sponsored by Ubisoft or Jordan Mechner.
         </li>
       </ul>
 

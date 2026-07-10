@@ -45,6 +45,27 @@ export default function SubstackToast({ visible, onDismiss }: SubstackToastProps
     return () => mq.removeEventListener('change', update)
   }, [])
 
+  // The small-screen banner below is `position: fixed; bottom: ...` in its
+  // own stacking context, entirely separate from .win98-taskbar (also fixed
+  // to the bottom, at a higher z-index) — so a hardcoded `bottom-2` landed
+  // it right underneath the taskbar instead of above it, and the taskbar's
+  // higher z-index painted over the banner's own bottom edge (the Subscribe
+  // button). Measure the real taskbar height and lift the banner above it
+  // instead of guessing a fixed offset that'll drift if the taskbar's own
+  // height ever changes (e.g. the touch-target min-heights in globals.css).
+  const [taskbarOffset, setTaskbarOffset] = useState(56)
+
+  useEffect(() => {
+    if (!isSmallScreen) return
+    const el = document.querySelector('.win98-taskbar')
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      setTaskbarOffset(entry.contentRect.height + 8)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [isSmallScreen])
+
   // Land it bottom-right, like the old fixed toast, the moment it becomes
   // visible — computed from the actual viewport (not guessed) so it's
   // pixel-accurate at any window size.
@@ -75,7 +96,8 @@ export default function SubstackToast({ visible, onDismiss }: SubstackToastProps
     return (
       <div
         role="status"
-        className="fixed bottom-2 left-2 right-2 z-[9000] win98-window shadow-lg"
+        className="fixed left-2 right-2 z-[9000] win98-window shadow-lg"
+        style={{ bottom: taskbarOffset }}
       >
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">

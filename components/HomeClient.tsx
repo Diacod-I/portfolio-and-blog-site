@@ -56,8 +56,8 @@ const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
   advith: { col: 0, row: 1 },
   blogs: { col: 0, row: 0 },
   gallery: { col: 0, row: 2 },
-  credits: { col: 0, row: 3 },
-  pop: { col: 0, row: 4 },
+  credits: { col: 0, row: 4},
+  pop: { col: 0, row: 3 },
   popReadme: { col: 0, row: 5 },
 }
 

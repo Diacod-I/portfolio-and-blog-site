@@ -17,7 +17,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme'
+export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme' | 'minesweeper' | 'solitaire'
 export type WinStatus = 'closed' | 'open' | 'minimized'
 export type Rect = { x: number; y: number; w: number; h: number }
 export type WinState = {
@@ -36,6 +36,10 @@ const initialWins: Record<AppId, WinState> = {
   credits: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   pop: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   popReadme: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
+  // Minesweeper and Solitaire — built natively in React (see their Window
+  // components), not embedded, so no cross-origin quirks to work around.
+  minesweeper: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
+  solitaire: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
 }
 
 type WindowStore = {
@@ -108,7 +112,10 @@ export const useWindowStore = create<WindowStore>()(
       setTaskOrder: (ids) => set({ taskOrder: ids }),
     }),
     {
-      name: 'win98-window-state-v7',
+      // Bumped to v8: added 'minesweeper' and 'solitaire'. Older persisted
+      // state wouldn't have these keys, which would crash on read — bumping
+      // the key just starts fresh instead of trying to migrate.
+      name: 'win98-window-state-v8',
       storage: createJSONStorage(() => sessionStorage),
       skipHydration: true,
     }

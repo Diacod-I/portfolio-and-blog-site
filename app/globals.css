@@ -21,7 +21,14 @@
   }
 
   body {
-    @apply bg-[#008080] text-black h-screen;
+    @apply bg-[#008080] text-black h-screen select-none;
+  }
+
+  /* Form fields stay normally selectable/editable regardless of the
+     select-none above — Safari in particular can otherwise block selecting
+     text inside an input when an ancestor has user-select: none. */
+  input, textarea {
+    @apply select-text;
   }
 }
 

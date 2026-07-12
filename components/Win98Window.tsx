@@ -41,6 +41,21 @@ type Win98WindowProps = {
   /** Small pixel nudge off dead-center, so multiple freshly-opened windows
    *  cascade a little instead of stacking exactly on top of each other. */
   cardOffset?: { x: number; y: number }
+  /** Per-window floor for drag-resizing, overriding the global MIN_W/MIN_H.
+   *  Used by windows whose content has its own natural minimum (e.g.
+   *  Minesweeper's board at a given difficulty) so the window can't be
+   *  shrunk past the point where content would get clipped/hidden instead
+   *  of just laid out smaller. */
+  minSize?: { w: number; h: number }
+  /** False for windows with a fixed, content-driven size (e.g. Minesweeper,
+   *  which — like the real thing — always fits its board exactly and can't
+   *  be dragged bigger/smaller). Hides the resize handles; the titlebar can
+   *  still be dragged to reposition. Defaults to true. */
+  resizable?: boolean
+  /** False to hide the maximize/restore button entirely — pairs with
+   *  resizable=false, since a fixed-size window shouldn't be stretchable to
+   *  fullscreen either. Defaults to true. */
+  maximizable?: boolean
   /** Controlled rect: null = default inset frame (responsive); Rect = user-placed.
    *  Lives in a zustand store (see lib/store/windowStore.ts) so it survives
    *  this component unmounting when the user navigates away and back. */
@@ -102,6 +117,9 @@ export default function Win98Window({
   defaultInset,
   defaultSize,
   cardOffset = { x: 0, y: 0 },
+  minSize = { w: MIN_W, h: MIN_H },
+  resizable = true,
+  maximizable = true,
   rect,
   onRectChange,
   onFocus,
@@ -125,6 +143,10 @@ export default function Win98Window({
   // Dragging/resizing is disabled while maximized — same as real Windows,
   // where you drag a maximized titlebar to restore it first.
   const canDragResize = interactive && !maximized
+  // Resize handles specifically — separate from canDragResize (titlebar
+  // drag) so a fixed-size window (resizable=false) can still be moved
+  // around, just not stretched.
+  const canResize = canDragResize && resizable
 
   // Safety net beyond the live drag/resize clamps below: a rect persisted
   // from a previous session (see lib/store/windowStore.ts), or one that was
@@ -152,7 +174,7 @@ export default function Win98Window({
     const r = rootRef.current?.getBoundingClientRect()
     return r
       ? { x: r.left, y: r.top, w: r.width, h: r.height }
-      : { x: defaultInset.left, y: defaultInset.top, w: MIN_W, h: MIN_H }
+      : { x: defaultInset.left, y: defaultInset.top, w: minSize.w, h: minSize.h }
   }
 
   // ---- Drag (titlebar) --------------------------------------------------------
@@ -200,16 +222,16 @@ export default function Win98Window({
     // East/south edges grow away from their fixed opposite edge — same math
     // as the original bottom-right-only grip.
     if (dir.includes('e')) {
-      w = Math.min(Math.max(r.w + dx, MIN_W), maxW - r.x - 4)
+      w = Math.min(Math.max(r.w + dx, minSize.w), maxW - r.x - 4)
     }
     if (dir.includes('s')) {
-      h = Math.min(Math.max(r.h + dy, MIN_H), maxH - r.y)
+      h = Math.min(Math.max(r.h + dy, minSize.h), maxH - r.y)
     }
     // West/north edges move the origin too, keeping the opposite (right/
     // bottom) edge fixed in place — like dragging a real window's left or
     // top border.
     if (dir.includes('w')) {
-      let newW = Math.max(r.w - dx, MIN_W)
+      let newW = Math.max(r.w - dx, minSize.w)
       let newX = r.x + r.w - newW
       if (newX < 0) {
         newX = 0
@@ -219,7 +241,7 @@ export default function Win98Window({
       w = newW
     }
     if (dir.includes('n')) {
-      let newH = Math.max(r.h - dy, MIN_H)
+      let newH = Math.max(r.h - dy, minSize.h)
       let newY = r.y + r.h - newH
       if (newY < 0) {
         newY = 0
@@ -232,7 +254,7 @@ export default function Win98Window({
   }
 
   const onResizePointerDown = (dir: ResizeDir) => (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!canDragResize) return
+    if (!canResize) return
     e.stopPropagation()
     resizeStart.current = { px: e.clientX, py: e.clientY, r: currentRect(), dir }
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -299,7 +321,7 @@ export default function Win98Window({
         onPointerUp={onTitlePointerUp}
         onDoubleClick={(e) => {
           if ((e.target as HTMLElement).closest('button')) return
-          if (interactive) onToggleMaximize()
+          if (interactive && maximizable) onToggleMaximize()
         }}
       >
         <div className="flex items-center gap-2 pointer-events-none">
@@ -314,7 +336,7 @@ export default function Win98Window({
           >
             <MinimizeGlyph />
           </button>
-          {interactive && (
+          {interactive && maximizable && (
             <button
               className="win98-window-button flex items-center justify-center"
               onClick={onToggleMaximize}
@@ -340,7 +362,7 @@ export default function Win98Window({
           of them (later in the DOM = higher paint priority) so diagonal
           drags near a corner grab the corner, not an edge. Bottom-right
           keeps the classic win98 diagonal-ridge grip glyph. */}
-      {canDragResize && (
+      {canResize && (
         <>
           <div
             className="absolute top-0 left-2.5 right-2.5 h-1.5"

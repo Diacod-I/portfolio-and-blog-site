@@ -2,20 +2,19 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import FeaturedLinks from '@/components/FeaturedLinks'
 import Navbar, { type HomeTab } from '@/components/Navbar'
 import ContactView from '@/components/ContactView'
 import ResumeView from '@/components/ResumeView'
 import CreditsWindow from '@/components/CreditsWindow'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
-import ScrollPanel from '@/components/ScrollPanel'
 import ExplorerBlogList from '@/components/ExplorerBlogList'
 import BlogPostView from '@/components/BlogPostView'
-import SubstackToast from '@/components/SubstackToast'
 import GalleryWindow from '@/components/GalleryWindow'
 import PrinceOfPersiaWindow from '@/components/PrinceOfPersiaWindow'
 import PrinceOfPersiaReadmeWindow from '@/components/PrinceOfPersiaReadmeWindow'
+import MinesweeperWindow from '@/components/MinesweeperWindow'
+import SolitaireWindow from '@/components/SolitaireWindow'
 import DesktopIcon, { GridCell } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
@@ -47,6 +46,8 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   credits: { name: 'Credits', icon: '/win98/info.webp' },
   pop: { name: 'Prince of Persia', icon: '/win98/pop.png' },
   popReadme: { name: 'POP.TXT - Notepad', icon: '/win98/notepad.webp' },
+  minesweeper: { name: 'Minesweeper', icon: '/win98/minesweeper.svg' },
+  solitaire: { name: 'Solitaire', icon: '/win98/solitaire.png' },
 }
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
@@ -59,9 +60,22 @@ const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
   credits: { col: 0, row: 4},
   pop: { col: 0, row: 3 },
   popReadme: { col: 0, row: 5 },
+  // Second column, not further down column 0 — each row is 108px
+  // (see DesktopIcon's GRID) starting at y=16, so row 6/7 in a single
+  // column landed around y=664-772px, which is past the visible desktop
+  // on a phone-height screen and got covered by the fixed taskbar.
+  minesweeper: { col: 1, row: 0 },
+  solitaire: { col: 1, row: 1 },
 }
 
-const ICON_POS_KEY = 'desktop-icon-cells-v1'
+// Bumped to v2: moved minesweeper/solitaire from column 0 rows 6-7 to
+// column 1 rows 0-1 (row 6-7 rendered behind the taskbar on short/phone
+// screens). The sanitize step below only drops keys for AppIds that no
+// longer exist — it doesn't reset a *still-valid* id's saved position back
+// to a new default, so anyone with an old cached position for these two
+// apps would keep seeing them in the broken spot. Bumping the key clears
+// all cached positions and starts fresh from the new defaults.
+const ICON_POS_KEY = 'desktop-icon-cells-v2'
 
 // Apps that never render a <DesktopIcon /> (see the JSX below) — 'credits'
 // and 'popReadme' still need a reserved DEFAULT_ICON_CELLS entry
@@ -96,6 +110,29 @@ export default function HomeClient({
   const setRect = useWindowStore(s => s.setRect)
   const toggleMaximize = useWindowStore(s => s.toggleMaximize)
   const setTaskOrder = useWindowStore(s => s.setTaskOrder)
+
+  // Minesweeper isn't resizable at all (see resizable={false} below) — like
+  // the real game, its window always fits the current difficulty's board
+  // exactly. This tracks that exact size and, once the window has an
+  // explicit rect (i.e. the user has dragged it at least once), keeps the
+  // rect's w/h in lockstep with every difficulty change while leaving its
+  // x/y (position) alone. Before the first drag, defaultSize below drives
+  // the size directly, so this state is what actually resizes the window
+  // when you switch difficulty.
+  const [minesweeperMinSize, setMinesweeperMinSize] = useState({ w: 360, h: 240 })
+  const handleMinesweeperMinSize = (size: { w: number; h: number }) => {
+    setMinesweeperMinSize(size)
+    const current = wins.minesweeper.rect
+    if (current && (current.w !== size.w || current.h !== size.h)) {
+      const maxW = window.innerWidth
+      const maxH = window.innerHeight - 43 // Win98Window's TASKBAR_H
+      setRect('minesweeper', {
+        ...current,
+        w: Math.min(size.w, maxW),
+        h: Math.min(size.h, maxH),
+      })
+    }
+  }
 
   // Pull persisted window state back in from sessionStorage after mount
   // (skipped automatically during SSR/first paint to avoid a hydration
@@ -190,7 +227,9 @@ export default function HomeClient({
     wins.gallery.status !== 'closed' ||
     wins.credits.status !== 'closed' ||
     wins.pop.status !== 'closed' ||
-    wins.popReadme.status !== 'closed'
+    wins.popReadme.status !== 'closed' ||
+    wins.minesweeper.status !== 'closed' ||
+    wins.solitaire.status !== 'closed'
   useEffect(() => {
     if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
     const timer = setTimeout(() => {
@@ -238,20 +277,6 @@ export default function HomeClient({
     if (forceOpenApp) focusApp(forceOpenApp)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // Substack subscribe toast: shown once per session whenever the Blogs
-  // window is open on the list view (ported from the old standalone
-  // /blogs page, now that /blogs renders through this same shell).
-  const [toastVisible, setToastVisible] = useState(false)
-  useEffect(() => {
-    if (!sessionStorage.getItem('substack-toast-dismissed')) {
-      setToastVisible(true)
-    }
-  }, [])
-  const dismissToast = () => {
-    setToastVisible(false)
-    sessionStorage.setItem('substack-toast-dismissed', '1')
-  }
 
   // Morphing animation for roles with cryptic letters
   const roles = [
@@ -386,6 +411,24 @@ export default function HomeClient({
         onOpen={() => openApp('pop')}
         onMove={moveIcon}
       />
+      <DesktopIcon
+        id="minesweeper"
+        label="Minesweeper"
+        icon={APPS.minesweeper.icon}
+        cell={iconCells.minesweeper}
+        isActive={wins.minesweeper.status !== 'closed'}
+        onOpen={() => openApp('minesweeper')}
+        onMove={moveIcon}
+      />
+      <DesktopIcon
+        id="solitaire"
+        label="Solitaire"
+        icon={APPS.solitaire.icon}
+        cell={iconCells.solitaire}
+        isActive={wins.solitaire.status !== 'closed'}
+        onOpen={() => openApp('solitaire')}
+        onMove={moveIcon}
+      />
 
       {/* Win98 tooltip hint for first-time visitors */}
       {showHint && !anyOpen && (
@@ -426,35 +469,14 @@ export default function HomeClient({
           <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
             {homeTab === 'contact' ? (
               <div className="flex-1 min-h-0 overflow-y-auto p-4">
-                <ContactView />
+                <ContactView featured={featured} />
               </div>
             ) : homeTab === 'resume' ? (
               <ResumeView />
             ) : (
             <div className="flex-1 min-h-0 overflow-y-auto p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                {/* Internet Shortcuts — a card at the top right (stacks on top on mobile) */}
-                {/* <div className="order-1 md:order-2 w-full md:w-72 flex-shrink-0">
-                  <div className="win98-window flex flex-col">
-                    <div className="win98-titlebar">
-                      <div className="flex items-center gap-2">
-                        <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
-                        <span>Internet Shortcuts</span>
-                      </div>
-                    </div>
-                    <div className="bg-[#f0f0f0] border-2 p-2">
-                      <p className="font-bold mb-1 text-sm">
-                        &gt; My online presence! (Still not famous tho)
-                      </p>
-                      <ScrollPanel maxHeight={320} className="border-2" nudgeId="featured-links">
-                        <FeaturedLinks links={featured} />
-                      </ScrollPanel>
-                    </div>
-                  </div>
-                </div> */}
-
-                {/* About/bio — fills the remaining space */}
-                <div className="order-2 md:order-1 flex-1 min-w-0 flex flex-col gap-3">
+                {/* About/bio */}
+                <div className="flex-1 min-w-0 flex flex-col gap-3">
                   <h1 className="text-white text-3xl font-bold">
                     👋 Hi, I&apos;m Advith Krishnan!
                   </h1>
@@ -511,7 +533,6 @@ export default function HomeClient({
                     <div className="clear-both" />
                   </div>
                 </div>
-              </div>
             </div>
             )}
           </div>
@@ -655,12 +676,62 @@ export default function HomeClient({
         </Win98Window>
       )}
 
-      {isLoading && <WindowsLoader />}
+      {/* ---- Minesweeper: built natively (see MinesweeperWindow.tsx),
+           not embedded — no third-party sizing/licensing quirks to work
+           around, unlike Prince of Persia. ---- */}
+      {wins.minesweeper.status !== 'closed' && (
+        <Win98Window
+          title="Minesweeper"
+          icon={APPS.minesweeper.icon}
+          zIndex={40 + wins.minesweeper.z}
+          minimized={wins.minesweeper.status === 'minimized'}
+          isFocused={focusedId === 'minesweeper'}
+          maximized={wins.minesweeper.maximized}
+          defaultInset={{ top: 60, right: 16, bottom: 43, left: 16 }}
+          defaultSize={minesweeperMinSize}
+          cardOffset={{ x: 30, y: -70 }}
+          resizable={false}
+          maximizable={false}
+          rect={wins.minesweeper.rect}
+          onRectChange={(r) => setRect('minesweeper', r)}
+          onFocus={() => focusApp('minesweeper')}
+          onMinimize={() => minimizeApp('minesweeper')}
+          onToggleMaximize={() => toggleMaximize('minesweeper')}
+          onClose={() => closeApp('minesweeper')}
+        >
+          <div className="win98-window-content flex-1 min-h-0 flex flex-col overflow-hidden">
+            <MinesweeperWindow onMinSizeChange={handleMinesweeperMinSize} />
+          </div>
+        </Win98Window>
+      )}
 
-      <SubstackToast
-        visible={toastVisible && wins.blogs.status !== 'closed' && blogsView.mode === 'list'}
-        onDismiss={dismissToast}
-      />
+      {/* ---- Solitaire (Klondike): built natively (see SolitaireWindow.tsx),
+           click-to-move so it works the same with mouse and touch. ---- */}
+      {wins.solitaire.status !== 'closed' && (
+        <Win98Window
+          title="Solitaire"
+          icon={APPS.solitaire.icon}
+          zIndex={40 + wins.solitaire.z}
+          minimized={wins.solitaire.status === 'minimized'}
+          isFocused={focusedId === 'solitaire'}
+          maximized={wins.solitaire.maximized}
+          defaultInset={{ top: 24, right: 16, bottom: 43, left: 16 }}
+          defaultSize={{ w: 880, h: 640 }}
+          cardOffset={{ x: -30, y: 40 }}
+          rect={wins.solitaire.rect}
+          onRectChange={(r) => setRect('solitaire', r)}
+          onFocus={() => focusApp('solitaire')}
+          onMinimize={() => minimizeApp('solitaire')}
+          onToggleMaximize={() => toggleMaximize('solitaire')}
+          onClose={() => closeApp('solitaire')}
+        >
+          <div className="win98-window-content flex-1 min-h-0 flex flex-col overflow-hidden">
+            <SolitaireWindow />
+          </div>
+        </Win98Window>
+      )}
+
+      {isLoading && <WindowsLoader />}
     </div>
     <FooterConsole
       activeApps={taskbarApps}

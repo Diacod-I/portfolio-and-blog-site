@@ -14,7 +14,7 @@ const h3Class = 'font-bold text-sm mt-3 mb-1'
 
 export default function CreditsWindow() {
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-4 pr-8 bg-[#f3f3f3] text-black text-justify">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 pr-8 bg-[#f3f3f3] text-black text-justify select-text">
       <h2 className="text-lg font-bold mb-2">Credits</h2>
 
       <h3 className={h3Class}>Design &amp; Inspiration</h3>

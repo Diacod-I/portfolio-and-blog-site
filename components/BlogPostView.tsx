@@ -36,7 +36,7 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 text-white">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 text-white select-text">
         <h1 className="text-3xl font-bold mb-6">{note.title}</h1>
         <div className="prose prose-invert max-w-none text-justify">{content}</div>
 

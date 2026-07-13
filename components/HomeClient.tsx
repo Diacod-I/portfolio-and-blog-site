@@ -15,7 +15,7 @@ import PrinceOfPersiaWindow from '@/components/PrinceOfPersiaWindow'
 import PrinceOfPersiaReadmeWindow from '@/components/PrinceOfPersiaReadmeWindow'
 import MinesweeperWindow from '@/components/MinesweeperWindow'
 import SolitaireWindow from '@/components/SolitaireWindow'
-import DesktopIcon, { GridCell } from '@/components/DesktopIcon'
+import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
 import highlights from '@/data/highlights'
@@ -219,6 +219,32 @@ export default function HomeClient({
     photo => new Date(photo.uploaded_at) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   )
 
+  // Mobile check (≤640px): Prince of Persia is keyboard-only, so on phones
+  // its icon is disabled — tapping shows a tooltip instead of opening.
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  const [popMobileTooltip, setPopMobileTooltip] = useState(false)
+  const popTooltipTimer = useRef<NodeJS.Timeout | null>(null)
+  const handlePopOpen = () => {
+    if (!isMobile) {
+      openApp('pop')
+      return
+    }
+    setPopMobileTooltip(true)
+    if (popTooltipTimer.current) clearTimeout(popTooltipTimer.current)
+    popTooltipTimer.current = setTimeout(() => setPopMobileTooltip(false), 3500)
+  }
+  useEffect(() => () => {
+    if (popTooltipTimer.current) clearTimeout(popTooltipTimer.current)
+  }, [])
+
   // First-visit hint (once per session)
   const [showHint, setShowHint] = useState(false)
   const anyOpen =
@@ -408,9 +434,29 @@ export default function HomeClient({
         icon={APPS.pop.icon}
         cell={iconCells.pop}
         isActive={wins.pop.status !== 'closed'}
-        onOpen={() => openApp('pop')}
+        disabled={isMobile}
+        onOpen={handlePopOpen}
         onMove={moveIcon}
       />
+
+      {/* Mobile-only: PoP is keyboard-only, tapping its (disabled) icon
+          explains why instead of opening the app */}
+      {popMobileTooltip && (
+        <div
+          role="status"
+          className="absolute z-[60] px-2 py-1 text-xs text-black pointer-events-none max-w-[230px]"
+          style={{
+            left: cellToPx(iconCells.pop).left,
+            top: cellToPx(iconCells.pop).top + 100,
+            backgroundColor: '#ffffe1',
+            border: '1px solid #000000',
+            boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+            fontFamily: 'monospace',
+          }}
+        >
+          🖥️ Prince of Persia needs a keyboard — play it on a desktop or laptop!
+        </div>
+      )}
       <DesktopIcon
         id="minesweeper"
         label="Minesweeper"
@@ -726,7 +772,7 @@ export default function HomeClient({
           onClose={() => closeApp('solitaire')}
         >
           <div className="win98-window-content flex-1 min-h-0 flex flex-col overflow-hidden">
-            <SolitaireWindow />
+            <SolitaireWindow windowVisible={wins.solitaire.status === 'open'} />
           </div>
         </Win98Window>
       )}

@@ -33,6 +33,8 @@ type DesktopIconProps = {
   cell: GridCell
   showBadge?: boolean
   isActive?: boolean
+  /** Grayed-out look (win98 "unavailable"); parent still receives onOpen */
+  disabled?: boolean
   onOpen: () => void
   onMove: (id: string, cell: GridCell) => void
 }
@@ -46,6 +48,7 @@ export default function DesktopIcon({
   cell,
   showBadge = false,
   isActive = false,
+  disabled = false,
   onOpen,
   onMove,
 }: DesktopIconProps) {
@@ -123,10 +126,15 @@ export default function DesktopIcon({
         top: pos.top,
         touchAction: 'none',
         zIndex: dragPos ? 50 : 10,
-        opacity: dragPos ? 0.75 : 1,
+        opacity: dragPos ? 0.75 : disabled ? 0.55 : 1,
         cursor: dragPos ? 'grabbing' : 'pointer',
+        // Grayed-out win98 "unavailable" look. The icon stays draggable and
+        // tappable — the parent decides what onOpen does (e.g. show a
+        // desktop-only tooltip instead of opening the app).
+        filter: disabled ? 'grayscale(1)' : undefined,
       }}
       aria-label={`Open ${label}`}
+      aria-disabled={disabled}
     >
       <div className="relative pointer-events-none w-14 h-14">
         {/* fill + object-contain instead of a fixed width/height: some icons

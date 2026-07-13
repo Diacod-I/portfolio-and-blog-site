@@ -489,7 +489,7 @@ export default function SolitaireWindow({ windowVisible = true }: SolitaireWindo
     <div ref={gameRootRef} className="flex-1 min-h-0 bg-[#0e5c24] flex flex-col overflow-hidden" style={{ background: 'radial-gradient(ellipse at top, #1a7a34, #0e5c24)' }}>
       <div className="flex-shrink-0 flex items-center justify-between gap-2 px-2 py-1.5 bg-[#c0c0c0] border-b-2 border-[#808080]">
         <button onClick={newGame} className="win98-button px-3 py-1 text-xs font-bold text-black">
-          🂠 New Game
+          New Game
         </button>
         <span className="text-xs font-bold text-black">Moves: {moves}</span>
       </div>

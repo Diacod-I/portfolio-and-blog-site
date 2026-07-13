@@ -156,6 +156,46 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
   const [showAbout, setShowAbout] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Synthesized explosion for hitting a mine (WebAudio, no asset file):
+  // a white-noise burst through a closing lowpass filter — the "blast" —
+  // plus a pitch-dropping sine underneath — the "thump".
+  const playExplosion = () => {
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      const ctx = new AC()
+      const now = ctx.currentTime
+      const dur = 0.6
+
+      const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
+      const data = buffer.getChannelData(0)
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / data.length)
+      }
+      const noise = ctx.createBufferSource()
+      noise.buffer = buffer
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'lowpass'
+      filter.frequency.setValueAtTime(1400, now)
+      filter.frequency.exponentialRampToValueAtTime(80, now + dur)
+      const noiseGain = ctx.createGain()
+      noiseGain.gain.setValueAtTime(0.5, now)
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + dur)
+      noise.connect(filter).connect(noiseGain).connect(ctx.destination)
+      noise.start(now)
+
+      const osc = ctx.createOscillator()
+      const oscGain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(130, now)
+      osc.frequency.exponentialRampToValueAtTime(35, now + 0.4)
+      oscGain.gain.setValueAtTime(0.6, now)
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45)
+      osc.connect(oscGain).connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.5)
+    } catch { /* Web Audio unavailable/blocked — lose silently */ }
+  }
+
   // Minesweeper's window is fixed-size (see resizable={false} in
   // HomeClient) and always fits the board exactly, like the real game.
   //
@@ -267,6 +307,7 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
         // Astronomically unlikely given safe-first-click, but guard anyway.
         revealAllMines(fresh)
         setGrid(fresh)
+        playExplosion()
         setGameState('lost')
         setFace('lose')
         return
@@ -296,6 +337,7 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
           if (hitMine) {
             revealAllMines(next)
             setGrid(next)
+            playExplosion()
             setGameState('lost')
             setFace('lose')
             return
@@ -315,6 +357,7 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
       next[index].revealed = true
       revealAllMines(next)
       setGrid(next)
+      playExplosion()
       setGameState('lost')
       setFace('lose')
       return

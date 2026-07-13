@@ -7,11 +7,15 @@
 // whole control scheme is arrows + Shift (no Ctrl at all — see
 // PrinceOfPersiaReadmeWindow.tsx), which sidesteps that problem.
 //
-// archive.org only (dos.zone dropped — been down). This specific item
-// (msdos_Prince_of_Persia_1990) is marked "Access-restricted-item" in its
-// own metadata — archive.org's Controlled Digital Lending model, unlike
-// Doom's shareware episode which had no such restriction — so it may
-// prompt to borrow/sign in instead of just playing.
+// archive.org only (dos.zone dropped — been down). Item: PERSIA_VGA
+// ("MS-DOS: Prince of Persia (VGA Graphics and SoundBlaster)") — chosen
+// deliberately over msdos_Prince_of_Persia_1990, which is marked
+// "access-restricted-item: true" (Controlled Digital Lending). The
+// restricted item's embed runs server-side lending/availability checks
+// before serving the emulator — measured minutes of dead time before the
+// loading screen even appeared, and it can demand an archive.org login.
+// PERSIA_VGA has no restriction flag, boots straight into DOSBox, and is
+// the better version of the game anyway (VGA + SoundBlaster).
 //
 // The click-to-focus overlay and pointer-lock permission below are
 // unchanged from the Doom version — this is still a cross-origin iframe
@@ -48,11 +52,14 @@ type PrinceOfPersiaWindowProps = {
   onOpenControls: () => void
 }
 
-const GAME_URL = 'https://archive.org/embed/msdos_Prince_of_Persia_1990'
+const GAME_URL = 'https://archive.org/embed/PERSIA_VGA'
 
 export default function PrinceOfPersiaWindow({ onOpenControls }: PrinceOfPersiaWindowProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [gameFocused, setGameFocused] = useState(false)
+  // Loading indicator until the archive.org embed page arrives — without it
+  // any server-side slowness is an unexplained black rectangle.
+  const [iframeLoaded, setIframeLoaded] = useState(false)
   // Keyboard-only game (arrows + Shift, no touch input at all — see
   // PrinceOfPersiaReadmeWindow.tsx) — unplayable on a phone. Skip loading
   // the DOSBox iframe entirely below this breakpoint and show a "desktop
@@ -131,8 +138,16 @@ export default function PrinceOfPersiaWindow({ onOpenControls }: PrinceOfPersiaW
               className="w-full h-full border-0"
               allow="fullscreen; pointer-lock"
               allowFullScreen
+              onLoad={() => setIframeLoaded(true)}
             />
-            {!gameFocused && (
+            {!iframeLoaded && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black text-white text-sm pointer-events-none">
+                <div className="animate-spin border-4 border-[#c0c0c0] border-t-transparent rounded-full w-8 h-8" />
+                <span className="font-bold">Loading Prince of Persia…</span>
+                <span className="text-xs text-[#aaaaaa]">served by archive.org — can take a few seconds</span>
+              </div>
+            )}
+            {iframeLoaded && !gameFocused && (
               <button
                 onClick={focusGame}
                 className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 text-white text-sm font-bold text-center px-4"

@@ -17,8 +17,8 @@ Restart game ........ Ctrl + R
 
 MOVEMENT
 Walk / run ......... Left / Right arrow
-Climb up / jump ..... Up arrow
-Crouch / climb down . Down arrow
+Jump / climb up ..... Up arrow (Tap) / (Hold)
+Crouch / climb down . Down arrow (Tap) / (Hold)
 Careful walk ........ Shift + Left / Right arrow
 
 SHIFT

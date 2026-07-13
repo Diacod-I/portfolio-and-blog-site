@@ -44,7 +44,7 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   blogs: { name: 'Blogs', icon: '/win98/notepad.webp' },
   gallery: { name: 'Gallery', icon: '/win98/photos.webp' },
   credits: { name: 'Credits', icon: '/win98/info.webp' },
-  pop: { name: 'Prince of Persia', icon: '/win98/pop.png' },
+  pop: { name: 'Prince of Persia', icon: '/win98/pop.ico' },
   popReadme: { name: 'POP.TXT - Notepad', icon: '/win98/notepad.webp' },
   minesweeper: { name: 'Minesweeper', icon: '/win98/minesweeper.svg' },
   solitaire: { name: 'Solitaire', icon: '/win98/solitaire.png' },

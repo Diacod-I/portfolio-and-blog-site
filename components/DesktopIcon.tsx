@@ -147,8 +147,13 @@ export default function DesktopIcon({
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse-expand"></span>
         )}
       </div>
+      {/* No max-width on the label: a single unbreakable word wider than the
+          icon cell ("Minesweeper") must grow the span so the teal background
+          covers all of it — clamping painted the text past the background.
+          Multi-word labels still wrap at spaces (flex column limits width
+          for wrappable content), and the label stays centered either way. */}
       <span
-        className={`win98-app-name text-center max-w-full pointer-events-none ${isActive ? 'active' : ''}`}
+        className={`win98-app-name text-center pointer-events-none ${isActive ? 'active' : ''}`}
       >
         {label}
       </span>

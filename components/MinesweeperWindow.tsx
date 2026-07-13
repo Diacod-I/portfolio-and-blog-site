@@ -36,11 +36,13 @@ type MenuKey = 'game' | 'help' | null
 
 const MAX_CELL_SIZE = 24 // px — classic Windows Minesweeper size, always used (window is fixed-size, never shrinks cells)
 
-// The only dimension this component can't measure directly — the parent
-// Win98Window renders its own titlebar above `children`, outside this
-// component's DOM subtree. It's a fixed, content-independent height, so a
-// constant is reliable here. A couple of px of slack is fine; coming in
-// short is what caused a scrollbar in an earlier version.
+// Fallback only — the measurement effect below prefers measuring the real
+// window chrome (titlebar + frame borders + content padding) directly by
+// diffing the .win98-app-window element against this component's root.
+// The old constant-only approach missed the frame's HORIZONTAL chrome
+// entirely (~24px of borders/padding), so the window came out 24px
+// narrower than the measured content and overflow-hidden clipped both
+// edges — the clipped footer-hint bug.
 const TITLEBAR_H = 30
 
 // Classic Windows Minesweeper number colors.
@@ -220,15 +222,38 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
 
     const measure = () => {
       const r = el.getBoundingClientRect()
-      onMinSizeChange({ w: Math.ceil(r.width), h: Math.ceil(r.height + TITLEBAR_H) })
+      // Chrome = everything the parent Win98Window draws around this
+      // component: titlebar, frame borders, and content padding. Measured
+      // live as (window element size) − (our root container's size), which
+      // is size-independent, so this converges in one ResizeObserver pass.
+      // el is contentRef (w-fit); its parentElement is our root container,
+      // which stretches to fill the window's content area exactly.
+      let chromeW = 0
+      let chromeH = TITLEBAR_H
+      const winEl = el.closest('.win98-app-window')
+      const rootEl = el.parentElement
+      if (winEl && rootEl) {
+        const wr = winEl.getBoundingClientRect()
+        const cr = rootEl.getBoundingClientRect()
+        chromeW = Math.max(0, wr.width - cr.width)
+        chromeH = Math.max(TITLEBAR_H, wr.height - cr.height)
+      }
+      onMinSizeChange({ w: Math.ceil(r.width + chromeW), h: Math.ceil(r.height + chromeH) })
     }
 
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
+    // grid.length in the deps (not just rows/cols): a difficulty switch
+    // changes rows/cols one render BEFORE the grid-reset effect swaps the
+    // cell array, so measuring on rows/cols alone reads the OLD cell count
+    // reflowed into the NEW column count — a garbage height that sticks.
+    // Re-running when grid.length changes measures the settled layout
+    // synchronously instead of relying on the ResizeObserver to correct it
+    // a frame later (which throttled/background tabs can delay).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, cols])
+  }, [rows, cols, grid.length])
 
   const resetGame = useCallback((diff: Difficulty) => {
     const d = DIFFICULTIES[diff]
@@ -392,13 +417,21 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
 
   return (
     <div className="flex-1 min-h-0 bg-[#c0c0c0] flex flex-col items-center overflow-hidden relative">
-      {/* w-fit is load-bearing — see the comment on contentRef above. */}
-      <div ref={contentRef} className="w-fit flex flex-col">
+      {/* w-fit is load-bearing — see the comment on contentRef above.
+          flex-none is equally load-bearing: without it this box is a
+          shrinkable flex child, so whenever the window is (momentarily)
+          too small — e.g. right after a difficulty switch, before the
+          resize lands — the content gets crushed to the window's current
+          height, the measurement reports that crushed size back as the
+          "natural" size, and the resize feedback loop locks in a
+          too-small window. flex-none keeps the measured size the true
+          content size no matter what the window currently is. */}
+      <div ref={contentRef} className="w-fit flex-none flex flex-col">
         <div className="flex-shrink-0 flex bg-[#c0c0c0] text-xs z-20">
           <div className="relative">
           <button
             onClick={() => setOpenMenu(m => (m === 'game' ? null : 'game'))}
-            className={`px-3 ml-2 py-0.5 text-black ${openMenu === 'game' ? 'bg-[#000080] text-white' : ''}`}
+            className={`px-3 py-0.5 text-black ${openMenu === 'game' ? 'bg-[#000080] text-white' : ''}`}
           >
             <span className="underline">G</span>ame
           </button>
@@ -487,22 +520,20 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
           </div>
         </div>
 
-        {/* Explicit width matching the board card (cols*MAX_CELL_SIZE + its
-            own p-2/border-2 chrome) rather than relying on the surrounding
-            flex/w-fit layout to size this row — a flex row here stretches
-            to whatever width its container currently happens to be, but a
-            single long line of text doesn't wrap within that the way block
-            text does, so on narrower boards (Beginner, Intermediate) it was
-            overflowing past the window edge and getting clipped instead of
-            wrapping to a second line. */}
-        <div
-          className="flex-shrink-0 px-2 pb-2 text-[11px] text-black text-center leading-snug"
-          style={{ width: cols * MAX_CELL_SIZE + 20 }}
-        >
+        {/* w-0 min-w-full is the trick that makes this wrap: the parent is
+            w-fit (fit-content), and any normal width here lets this text's
+            single-line max-content participate in that fit-content
+            calculation — so the parent simply grew to fit the unwrapped
+            line and the text clipped at the window edge (worse with more
+            columns). width:0 removes the text from the parent's intrinsic
+            sizing entirely (the BOARD alone decides the width), and
+            min-width:100% then stretches this row back out to exactly the
+            board's width, so the text wraps inside it. */}
+        <div className="flex-shrink-0 w-0 min-w-full px-2 pb-2 text-[11px] text-black text-center leading-snug">
           {gameState === 'won' && <span className="font-bold text-green-800">🎉 You win!</span>}
           {gameState === 'lost' && <span className="font-bold text-red-800">💥 Boom — try again.</span>}
           {(gameState === 'ready' || gameState === 'playing') && (
-            <span>Left-click to reveal, right-click to flag{flagMode ? ' (flag mode on — tap flags instead)' : ''}.</span>
+            <span>Left-click - Reveal. Right-click - Flag.</span>
           )}
         </div>
       </div>

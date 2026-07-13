@@ -368,6 +368,10 @@ export default function SolitaireWindow({ windowVisible = true }: SolitaireWindo
   const previewRef = useRef<HTMLDivElement | null>(null)
   const rafRef = useRef<number | null>(null)
   const gameRootRef = useRef<HTMLDivElement | null>(null)
+  // The green felt play area only — gameRootRef also contains the gray
+  // toolbar and status rows, and the drag clamp must fence cards to the
+  // felt, not let them ride up over the toolbar.
+  const boardRef = useRef<HTMLDivElement | null>(null)
   const flightIdRef = useRef(0)
   const stateRef = useRef(state)
   stateRef.current = state
@@ -674,7 +678,21 @@ export default function SolitaireWindow({ windowVisible = true }: SolitaireWindo
       playSound('take')
       setDragCards(info.sel)
     }
-    posRef.current = { x: e.clientX - info.grabDX, y: e.clientY - info.grabDY }
+    // Clamp the held card(s) inside the green felt play area: the preview
+    // is portaled to document.body (the window's transform would displace
+    // position:fixed), so without this you could drag cards clean off the
+    // Solitaire window onto the desktop. Clamped to boardRef (the felt),
+    // not gameRootRef — the root also contains the gray toolbar row, and
+    // cards shouldn't ride up over it. Clamps by full stacked height.
+    let x = e.clientX - info.grabDX
+    let y = e.clientY - info.grabDY
+    const tableRect = boardRef.current?.getBoundingClientRect()
+    if (tableRect) {
+      const previewH = CARD_H + (info.cards.length - 1) * FACE_UP_OFFSET
+      x = Math.min(Math.max(x, tableRect.left), tableRect.right - CARD_W)
+      y = Math.min(Math.max(y, tableRect.top), tableRect.bottom - previewH)
+    }
+    posRef.current = { x, y }
     if (rafRef.current === null) rafRef.current = requestAnimationFrame(applyPreviewPos)
   }
 
@@ -812,7 +830,7 @@ export default function SolitaireWindow({ windowVisible = true }: SolitaireWindo
         </span>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-auto p-4 relative" style={interactionsLocked ? { pointerEvents: 'none' } : undefined}>
+      <div ref={boardRef} className="flex-1 min-h-0 overflow-auto p-4 relative" style={interactionsLocked ? { pointerEvents: 'none' } : undefined}>
         {/* Stock / waste / foundations row */}
         <div className="flex items-start gap-3 mb-6">
           <div ref={setSlotRef('stock')}>

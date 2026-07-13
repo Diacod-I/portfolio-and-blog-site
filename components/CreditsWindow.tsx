@@ -69,6 +69,65 @@ export default function CreditsWindow() {
           required).
         </li>
         <li>
+          Playing card sound effects (shuffle, draw, and place) by{' '}
+          <a
+            href="https://pixabay.com/users/oxidvideos-37598254/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            OxidVideos
+          </a>{' '}
+          via{' '}
+          <a
+            href="https://pixabay.com/sound-effects/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            Pixabay
+          </a>{' '}
+          (Pixabay Content License — free to use, attribution appreciated but not
+          required).
+        </li>
+        <li>
+          The Solitaire win chime and Minesweeper explosion are synthesized in
+          the browser with the Web Audio API — no recorded samples.
+        </li>
+        <li>
+          Prince of Persia desktop icon sourced via{' '}
+          <a
+            href="https://www.steamgriddb.com/icon/100103"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            SteamGridDB
+          </a>
+          ; Minesweeper and Solitaire desktop icons sourced via Logopedia (
+          <a
+            href="https://logos.fandom.com/wiki/Microsoft_Minesweeper"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            Microsoft Minesweeper
+          </a>
+          ,{' '}
+          <a
+            href="https://logos.fandom.com/wiki/Microsoft_Solitaire_%26_Casual_Games"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            Microsoft Solitaire
+          </a>
+          ). These logos are the property of their respective owners (Ubisoft
+          Entertainment and Microsoft Corporation) and are used here in a
+          nominative, decorative capacity as part of this non-commercial fan
+          project.
+        </li>
+        <li>
           Club Penguin dance GIF, sourced via{' '}
           <a
             href="https://clubpenguin.fandom.com/wiki/Dance"
@@ -106,9 +165,10 @@ export default function CreditsWindow() {
             Jordan Mechner
           </a>{' '}
           and originally published by Broderbund for the Apple II in 1989.
-          The 1990 MS-DOS version played here is embedded via{' '}
+          The MS-DOS version (VGA graphics and SoundBlaster release) played
+          here is embedded via{' '}
           <a
-            href="https://archive.org/details/msdos_Prince_of_Persia_1990"
+            href="https://archive.org/details/PERSIA_VGA"
             target="_blank"
             rel="noopener noreferrer"
             className={linkClass}
@@ -121,6 +181,16 @@ export default function CreditsWindow() {
           is a trademark of Ubisoft Entertainment; this is an independent,
           non-commercial fan project and is not affiliated with, endorsed
           by, or sponsored by Ubisoft or Jordan Mechner.
+        </li>
+        <li>
+          Minesweeper and Solitaire (Klondike) are original recreations,
+          written from scratch for this site in React — no third-party game
+          code or assets. Their gameplay and visual style pay homage to the
+          classic games included with Microsoft Windows; Minesweeper and
+          Solitaire in that form are the work of Microsoft Corporation
+          (see the trademark note under Design &amp; Inspiration). Card
+          faces, court-card artwork, and the card back are original CSS/SVG
+          drawn for this project.
         </li>
       </ul>
 

@@ -219,8 +219,11 @@ export default function HomeClient({
     photo => new Date(photo.uploaded_at) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   )
 
-  // Mobile check (≤640px): Prince of Persia is keyboard-only, so on phones
-  // its icon is disabled — tapping shows a tooltip instead of opening.
+  // Mobile check (≤640px): the games (Prince of Persia, Minesweeper,
+  // Solitaire) all break down badly on a phone-sized touch screen, so on
+  // mobile their icons are disabled — tapping shows a tooltip instead of
+  // opening. Kept generic (not "needs a keyboard") since Minesweeper/
+  // Solitaire are touch-capable in principle, just not at this window size.
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)')
@@ -230,19 +233,24 @@ export default function HomeClient({
     return () => mq.removeEventListener('change', update)
   }, [])
 
-  const [popMobileTooltip, setPopMobileTooltip] = useState(false)
-  const popTooltipTimer = useRef<NodeJS.Timeout | null>(null)
-  const handlePopOpen = () => {
+  const GAME_MOBILE_MESSAGE: Partial<Record<AppId, string>> = {
+    pop: '🖥️ Prince of Persia is best played on a desktop.',
+    minesweeper: '🖥️ Minesweeper is best played on a desktop.',
+    solitaire: '🖥️ Solitaire is best played on a desktop.',
+  }
+  const [gameMobileTooltip, setGameMobileTooltip] = useState<AppId | null>(null)
+  const gameTooltipTimer = useRef<NodeJS.Timeout | null>(null)
+  const handleGameOpen = (id: AppId) => {
     if (!isMobile) {
-      openApp('pop')
+      openApp(id)
       return
     }
-    setPopMobileTooltip(true)
-    if (popTooltipTimer.current) clearTimeout(popTooltipTimer.current)
-    popTooltipTimer.current = setTimeout(() => setPopMobileTooltip(false), 3500)
+    setGameMobileTooltip(id)
+    if (gameTooltipTimer.current) clearTimeout(gameTooltipTimer.current)
+    gameTooltipTimer.current = setTimeout(() => setGameMobileTooltip(null), 3500)
   }
   useEffect(() => () => {
-    if (popTooltipTimer.current) clearTimeout(popTooltipTimer.current)
+    if (gameTooltipTimer.current) clearTimeout(gameTooltipTimer.current)
   }, [])
 
   // First-visit hint (once per session)
@@ -435,35 +443,17 @@ export default function HomeClient({
         cell={iconCells.pop}
         isActive={wins.pop.status !== 'closed'}
         disabled={isMobile}
-        onOpen={handlePopOpen}
+        onOpen={() => handleGameOpen('pop')}
         onMove={moveIcon}
       />
-
-      {/* Mobile-only: PoP is keyboard-only, tapping its (disabled) icon
-          explains why instead of opening the app */}
-      {popMobileTooltip && (
-        <div
-          role="status"
-          className="absolute z-[60] px-2 py-1 text-xs text-black pointer-events-none max-w-[230px]"
-          style={{
-            left: cellToPx(iconCells.pop).left,
-            top: cellToPx(iconCells.pop).top + 100,
-            backgroundColor: '#ffffe1',
-            border: '1px solid #000000',
-            boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
-            fontFamily: 'monospace',
-          }}
-        >
-          🖥️ Prince of Persia needs a keyboard — play it on a desktop or laptop!
-        </div>
-      )}
       <DesktopIcon
         id="minesweeper"
         label="Minesweeper"
         icon={APPS.minesweeper.icon}
         cell={iconCells.minesweeper}
         isActive={wins.minesweeper.status !== 'closed'}
-        onOpen={() => openApp('minesweeper')}
+        disabled={isMobile}
+        onOpen={() => handleGameOpen('minesweeper')}
         onMove={moveIcon}
       />
       <DesktopIcon
@@ -472,9 +462,29 @@ export default function HomeClient({
         icon={APPS.solitaire.icon}
         cell={iconCells.solitaire}
         isActive={wins.solitaire.status !== 'closed'}
-        onOpen={() => openApp('solitaire')}
+        disabled={isMobile}
+        onOpen={() => handleGameOpen('solitaire')}
         onMove={moveIcon}
       />
+
+      {/* Mobile-only: tapping a disabled game icon explains why instead of
+          silently doing nothing. */}
+      {gameMobileTooltip && (
+        <div
+          role="status"
+          className="absolute z-[60] px-2 py-1 text-xs text-black pointer-events-none max-w-[230px]"
+          style={{
+            left: cellToPx(iconCells[gameMobileTooltip]).left,
+            top: cellToPx(iconCells[gameMobileTooltip]).top + 100,
+            backgroundColor: '#ffffe1',
+            border: '1px solid #000000',
+            boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+            fontFamily: 'monospace',
+          }}
+        >
+          {GAME_MOBILE_MESSAGE[gameMobileTooltip]}
+        </div>
+      )}
 
       {/* Win98 tooltip hint for first-time visitors */}
       {showHint && !anyOpen && (

@@ -10,6 +10,7 @@ import { format } from 'date-fns'
 import type { Note } from '@/lib/notes'
 import { TAGS, TAG_STYLES, TAG_DESCRIPTIONS, type Tag } from '@/lib/tags'
 import TagBadge from '@/components/TagBadge'
+import MarqueeText from '@/components/MarqueeText'
 
 type SortKey = 'date' | 'title'
 
@@ -24,6 +25,85 @@ const isNew = (date: string) =>
 // plus the 120px thumbnail don't leave enough room for a title — switch to
 // a stacked single-column layout instead.
 const COMPACT_BREAKPOINT = 480
+
+// Its own component (rather than inlined in the .map below) so each row can
+// hold its own `hovered` state — MarqueeText needs an explicit boolean
+// rather than a CSS `group-hover` pseudo-class so it can use a fast snap-back
+// on hover-out instead of mirroring the (often much slower) reveal speed.
+function BlogRow({ note, compact }: { note: Note; compact: boolean }) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <li>
+      <Link
+        href={`/blogs/${note.slug}`}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className={`grid items-start px-2 py-2 no-underline text-black hover:bg-[#000080] hover:text-white group border-b border-[#e5e5e5] ${
+          compact ? 'bg-zinc-700 grid-cols-1' : 'bg-zinc-700 grid-cols-[1fr_130px_110px]'
+        }`}
+      >
+        <span className="flex items-start gap-3 min-w-0 pr-6">
+          {note.thumbnail ? (
+            <Image
+              src={note.thumbnail}
+              alt=""
+              width={120}
+              height={68}
+              className="w-[120px] h-[68px] object-cover shrink-0 border-2 border-[#808080]"
+            />
+          ) : (
+            <span className="w-[120px] h-[68px] flex items-center justify-center shrink-0 border-2 border-[#808080] bg-[#1f1f1f]">
+              <Image
+                src="/win98/notes.webp"
+                alt=""
+                width={40}
+                height={40}
+                className="w-10 h-10"
+              />
+            </span>
+          )}
+          <span className="min-w-0 flex-1">
+            {/* Billboard-on-hover: title stays clipped to one line at rest,
+                and scrolls left on hover to reveal whatever the ellipsis
+                cut off (see MarqueeText), snapping back on hover-out. */}
+            <MarqueeText text={note.title} hovered={hovered} className="font-bold text-white" />
+            {note.excerpt && (
+              <span className="block text-xs text-gray-300 group-hover:text-gray-200 truncate mt-1">
+                {note.excerpt}
+              </span>
+            )}
+            <span className="flex items-center flex-wrap gap-2 mt-1">
+              <TagBadge tag={note.tag} />
+              {isNew(note.date) && (
+                <span className="bg-yellow-300 border border-black px-1 text-[10px] font-extrabold rounded text-black shrink-0">
+                  NEW
+                </span>
+              )}
+            </span>
+            {/* Compact layout: date + read time inline under the title,
+                instead of separate grid columns that no longer fit. */}
+            {compact && (
+              <span className="block text-xs text-gray-400 group-hover:text-gray-200 mt-1">
+                {format(new Date(note.date), 'MMM dd, yyyy')} · {note.readingTimeMinutes} min read
+              </span>
+            )}
+          </span>
+        </span>
+        {!compact && (
+          <>
+            <span className="text-sm text-gray-300 truncate">
+              {format(new Date(note.date), 'MMM dd, yyyy')}
+            </span>
+            <span className="text-sm text-gray-300 truncate">
+              {note.readingTimeMinutes} min
+            </span>
+          </>
+        )}
+      </Link>
+    </li>
+  )
+}
 
 export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
   const [query, setQuery] = useState('')
@@ -167,74 +247,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
         ) : (
           <ul className="m-0 p-0 list-none">
             {visible.map((note) => (
-              <li key={note.slug}>
-                <Link
-                  href={`/blogs/${note.slug}`}
-                  className={`grid items-start px-2 py-2 no-underline text-black hover:bg-[#000080] hover:text-white group border-b border-[#e5e5e5] ${
-                    compact ? 'bg-zinc-700 grid-cols-1' : 'bg-zinc-700 grid-cols-[1fr_130px_110px]'
-                  }`}
-                >
-                  <span className="flex items-start gap-3 min-w-0 pr-6">
-                    {note.thumbnail ? (
-                      <Image
-                        src={note.thumbnail}
-                        alt=""
-                        width={120}
-                        height={68}
-                        className="w-[120px] h-[68px] object-cover shrink-0 border-2 border-[#808080]"
-                      />
-                    ) : (
-                      <span className="w-[120px] h-[68px] flex items-center justify-center shrink-0 border-2 border-[#808080] bg-[#1f1f1f]">
-                        <Image
-                          src="/win98/notes.webp"
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="w-10 h-10"
-                        />
-                      </span>
-                    )}
-                    <span className="min-w-0 flex-1">
-                      {/* Medium-style: big title free to wrap across lines
-                          instead of being truncated to one line, with the
-                          tag/NEW badge on their own row underneath. */}
-                      <span className="font-bold text-white block break-words">
-                        {note.title}
-                      </span>
-                        {note.excerpt && (
-                          <span className="block text-xs text-gray-300 group-hover:text-gray-200 truncate mt-1">
-                            {note.excerpt}
-                          </span>
-                        )}
-                      <span className="flex items-center flex-wrap gap-2 mt-1">
-                        <TagBadge tag={note.tag} />
-                        {isNew(note.date) && (
-                          <span className="bg-yellow-300 border border-black px-1 text-[10px] font-extrabold rounded text-black shrink-0">
-                            NEW
-                          </span>
-                        )}
-                      </span>
-                      {/* Compact layout: date + read time inline under the title,
-                          instead of separate grid columns that no longer fit. */}
-                      {compact && (
-                        <span className="block text-xs text-gray-400 group-hover:text-gray-200 mt-1">
-                          {format(new Date(note.date), 'MMM dd, yyyy')} · {note.readingTimeMinutes} min read
-                        </span>
-                      )}
-                    </span>
-                  </span>
-                  {!compact && (
-                    <>
-                      <span className="text-sm text-gray-300 truncate">
-                        {format(new Date(note.date), 'MMM dd, yyyy')}
-                      </span>
-                      <span className="text-sm text-gray-300 truncate">
-                        {note.readingTimeMinutes} min
-                      </span>
-                    </>
-                  )}
-                </Link>
-              </li>
+              <BlogRow key={note.slug} note={note} compact={compact} />
             ))}
           </ul>
         )}

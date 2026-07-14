@@ -37,6 +37,10 @@ export default function CreditsWindow() {
       <ul className="list-disc ml-6 mb-2">
         <li>Desktop wallpaper: original photograph by Advith Krishnan.</li>
         <li>
+          Gallery (&quot;Recent Highlights&quot;) photos are personal photographs
+          from Advith&apos;s own life and events.
+        </li>
+        <li>
           UI icon set:{' '}
           <a href="https://win98icons.alexmeub.com/" target="_blank" rel="noopener noreferrer" className={linkClass}>
             Windows 98 Icons by Alex Meub
@@ -126,6 +130,16 @@ export default function CreditsWindow() {
           Entertainment and Microsoft Corporation) and are used here in a
           nominative, decorative capacity as part of this non-commercial fan
           project.
+        </li>
+        <li>
+          The Contact page&apos;s &quot;Internet Shortcuts&quot; panel and the
+          Projects page&apos;s Code button link out using each platform&apos;s own
+          logo: Substack, LinkedIn, GitHub, and ORCID are trademarks of their
+          respective companies; the Next Tech Lab and Open Mainframe Project
+          logos belong to those organizations. All are used here in a
+          nominative capacity to identify links to Advith&apos;s own profiles,
+          repositories, and posts on those platforms; not affiliated with,
+          endorsed by, or sponsored by any of them.
         </li>
         <li>
           Club Penguin dance GIF, sourced via{' '}

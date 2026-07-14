@@ -7,6 +7,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 import { cache } from 'react'
+import { DEFAULT_TAG, isTag, type Tag } from './tags'
 
 export type Note = {
   slug: string
@@ -18,6 +19,9 @@ export type Note = {
   readingTimeMinutes: number
   /** Public path to the post's thumbnail (1280x720 recommended), or null */
   thumbnail: string | null
+  /** One tag per post — see lib/tags.ts. Falls back to 'Misc' like `status`
+   *  fails closed, so an old post without a `tag` field doesn't error. */
+  tag: Tag
 }
 
 export type NoteWithContent = Note & { content: string }
@@ -58,6 +62,7 @@ async function parseNote(slug: string, fileContent: string): Promise<NoteWithCon
     status: data.status === 'Published' ? 'Published' : 'Draft',
     readingTimeMinutes: estimateReadingTime(content),
     thumbnail: await findThumbnail(slug, data.thumbnail),
+    tag: isTag(data.tag) ? data.tag : DEFAULT_TAG,
     content,
   }
 }

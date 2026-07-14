@@ -3,7 +3,20 @@ module.exports = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx}',
     './content/**/*.{md,mdx}',
+  ],
+  // Blog tag colors (lib/tags.ts TAG_STYLES) are assembled into className
+  // strings from a lookup object rather than written literally in JSX, so
+  // belt-and-suspenders: safelist them explicitly in case the content glob
+  // above ever stops covering lib/ or the lookup changes shape.
+  safelist: [
+    'bg-sky-300', 'text-sky-950',
+    'bg-purple-300', 'text-purple-950',
+    'bg-emerald-300', 'text-emerald-950',
+    'bg-orange-300', 'text-orange-950',
+    'bg-pink-300', 'text-pink-950',
+    'bg-gray-300', 'text-gray-900',
   ],
   darkMode: 'class',
   theme: {

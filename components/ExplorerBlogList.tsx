@@ -8,6 +8,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { format } from 'date-fns'
 import type { Note } from '@/lib/notes'
+import { TAGS, TAG_STYLES, TAG_DESCRIPTIONS, type Tag } from '@/lib/tags'
+import TagBadge from '@/components/TagBadge'
 
 type SortKey = 'date' | 'title'
 
@@ -25,6 +27,7 @@ const COMPACT_BREAKPOINT = 480
 
 export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
   const [query, setQuery] = useState('')
+  const [activeTag, setActiveTag] = useState<Tag | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortAsc, setSortAsc] = useState(false)
 
@@ -49,13 +52,14 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const filtered = q
-      ? notes.filter(
-          (n) =>
-            n.title.toLowerCase().includes(q) ||
-            (n.excerpt ?? '').toLowerCase().includes(q)
-        )
-      : notes
+    const filtered = notes.filter((n) => {
+      const matchesQuery =
+        !q ||
+        n.title.toLowerCase().includes(q) ||
+        (n.excerpt ?? '').toLowerCase().includes(q)
+      const matchesTag = !activeTag || n.tag === activeTag
+      return matchesQuery && matchesTag
+    })
     return [...filtered].sort((a, b) => {
       const cmp =
         sortKey === 'date'
@@ -63,7 +67,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
           : a.title.localeCompare(b.title)
       return sortAsc ? cmp : -cmp
     })
-  }, [notes, query, sortKey, sortAsc])
+  }, [notes, query, activeTag, sortKey, sortAsc])
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -93,6 +97,38 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
           className="win98-inset bg-white text-black px-2 py-1 text-sm flex-1 min-w-[140px] max-w-xs"
         />
       </div>
+
+      {/* Tag filter chips — one active tag at a time, click again to clear. */}
+      <div className="flex flex-wrap items-center gap-1.5 bg-[#c0c0c0] border-b-2 border-[#808080] px-2 py-1.5">
+        <span className="text-black font-bold text-xs mr-0.5">Tag:</span>
+        <button
+          onClick={() => setActiveTag(null)}
+          className={`border border-black px-1.5 py-0.5 text-[10px] font-extrabold rounded ${
+            activeTag === null ? 'bg-black text-white' : 'bg-white text-black'
+          }`}
+        >
+          All
+        </button>
+        {TAGS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setActiveTag((cur) => (cur === t ? null : t))}
+            className={`px-1.5 py-0.5 text-[10px] font-extrabold rounded ${TAG_STYLES[t]} ${
+              activeTag === t ? 'border-2 border-black' : 'border border-black/40'
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* Description for the selected tag — nothing rendered (not even an
+          empty div) when no tag is active, so it doesn't leave a blank bar. */}
+      {activeTag && (
+        <div className="bg-[#c0c0c0] border-b-2 border-[#808080] px-2 py-1 text-black font-semibold text-xs">
+          {TAG_DESCRIPTIONS[activeTag]}
+        </div>
+      )}
 
       {/* Column headers (grid layout only) */}
       {!compact && (
@@ -124,7 +160,9 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
           <p className="text-white text-sm p-4 italic">
             {notes.length === 0
               ? 'Advith is still writing his first post :P (Dude is lazy af)'
-              : `No items match "${query}".`}
+              : query.trim()
+                ? `No items match "${query}".`
+                : `No posts tagged "${activeTag}".`}
           </p>
         ) : (
           <ul className="m-0 p-0 list-none">
@@ -132,11 +170,11 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
               <li key={note.slug}>
                 <Link
                   href={`/blogs/${note.slug}`}
-                  className={`grid items-center px-2 py-2 no-underline text-black hover:bg-[#000080] hover:text-white group border-b border-[#e5e5e5] ${
+                  className={`grid items-start px-2 py-2 no-underline text-black hover:bg-[#000080] hover:text-white group border-b border-[#e5e5e5] ${
                     compact ? 'bg-zinc-700 grid-cols-1' : 'bg-zinc-700 grid-cols-[1fr_130px_110px]'
                   }`}
                 >
-                  <span className="flex items-center gap-3 min-w-0 pr-6 overflow-hidden">
+                  <span className="flex items-start gap-3 min-w-0 pr-6">
                     {note.thumbnail ? (
                       <Image
                         src={note.thumbnail}
@@ -146,28 +184,36 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
                         className="w-[120px] h-[68px] object-cover shrink-0 border-2 border-[#808080]"
                       />
                     ) : (
-                      <Image
-                        src="/win98/notes.webp"
-                        alt=""
-                        width={20}
-                        height={20}
-                        className="w-5 h-5 shrink-0"
-                      />
+                      <span className="w-[120px] h-[68px] flex items-center justify-center shrink-0 border-2 border-[#808080] bg-[#1f1f1f]">
+                        <Image
+                          src="/win98/notes.webp"
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="w-10 h-10"
+                        />
+                      </span>
                     )}
                     <span className="min-w-0 flex-1">
-                      <span className="font-bold flex items-center gap-2 min-w-0">
-                        <span className="truncate text-white min-w-0">{note.title}</span>
+                      {/* Medium-style: big title free to wrap across lines
+                          instead of being truncated to one line, with the
+                          tag/NEW badge on their own row underneath. */}
+                      <span className="font-bold text-white block break-words">
+                        {note.title}
+                      </span>
+                        {note.excerpt && (
+                          <span className="block text-xs text-gray-300 group-hover:text-gray-200 truncate mt-1">
+                            {note.excerpt}
+                          </span>
+                        )}
+                      <span className="flex items-center flex-wrap gap-2 mt-1">
+                        <TagBadge tag={note.tag} />
                         {isNew(note.date) && (
                           <span className="bg-yellow-300 border border-black px-1 text-[10px] font-extrabold rounded text-black shrink-0">
                             NEW
                           </span>
                         )}
                       </span>
-                      {note.excerpt && (
-                        <span className="block text-xs text-gray-300 group-hover:text-gray-200 truncate">
-                          {note.excerpt}
-                        </span>
-                      )}
                       {/* Compact layout: date + read time inline under the title,
                           instead of separate grid columns that no longer fit. */}
                       {compact && (
@@ -198,7 +244,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
       <div className="flex items-center justify-between bg-[#c0c0c0] border-t-2 border-[#dfdfdf] px-2 py-0.5 text-black text-xs flex-shrink-0">
         <span>
           {visible.length} blog post{visible.length === 1 ? '' : 's'}
-          {query.trim() ? ` (filtered from ${notes.length})` : ''}
+          {query.trim() || activeTag ? ` (filtered from ${notes.length})` : ''}
         </span>
       </div>
     </div>

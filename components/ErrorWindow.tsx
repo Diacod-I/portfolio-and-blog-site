@@ -64,7 +64,7 @@ export default function ErrorWindow() {
           <div className="flex gap-1">
             <button 
               className="win98-window-button font-bold text-2xl"
-              onClick={() => router.push('/')}
+              onClick={() => router.push('')}
             >×</button>
           </div>
         </div>
@@ -75,8 +75,8 @@ export default function ErrorWindow() {
               <h2 className="font-bold mb-4">Page Not Found</h2>
               <p className="mb-6">The requested page could not be found. Click 'OK' to return to Home.</p>
               <div className="flex justify-end">
-                <button 
-                  onClick={() => router.push('/?app=open')}
+                <button
+                  onClick={() => router.push('/')}
                   className="win98-button px-6"
                 >
                   <span className="font-bold">OK</span>

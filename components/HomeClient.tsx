@@ -15,10 +15,12 @@ import PrinceOfPersiaWindow from '@/components/PrinceOfPersiaWindow'
 import PrinceOfPersiaReadmeWindow from '@/components/PrinceOfPersiaReadmeWindow'
 import MinesweeperWindow from '@/components/MinesweeperWindow'
 import SolitaireWindow from '@/components/SolitaireWindow'
+import ProjectsWindow from '@/components/ProjectsWindow'
 import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
 import highlights from '@/data/highlights'
+import projects from '@/data/projects'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 
@@ -48,6 +50,7 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   popReadme: { name: 'POP.TXT - Notepad', icon: '/win98/notepad.webp' },
   minesweeper: { name: 'Minesweeper', icon: '/win98/minesweeper.svg' },
   solitaire: { name: 'Solitaire', icon: '/win98/solitaire.png' },
+  projects: { name: 'Projects', icon: '/win98/folder.webp' },
 }
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
@@ -66,6 +69,7 @@ const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
   // on a phone-height screen and got covered by the fixed taskbar.
   minesweeper: { col: 1, row: 0 },
   solitaire: { col: 1, row: 1 },
+  projects: { col: 1, row: 2 },
 }
 
 // Bumped to v2: moved minesweeper/solitaire from column 0 rows 6-7 to
@@ -218,6 +222,10 @@ export default function HomeClient({
   const hasNewHighlight = highlights.some(
     photo => new Date(photo.uploaded_at) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   )
+  // Swap the desktop icon to a folder full of pages once there's actually
+  // something in it — an empty folder icon for a folder with projects in it
+  // would be a little misleading.
+  const hasProjects = projects.length > 0
 
   // Mobile check (≤640px): the games (Prince of Persia, Minesweeper,
   // Solitaire) all break down badly on a phone-sized touch screen, so on
@@ -263,7 +271,8 @@ export default function HomeClient({
     wins.pop.status !== 'closed' ||
     wins.popReadme.status !== 'closed' ||
     wins.minesweeper.status !== 'closed' ||
-    wins.solitaire.status !== 'closed'
+    wins.solitaire.status !== 'closed' ||
+    wins.projects.status !== 'closed'
   useEffect(() => {
     if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
     const timer = setTimeout(() => {
@@ -466,6 +475,15 @@ export default function HomeClient({
         onOpen={() => handleGameOpen('solitaire')}
         onMove={moveIcon}
       />
+      <DesktopIcon
+        id="projects"
+        label="Projects"
+        icon={hasProjects ? '/win98/folder-full.png' : APPS.projects.icon}
+        cell={iconCells.projects}
+        isActive={wins.projects.status !== 'closed'}
+        onOpen={() => openApp('projects')}
+        onMove={moveIcon}
+      />
 
       {/* Mobile-only: tapping a disabled game icon explains why instead of
           silently doing nothing. */}
@@ -546,9 +564,9 @@ export default function HomeClient({
                     &nbsp;who works on cool stuff!
                   </span>
 
-                  {/* TODO: replace with real bio copy */}
-                  {/* Plain block (not flex) so the floated photo lets the
-                      justified paragraphs wrap around it, old-homepage style. */}
+                  {/* Bio copy: deliberately not a resume rehash — the goal is
+                      personality and curiosity, since the credentials/timeline
+                      already live on LinkedIn and the Resume tab. */}
                   <div className="text-white text-sm leading-relaxed mt-1">
                     <div className="float-right relative ml-4 mb-3 w-40 sm:w-56 aspect-square border-2 border-[#808080] overflow-hidden">
                       <Image
@@ -560,21 +578,17 @@ export default function HomeClient({
                       />
                     </div>
                     <p className="text-justify mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-                      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-                      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-                      commodo consequat.
+                      I wish I could express myself better when describing the agony I feel
+                      when I think of how <span className="font-bold underline italic">abstracted</span> the 
+                      world of computer science is. 
                     </p>
                     <p className="text-justify mb-3">
-                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-                      dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-                      proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p className="text-justify mb-3">
-                      Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                      accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab
-                      illo inventore veritatis et quasi architecto beatae vitae dicta sunt
-                      explicabo.
+                      Some of that curiosity has turned into things I&apos;m proud of — a paper on
+                      vision-based danger assessment presented at ICVGIP 2024, a weekend spent
+                      building at ETHGlobal New Delhi, a running series of posts where I try to
+                      explain the mental models nobody explained to me first. None of it followed
+                      a plan; it&apos;s mostly what happens when you keep pulling on threads that
+                      interest you.
                     </p>
                     <p className="text-justify">
                       Take a look through my{' '}
@@ -616,6 +630,32 @@ export default function HomeClient({
         >
           <div className="win98-window-content bg-[#A6A6A6] flex-1 min-h-0 flex flex-col overflow-hidden">
             <GalleryWindow />
+          </div>
+        </Win98Window>
+      )}
+
+      {/* ---- Projects window: a searchable card gallery of Advith's
+           projects (see components/ProjectsWindow.tsx and data/projects.ts) ---- */}
+      {wins.projects.status !== 'closed' && (
+        <Win98Window
+          title="Projects"
+          icon={hasProjects ? '/win98/folder-full.png' : APPS.projects.icon}
+          zIndex={40 + wins.projects.z}
+          minimized={wins.projects.status === 'minimized'}
+          isFocused={focusedId === 'projects'}
+          maximized={wins.projects.maximized}
+          defaultInset={{ top: 40, right: 16, bottom: 43, left: 60 }}
+          defaultSize={{ w: 760, h: 540 }}
+          cardOffset={{ x: -30, y: -20 }}
+          rect={wins.projects.rect}
+          onRectChange={(r) => setRect('projects', r)}
+          onFocus={() => focusApp('projects')}
+          onMinimize={() => minimizeApp('projects')}
+          onToggleMaximize={() => toggleMaximize('projects')}
+          onClose={() => closeApp('projects')}
+        >
+          <div className="win98-window-content bg-[#A6A6A6] flex-1 min-h-0 flex flex-col overflow-hidden">
+            <ProjectsWindow />
           </div>
         </Win98Window>
       )}

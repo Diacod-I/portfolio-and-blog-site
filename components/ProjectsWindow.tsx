@@ -13,6 +13,7 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
+import { format } from 'date-fns'
 import projects from '@/data/projects'
 
 export default function ProjectsWindow() {
@@ -57,11 +58,18 @@ export default function ProjectsWindow() {
         ) : visible.length === 0 ? (
           <p className="text-white text-sm p-4 italic">No projects match &quot;{query}&quot;.</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+          // Fixed 280px tracks, not minmax(220px,1fr) — `1fr` stretches to
+          // fill leftover space in its track, which with only one or two
+          // cards meant a card's size kept changing as the window resized
+          // (capping it with max-width still let it shrink/grow between the
+          // min and the cap). A constant track size means every card is
+          // always exactly 280px, full stop — extra row width just becomes
+          // empty space, same as icons in a real Explorer window.
+          <div className="grid grid-cols-[repeat(auto-fill,280px)] gap-3">
             {visible.map((p) => (
               <div
                 key={p.id}
-                className="bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden"
+                className="w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden"
               >
                 <div className="relative w-full aspect-[16/9] shrink-0 bg-[#222222] border-b-2 border-[#808080]">
                   {p.thumbnail ? (
@@ -91,6 +99,9 @@ export default function ProjectsWindow() {
 
                 <div className="p-2 flex flex-col gap-1.5 flex-1 min-h-0">
                   <span className="font-bold text-black text-sm break-words">{p.title}</span>
+                  <span className="text-[10px] text-[#555555] font-semibold">
+                    {format(new Date(p.date), 'MMM dd, yyyy')}
+                  </span>
                   <span className="text-xs text-[#333333] line-clamp-3">{p.description}</span>
 
                   {p.tags && p.tags.length > 0 && (
@@ -107,7 +118,7 @@ export default function ProjectsWindow() {
                   )}
 
                   {(p.liveUrl || p.repoUrl) && (
-                    <div className="flex gap-1.5 mt-auto pt-1.5">
+                    <div className="flex justify-end gap-1.5 mt-auto pt-1.5">
                       {p.liveUrl && (
                         <a
                           href={p.liveUrl}

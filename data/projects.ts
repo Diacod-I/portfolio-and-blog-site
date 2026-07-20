@@ -23,7 +23,7 @@ export interface Project {
   thumbnail?: StaticImageData | string
   liveUrl?: string
   repoUrl?: string
-  date: string // ISO date: 'YYYY-MM-DD', used for newest-first sorting
+  date: string // ISO date: 'YYYY-MM-DD' — shown on the card as "uploaded" date, and drives sorting (newest first)
   featured?: boolean
   /** Shows a "WIP" badge on the card — for projects still being built. */
   wip?: boolean
@@ -48,16 +48,22 @@ const allProjects: Project[] = [
     title: 'Metal Autograd (MAG)',
     description: 'A mini Autograd framework for Apple\'s Metal Shader Language',
     tags: ['Metal Shader', 'Python'],
-    thumbnail: '',
+    thumbnail: '/project-thumbnails/metal-autograd.png',
     liveUrl: '',
     repoUrl: 'https://github.com/Diacod-I/metal-autograd',
     date: '2026-07-01',
     wip: true
-  }
+  },
+
 ]
 
 const projects: Project[] = allProjects
   .filter((p) => p.is_visible !== false)
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  .sort((a, b) => {
+    // Featured projects pin to the top as a group; everything else (and each
+    // group internally) sorts newest-first by date.
+    if (a.featured !== b.featured) return a.featured ? -1 : 1
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
 
 export default projects

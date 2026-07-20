@@ -580,15 +580,9 @@ export default function HomeClient({
                     <p className="text-justify mb-3">
                       I wish I could express myself better when describing the agony I feel
                       when I think of how <span className="font-bold underline italic">abstracted</span> the 
-                      world of computer science is. 
-                    </p>
-                    <p className="text-justify mb-3">
-                      Some of that curiosity has turned into things I&apos;m proud of — a paper on
-                      vision-based danger assessment presented at ICVGIP 2024, a weekend spent
-                      building at ETHGlobal New Delhi, a running series of posts where I try to
-                      explain the mental models nobody explained to me first. None of it followed
-                      a plan; it&apos;s mostly what happens when you keep pulling on threads that
-                      interest you.
+                      world of computer science is, with bits being abstracted by computer architecture, further abstracted by microarchitecture, kernels, compilers,
+                      all the way to low-latency high-availability systems that handle software applications used by the entire world. 
+                      As an experiment, I am creating this portfolio to showcase my efforts to understand across all the abstractions in computer science.
                     </p>
                     <p className="text-justify">
                       Take a look through my{' '}

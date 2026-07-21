@@ -46,7 +46,7 @@ const allProjects: Project[] = [
   {
     id: 'metal-autograd',
     title: 'Metal Autograd (MAG)',
-    description: 'A mini Autograd framework for Apple\'s Metal Shader Language',
+    description: 'An Autograd framework for Apple Metal',
     tags: ['Metal Shader', 'Python'],
     thumbnail: '/project-thumbnails/metal-autograd.png',
     liveUrl: '',

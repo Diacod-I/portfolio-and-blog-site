@@ -6,10 +6,11 @@ import ResumeButton from './ResumeButton'
 // window (see HomeClient's homeTab state) — not separate page navigations.
 // That's the whole point: switching tabs should feel like using an app, not
 // like leaving the desktop for a new page.
-export type HomeTab = 'home' | 'contact' | 'resume'
+export type HomeTab = 'home' | 'about' | 'contact' | 'resume'
 
-const tabs: { id: 'home' | 'contact'; label: string }[] = [
+const tabs: { id: 'home' | 'about' | 'contact'; label: string }[] = [
   { id: 'home', label: 'Home' },
+  { id: 'about', label: 'About' },
   { id: 'contact', label: 'Contact' },
 ]
 

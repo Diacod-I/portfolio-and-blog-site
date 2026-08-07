@@ -1,0 +1,56 @@
+name: Scaffold monthly OSS report
+
+# Runs scripts/generate-report.mjs to draft next month's report as a
+# content/notes/*.mdx file, then opens a PR so Advith can review, write the
+# narrative, and flip status: "Draft" -> "Published" whenever it's ready.
+# Never publishes anything on its own — see scripts/generate-report.mjs for
+# details on what it scaffolds and why.
+#
+# The script also drafts a per-repo narrative paragraph via GitHub Models
+# (free, hosted by GitHub) — that needs the `models: read` permission below
+# so the automatic secrets.GITHUB_TOKEN can call it. No extra secret to set up.
+
+on:
+  schedule:
+    # 06:00 UTC on the 1st of every month — covers the just-finished month.
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: 'Target month as YYYY-MM (defaults to last full month)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  models: read
+
+jobs:
+  scaffold-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate draft report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/generate-report.mjs ${{ inputs.month }}
+
+      - name: Open PR with the draft
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'chore: scaffold monthly OSS report'
+          branch: monthly-report/${{ github.run_id }}
+          title: 'Monthly OSS report draft'
+          body: |
+            Auto-scaffolded by `.github/workflows/monthly-report.yml` via
+            `scripts/generate-report.mjs`. Stats are pulled from GitHub's
+            Search API and are a starting point, not ground truth — review,
+            write the narrative, and flip `status: "Draft"` to `"Published"`
+            when it's ready to go live.
+          add-paths: content/notes/*.mdx

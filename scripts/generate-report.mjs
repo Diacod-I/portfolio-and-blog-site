@@ -144,6 +144,23 @@ function groupByRepo(prsOpened, prsMerged, issuesOpened, reviewsGiven) {
   return groups
 }
 
+// Titles and AI-drafted text come from GitHub or GitHub Models, not from
+// us — MDX treats `<` as the start of a JSX tag and `{` as the start of a
+// JS expression, so either one appearing in plain prose (outside a code
+// span) breaks the build entirely. Escaping is the safe default for any
+// text we didn't author ourselves. `<`/`>` become HTML entities (which
+// CommonMark decodes back to literal characters when rendering — this
+// isn't a display hack, it's the standard way to write a literal `<` in
+// Markdown/MDX text); `{`/`}` are backslash-escaped, MDX's own escape
+// syntax for its special characters.
+function escapeMdxText(text) {
+  return text
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+}
+
 const NARRATIVE_SYSTEM_PROMPT = `You are ghostwriting one paragraph of a monthly open-source contribution report for a developer named Advith Krishnan. Write in first person, 2-3 sentences, matter-of-fact and technical. Explain what was worked on and why it mattered, not just a restated list of PR titles. No hype, no marketing language, no emoji, no headers. Only use facts present in the provided activity list — never invent details, motivations, or outcomes that aren't stated.`
 
 // Drafts a short narrative paragraph for one repo's worth of activity via
@@ -202,10 +219,12 @@ async function buildFocusAreas(groups) {
     const items = [...groups.get(repo).values()]
     console.log(`  Drafting narrative for ${repo} (${items.length} item${items.length === 1 ? '' : 's'})...`)
     const narrative = await draftNarrative(repo, items)
-    const bulletList = items.map((it) => `- [${it.title}](${it.url}) (${it.kind})`).join('\n')
+    const bulletList = items
+      .map((it) => `- [${escapeMdxText(it.title)}](${it.url}) (${it.kind})`)
+      .join('\n')
     const narrativeBlock = narrative
-      ? `<!-- AI-drafted via GitHub Models — review before publishing -->\n${narrative}`
-      : `<!-- TODO: write 2-3 sentences on why this work mattered -->`
+      ? `{/* AI-drafted via GitHub Models — review before publishing */}\n${escapeMdxText(narrative)}`
+      : `{/* TODO: write 2-3 sentences on why this work mattered */}`
     sections.push(`### ${repo}\n\n${narrativeBlock}\n\n${bulletList}`)
   }
   return sections.join('\n\n')
@@ -260,13 +279,13 @@ tag: "Reports"
   const body = `
 ## ${monthName} ${year} in review
 
-<!-- This file is marked Published, but reviewing the PR IS the publish
+{/* This file is marked Published, but reviewing the PR IS the publish
      gate — nothing here reaches the live site until this PR is merged.
      Any paragraph below marked "AI-drafted" was written by GitHub Models
      from that repo's PR/issue titles and descriptions — read it, fix
      anything that misses the actual reason the work mattered, and delete
      this comment once you're happy with it. Sections marked TODO got no
-     draft (no token, or the request failed) and need writing from scratch. -->
+     draft (no token, or the request failed) and need writing from scratch. */}
 
 ### By the numbers
 

@@ -1,10 +1,12 @@
 name: Scaffold monthly OSS report
 
-# Runs scripts/generate-report.mjs to draft next month's report as a
-# content/notes/*.mdx file, then opens a PR so Advith can review, write the
-# narrative, and flip status: "Draft" -> "Published" whenever it's ready.
-# Never publishes anything on its own — see scripts/generate-report.mjs for
-# details on what it scaffolds and why.
+# Runs scripts/generate-report.mjs to scaffold next month's report as a
+# content/notes/*.mdx file (already status: "Published"), then opens a PR
+# so Advith can review/edit the AI-drafted narrative before merging.
+# Reviewing and merging the PR *is* the publish step — nothing reaches the
+# live site until then, since the branch it's opened from is never deployed
+# on its own. See scripts/generate-report.mjs for details on what it
+# scaffolds and why.
 #
 # The script also drafts a per-repo narrative paragraph via GitHub Models
 # (free, hosted by GitHub) — that needs the `models: read` permission below
@@ -51,7 +53,10 @@ jobs:
           body: |
             Auto-scaffolded by `.github/workflows/monthly-report.yml` via
             `scripts/generate-report.mjs`. Stats are pulled from GitHub's
-            Search API and are a starting point, not ground truth — review,
-            write the narrative, and flip `status: "Draft"` to `"Published"`
-            when it's ready to go live.
+            Search API and are a starting point, not ground truth — read
+            through the paragraphs marked "AI-drafted" (written by GitHub
+            Models) and fix anything that misses the real reason the work
+            mattered. This file is already `status: "Published"` — merging
+            this PR is what makes it live, there's no separate flag to flip
+            afterward.
           add-paths: content/notes/*.mdx

@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 // scripts/generate-report.mjs
 //
-// Scaffolds a monthly OSS-contribution report as a draft MDX post in
+// Scaffolds a monthly OSS-contribution report as an MDX post in
 // content/notes/, prefilled with stats pulled from GitHub's Search API for
 // Diacod-I, grouped by repo, with a per-repo narrative paragraph drafted by
 // GitHub Models (free, hosted by GitHub, authenticates with the same
 // GITHUB_TOKEN already used for the Search API — no extra secret needed).
 // This is the Next.js/MDX equivalent of what 2k36.org does with Astro
 // content files + a GitHub Actions workflow (see
-// .github/workflows/monthly-report.yml) — the script never publishes
-// anything on its own, it only drafts. Every AI-drafted paragraph is
-// flagged in the MDX source; a human still reviews/edits and flips
-// `status: "Draft"` to `"Published"` when it's ready.
+// .github/workflows/monthly-report.yml).
+//
+// The review gate is the PR itself, not a separate draft/publish flag: the
+// file is written with `status: "Published"` already, every AI-drafted
+// paragraph is flagged in the MDX source for a human read, and nothing
+// actually reaches the live site until that PR is reviewed and merged
+// (the branch it's opened from is never deployed on its own). Merging IS
+// publishing — there's no second "flip a flag" step after that.
 //
 // Usage:
 //   node scripts/generate-report.mjs            # previous calendar month
@@ -249,14 +253,16 @@ async function main() {
 title: "${title}"
 date: "${until}"
 author: "Advith Krishnan"
-status: "Draft"
+status: "Published"
 tag: "Reports"
 ---`
 
   const body = `
 ## ${monthName} ${year} in review
 
-<!-- Any paragraph below marked "AI-drafted" was written by GitHub Models
+<!-- This file is marked Published, but reviewing the PR IS the publish
+     gate — nothing here reaches the live site until this PR is merged.
+     Any paragraph below marked "AI-drafted" was written by GitHub Models
      from that repo's PR/issue titles and descriptions — read it, fix
      anything that misses the actual reason the work mattered, and delete
      this comment once you're happy with it. Sections marked TODO got no

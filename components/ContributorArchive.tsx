@@ -41,7 +41,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
             <div className="grid">
               {reports.map((note) => (
                 <div key={note.slug} className="win98-button p-2 flex flex-col min-w-0">
-                  <span className="block text-sm font-bold truncate min-w-0">📈 {note.title}</span>
+                  <span className="block text-sm font-bold truncate min-w-0">{note.title}</span>
                   <span className="block text-[10px] text-[#444] font-bold truncate min-w-0">
                     {format(new Date(note.date), 'MMM dd, yyyy')}
                   </span>

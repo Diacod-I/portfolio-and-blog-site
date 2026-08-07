@@ -608,6 +608,14 @@ export default function HomeClient({
                     report widget. The bio/photo content that used to live
                     here now lives under the About tab (see above) — this tab
                     is Advith's "what I'm up to right now" surface instead. */}
+
+                 <h1 className="text-white text-3xl font-bold mb-2">
+                    Contributor Activity - <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
+                 </h1>
+                 <p className="text-gray-400 mb-4">
+                    "Free & Libre taste good! Open-Source taste good!" - Pulp Fiction prolly
+                 </p>
+
                 <div className="flex-1 min-w-0 flex flex-col gap-4">
                   <ContributorArchive notes={notes} />
                 </div>

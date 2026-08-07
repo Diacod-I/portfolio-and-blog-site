@@ -31,7 +31,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
   return (
     <div className="win98-window flex flex-col">
       <div className="win98-titlebar">
-        <span className="font-bold">Contributor Archive</span>
+        <span className="font-bold">Contribution Archive</span>
       </div>
       <div className="bg-[#f0f0f0] border-2 p-2">
         <ScrollPanel maxHeight={256} className="border-2" nudgeId="contributor-archive">

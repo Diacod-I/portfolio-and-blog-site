@@ -225,6 +225,7 @@ async function main() {
     searchCommitCount(`author:${USERNAME} author-date:${since}..${until}`),
   ])
 
+  const title = `${monthName} ${year} Contributor Report`
   const slug = `${year}-${monthName.toLowerCase()}-report`
   const filePath = path.join(NOTES_DIR, `${slug}.mdx`)
 
@@ -245,7 +246,7 @@ async function main() {
   // month's activity), not the first day of the reported period itself.
   // `until` from monthRange() is already exactly that.
   const frontmatter = `---
-title: "${monthName} ${year} Contributor Report"
+title: "${title}"
 date: "${until}"
 author: "Advith Krishnan"
 status: "Draft"
@@ -279,6 +280,14 @@ ${focusAreas}
   await fs.mkdir(NOTES_DIR, { recursive: true })
   await fs.writeFile(filePath, `${frontmatter}\n${body}`, 'utf8')
   console.log(`✓ Wrote draft report to ${path.relative(process.cwd(), filePath)}`)
+
+  // Hand the title to the GitHub Actions step outputs so the workflow can
+  // name the PR after it (see .github/workflows/monthly-report.yml's
+  // "Open PR" step) instead of a static "Monthly OSS report draft" title.
+  // No-op outside Actions — GITHUB_OUTPUT is only set there.
+  if (process.env.GITHUB_OUTPUT) {
+    await fs.appendFile(process.env.GITHUB_OUTPUT, `title=${title}\n`)
+  }
 }
 
 main().catch((err) => {

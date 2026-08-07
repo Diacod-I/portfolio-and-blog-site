@@ -212,13 +212,15 @@ async function main() {
   const groups = groupByRepo(prsOpened, prsMerged, issuesOpened, reviewsGiven)
   const focusAreas = await buildFocusAreas(groups)
 
+  // `date` is the upload/publish date (first of the month *after* the one
+  // being reported on — this runs at the start of the month covering last
+  // month's activity), not the first day of the reported period itself.
+  // `until` from monthRange() is already exactly that.
   const frontmatter = `---
-title: "${monthName} ${year} OSS Report"
-date: "${isoDate(year, month, 1)}"
+title: "${monthName} ${year} Contributor Report"
+date: "${until}"
 author: "Advith Krishnan"
-excerpt: ""
 status: "Draft"
-thumbnail: ""
 tag: "Reports"
 ---`
 

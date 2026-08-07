@@ -36,7 +36,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
       <div className="bg-[#f0f0f0] border-2 p-2">
         <ScrollPanel maxHeight={256} className="border-2" nudgeId="contributor-archive">
           {reports.length === 0 ? (
-            <p className="text-xs italic p-2 text-black">No monthly reports published yet.</p>
+            <p className="text-xs italic p-2 text-black">Nothing to report yet.</p>
           ) : (
             <div className="grid">
               {reports.map((note) => (

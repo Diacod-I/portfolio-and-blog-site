@@ -89,6 +89,33 @@ async function searchIssues(query) {
   }
 }
 
+// Commits aren't issues/PRs, so they need GitHub's separate Search Commits
+// API. Only the count is used (see "By the numbers"), not the commit list,
+// so per_page=1 keeps this cheap — total_count comes back regardless of
+// page size.
+async function searchCommitCount(query) {
+  const url = `https://api.github.com/search/commits?q=${encodeURIComponent(query)}&per_page=1`
+  try {
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'advithkrishnan.com-report-scaffold',
+        ...(process.env.GITHUB_TOKEN
+          ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+          : {}),
+      },
+    })
+    if (!res.ok) {
+      console.warn(`  ⚠ commit search failed (${res.status}) for query: ${query}`)
+      return { total_count: 0 }
+    }
+    return await res.json()
+  } catch (err) {
+    console.warn(`  ⚠ commit search request failed for "${query}": ${err.message}`)
+    return { total_count: 0 }
+  }
+}
+
 // Merges the four search buckets into one item list per repo, deduped by
 // URL (a PR can legitimately show up in both "opened" and "merged" if both
 // happened in the same month — keep the more specific "merged" label for
@@ -190,11 +217,12 @@ async function main() {
     console.warn('  ⚠ GITHUB_TOKEN not set — unauthenticated Search API requests, and no AI-drafted narrative.')
   }
 
-  const [prsOpened, prsMerged, issuesOpened, reviewsGiven] = await Promise.all([
+  const [prsOpened, prsMerged, issuesOpened, reviewsGiven, commitsAuthored] = await Promise.all([
     searchIssues(`author:${USERNAME} type:pr created:${since}..${until}`),
     searchIssues(`author:${USERNAME} type:pr is:merged merged:${since}..${until}`),
     searchIssues(`author:${USERNAME} type:issue created:${since}..${until}`),
     searchIssues(`reviewed-by:${USERNAME} type:pr -author:${USERNAME} updated:${since}..${until}`),
+    searchCommitCount(`author:${USERNAME} author-date:${since}..${until}`),
   ])
 
   const slug = `${year}-${monthName.toLowerCase()}-report`
@@ -235,6 +263,7 @@ tag: "Reports"
 
 ### By the numbers
 
+- **Commits authored:** ${commitsAuthored.total_count}
 - **Pull requests opened:** ${prsOpened.total_count}
 - **Pull requests merged:** ${prsMerged.total_count}
 - **Issues opened:** ${issuesOpened.total_count}

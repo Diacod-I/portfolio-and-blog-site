@@ -7,14 +7,15 @@
 // feed — that detail already lives inside each report's own "Focus areas"
 // section. This widget is the one place reports show up on the site.
 //
-// Report rows are NOT links to /blogs/[slug] — that route forces the
-// separate "Advith's Blogs" window open (see that route's
-// forceOpenApp="blogs"), which would pull the visitor out of advith.exe.
-// This widget stays fully self-contained inside advith.exe.
+// Report rows link to /blogs/[slug] to actually read the full report —
+// that route forces the separate "Advith's Blogs" window open (see that
+// route's forceOpenApp="blogs"), which is the same way every other blog
+// reference on the site works (ExplorerBlogList, etc.).
 //
 // Styled to match ContactView's Internet Shortcuts panel: .win98-window
 // chrome, bg-[#f0f0f0] content panel, ScrollPanel + win98-button rows.
 
+import Link from 'next/link'
 import { format } from 'date-fns'
 import ScrollPanel from '@/components/ScrollPanel'
 import type { Note } from '@/lib/notes'
@@ -40,12 +41,16 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
           ) : (
             <div className="grid">
               {reports.map((note) => (
-                <div key={note.slug} className="win98-button p-2 flex flex-col min-w-0">
+                <Link
+                  key={note.slug}
+                  href={`/blogs/${note.slug}`}
+                  className="win98-button p-2 flex flex-col min-w-0 no-underline"
+                >
                   <span className="block text-sm font-bold truncate min-w-0">{note.title}</span>
                   <span className="block text-[10px] text-[#444] font-bold truncate min-w-0">
                     {format(new Date(note.date), 'MMM dd, yyyy')}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           )}

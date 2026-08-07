@@ -105,19 +105,11 @@ function BlogRow({ note, compact }: { note: Note; compact: boolean }) {
   )
 }
 
-// Reports (monthly OSS-contribution writeups) live in the Contributor
-// Archive widget on advith.exe's Home tab instead — see ContributorArchive.tsx.
-// They're deliberately kept out of the Blogs app entirely (no tag chip, not
-// listed, not searchable here) so there's exactly one place to find them.
-const BROWSABLE_TAGS = TAGS.filter((t) => t !== 'Reports')
-
 export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
   const [query, setQuery] = useState('')
   const [activeTag, setActiveTag] = useState<Tag | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortAsc, setSortAsc] = useState(false)
-
-  const browsableNotes = useMemo(() => notes.filter((n) => n.tag !== 'Reports'), [notes])
 
   // This list lives inside a resizable Win98Window (see Win98Window.tsx) —
   // its container can be made much narrower than any real mobile viewport
@@ -140,7 +132,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const filtered = browsableNotes.filter((n) => {
+    const filtered = notes.filter((n) => {
       const matchesQuery =
         !q ||
         n.title.toLowerCase().includes(q) ||
@@ -155,7 +147,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
           : a.title.localeCompare(b.title)
       return sortAsc ? cmp : -cmp
     })
-  }, [browsableNotes, query, activeTag, sortKey, sortAsc])
+  }, [notes, query, activeTag, sortKey, sortAsc])
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -197,7 +189,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
         >
           All
         </button>
-        {BROWSABLE_TAGS.map((t) => (
+        {TAGS.map((t) => (
           <button
             key={t}
             onClick={() => setActiveTag((cur) => (cur === t ? null : t))}
@@ -246,7 +238,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
       <div className="bg-[#666666] flex-1 min-h-0 overflow-y-auto">
         {visible.length === 0 ? (
           <p className="text-white text-sm p-4 italic">
-            {browsableNotes.length === 0
+            {notes.length === 0
               ? 'Advith is still writing his first post :P (Dude is lazy af)'
               : query.trim()
                 ? `No items match "${query}".`
@@ -265,7 +257,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
       <div className="flex items-center justify-between bg-[#c0c0c0] border-t-2 border-[#dfdfdf] px-2 py-0.5 text-black text-xs flex-shrink-0">
         <span>
           {visible.length} blog post{visible.length === 1 ? '' : 's'}
-          {query.trim() || activeTag ? ` (filtered from ${browsableNotes.length})` : ''}
+          {query.trim() || activeTag ? ` (filtered from ${notes.length})` : ''}
         </span>
       </div>
     </div>

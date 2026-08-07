@@ -217,13 +217,12 @@ export default function HomeClient({
   }
 
   // ---- Misc desktop behavior --------------------------------------------------
-  // Reports don't show up in the Blogs app (see ExplorerBlogList/
-  // ContributorArchive) so they're excluded here too — otherwise a new
-  // report would red-dot an app it never actually appears in. They get
-  // their own "new" badge on advith.exe instead, since that's where the
-  // Contributor Archive actually lives.
+  // Reports now show up in both the Blogs app and the Contributor Archive
+  // (see ExplorerBlogList/ContributorArchive), so a new one red-dots both
+  // icons — hasNewBlog covers everything published in the last 7 days,
+  // hasNewReport is the Reports-only subset for advith.exe's icon.
   const hasNewBlog = notes.some(
-    note => note.tag !== 'Reports' && new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    note => new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   )
   const hasNewReport = notes.some(
     note => note.tag === 'Reports' && new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)

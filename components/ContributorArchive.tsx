@@ -96,7 +96,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
           rel="noopener noreferrer"
           className="underline hover:text-gray-200"
         >
-          @{data?.username ?? 'Diacod-I'}
+          github.com/{data?.username ?? 'Diacod-I'}
         </a>
       </div>
       <div className="bg-[#f0f0f0] border-2 p-2">

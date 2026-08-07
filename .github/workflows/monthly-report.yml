@@ -37,6 +37,7 @@ jobs:
           node-version: 22
 
       - name: Generate draft report
+        id: generate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/generate-report.mjs ${{ inputs.month }}
@@ -46,7 +47,7 @@ jobs:
         with:
           commit-message: 'chore: scaffold monthly OSS report'
           branch: monthly-report/${{ github.run_id }}
-          title: 'Monthly OSS report draft'
+          title: ${{ steps.generate.outputs.title }}
           body: |
             Auto-scaffolded by `.github/workflows/monthly-report.yml` via
             `scripts/generate-report.mjs`. Stats are pulled from GitHub's

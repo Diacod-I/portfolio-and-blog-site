@@ -50,7 +50,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
         <span className="font-bold">Contribution Archive</span>
       </div>
       <div className="bg-[#2b2b2b] border-2 p-2">
-        <ScrollPanel maxHeight={256} className="border-2" nudgeId="contributor-archive">
+        <ScrollPanel maxHeight={256} nudgeId="contributor-archive">
           {reports.length === 0 ? (
             <p className="text-xs italic p-2 text-white">Nothing to report yet.</p>
           ) : (
@@ -66,8 +66,15 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                         className="win98-button p-2 flex flex-col min-w-0 no-underline"
                       >
                         <span className="block text-sm font-bold truncate min-w-0">{note.title}</span>
-                        <span className="block text-[10px] text-[#444] font-bold truncate min-w-0">
-                          {format(new Date(note.date), 'MMM dd, yyyy')}
+                        <span className="flex items-center justify-between gap-2 min-w-0">
+                          <span className="text-[10px] text-[#444] font-bold truncate">
+                            {format(new Date(note.date), 'MMM dd, yyyy')}
+                          </span>
+                          {note.repos.length > 0 && (
+                            <span className="text-[10px] text-[#444] font-bold truncate text-right shrink-0">
+                              {note.repos.map((r) => `#${r.split('/')[1] ?? r}`).join(' ')}
+                            </span>
+                          )}
                         </span>
                       </Link>
                     ))}

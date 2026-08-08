@@ -22,6 +22,10 @@ export type Note = {
   /** One tag per post — see lib/tags.ts. Falls back to 'Misc' like `status`
    *  fails closed, so an old post without a `tag` field doesn't error. */
   tag: Tag
+  /** "org/repo" strings a Reports post touched (see scripts/generate-report.mjs),
+   *  rendered as "#repo" hashtags in ContributorArchive. Empty for non-report
+   *  posts, or older reports scaffolded before this field existed. */
+  repos: string[]
 }
 
 export type NoteWithContent = Note & { content: string }
@@ -63,6 +67,7 @@ async function parseNote(slug: string, fileContent: string): Promise<NoteWithCon
     readingTimeMinutes: estimateReadingTime(content),
     thumbnail: await findThumbnail(slug, data.thumbnail),
     tag: isTag(data.tag) ? data.tag : DEFAULT_TAG,
+    repos: Array.isArray(data.repos) ? data.repos.filter((r): r is string => typeof r === 'string') : [],
     content,
   }
 }

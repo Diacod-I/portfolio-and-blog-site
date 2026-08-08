@@ -606,13 +606,13 @@ export default function HomeClient({
                     </div>
                     <h4 className="text-md"><i>Computer science advances by forgetting.</i></h4>
                     <p className="text-justify mb-3">
-                      The instruction set lets us forget the transistor; the compiler lets us forget the instruction set; the operating system
-                      lets us forget the machine; and distributed systems that serve software to the world let us forget there was ever
-                      a single machine at all.<br/><br/>
-                      Each abstraction is a permission to stop understanding the layer beneath. This is the bargain that makes the field possible, and almost everyone keeps it.
-                      I wanted to try the opposite. What unsettles me is how much of the machine is hidden by design, and how rarely anyone climbs down to see it.
-                      This portfolio is my attempt to climb down, and back up: from bits and microarchitecture through kernels and compilers to the high-availability systems
-                      the world runs on, and to understand, however partially, how each layer comes to rest on the one beneath it.
+                        AI engineer who'd rather read the CUDA source than the framework docs.
+                        I spend most of my time a few layers below the API everyone else stops
+                        at — kernels, compilers, the software beneath the software.
+                        
+                        I try contribute to open-source systems code, publish research on the side,
+                        and write up what I learn along the way. If something's fast, I want
+                        to know why; if it's slow, I still want to know why.
                     </p>
                     <p className="text-justify">
                       Take a look through my{' '}

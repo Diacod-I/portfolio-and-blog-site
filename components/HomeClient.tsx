@@ -608,7 +608,7 @@ export default function HomeClient({
                     <p className="text-justify mb-3">
                         AI engineer who'd rather read the CUDA source than the framework docs.
                         I spend most of my time a few layers below the API everyone else stops
-                        at — kernels, compilers, the software beneath the software.
+                        at — kernels, compilers, the software beneath the software.<br/>
                         
                         I try contribute to open-source systems code, publish research on the side,
                         and write up what I learn along the way. If something's fast, I want

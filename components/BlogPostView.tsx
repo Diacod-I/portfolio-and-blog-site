@@ -33,7 +33,7 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
           onClick={() => router.push('/blogs')}
           className="win98-button px-3 py-1 font-bold text-black text-sm flex items-center gap-1"
         >
-          ← Back to Blogs
+          ← Blogs
         </button>
       </div>
 

@@ -18,6 +18,7 @@ import MinesweeperWindow from '@/components/MinesweeperWindow'
 import SolitaireWindow from '@/components/SolitaireWindow'
 import ProjectsWindow from '@/components/ProjectsWindow'
 import ContributorArchive from '@/components/ContributorArchive'
+import GithubContributionGraph from '@/components/GithubContributionGraph'
 import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
@@ -642,6 +643,7 @@ export default function HomeClient({
                  </p>
 
                 <div className="flex-1 min-w-0 flex flex-col gap-4">
+                  <GithubContributionGraph />
                   <ContributorArchive notes={notes} />
                 </div>
             </div>

@@ -208,13 +208,21 @@ async function draftNarrative(repo, items) {
   }
 }
 
+// Repo index shown right under the "Focus areas" heading, before the
+// per-repo breakdowns — a quick-scan list of every repo touched this month,
+// each linked straight to its GitHub page.
+function buildRepoIndex(repos) {
+  const links = repos.map((repo) => `[${repo}](https://github.com/${repo})`).join(', ')
+  return `{/* TODO: 1-2 sentence overview tying this month's repos together */}\n\n**Repository list:** ${links}`
+}
+
 async function buildFocusAreas(groups) {
   const repos = [...groups.keys()].sort()
   if (repos.length === 0) {
     return '_No public activity found for this month — fill this in by hand if anything is missing._'
   }
 
-  const sections = []
+  const sections = [buildRepoIndex(repos)]
   for (const repo of repos) {
     const items = [...groups.get(repo).values()]
     console.log(`  Drafting narrative for ${repo} (${items.length} item${items.length === 1 ? '' : 's'})...`)
@@ -274,6 +282,7 @@ date: "${until}"
 author: "Advith Krishnan"
 status: "Published"
 tag: "Reports"
+thumbnail: "/internet_shortcuts/github.webp"
 ---`
 
   const body = `

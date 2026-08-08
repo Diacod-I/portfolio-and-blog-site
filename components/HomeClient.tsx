@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
 import ContactView from '@/components/ContactView'
@@ -101,6 +102,8 @@ export default function HomeClient({
   // advith.exe's Home/Contact/Resume tabs — local state, no navigation
   // involved (see Navbar). Seeded once from whichever route we landed on.
   const [homeTab, setHomeTab] = useState<HomeTab>(initialHomeTab)
+  const router = useRouter()
+  const pathname = usePathname()
 
   // ---- Window manager state ---------------------------------------------------
   // Lives in a zustand store (not useState) so window position/size,
@@ -163,6 +166,20 @@ export default function HomeClient({
   const minimizeApp = storeMinimizeApp
   const closeApp = storeCloseApp
 
+  // Closing the Blogs window while sitting on a /blogs or /blogs/[slug] route
+  // needs to also reset the URL back to "/". Otherwise the URL stays put,
+  // and clicking a link back to that same /blogs/[slug] post (e.g. a report
+  // row in ContributorArchive) is a no-op — Next.js only re-triggers
+  // navigation (and the forceOpenApp effect that opens the window) when the
+  // URL actually changes. Plain desktop-icon opens go through focusApp
+  // directly and never touch the URL, so they're unaffected.
+  const closeBlogsApp = useCallback(() => {
+    closeApp('blogs')
+    if (pathname?.startsWith('/blogs')) {
+      router.push('/')
+    }
+  }, [closeApp, pathname, router])
+
   // Taskbar click: minimize when focused, restore + focus otherwise (win98 rule)
   const handleTaskbarClick = (id: string) => {
     const appId = id as AppId
@@ -217,13 +234,12 @@ export default function HomeClient({
   }
 
   // ---- Misc desktop behavior --------------------------------------------------
-  // Reports don't show up in the Blogs app (see ExplorerBlogList/
-  // ContributorArchive) so they're excluded here too — otherwise a new
-  // report would red-dot an app it never actually appears in. They get
-  // their own "new" badge on advith.exe instead, since that's where the
-  // Contributor Archive actually lives.
+  // Reports now show up in both the Blogs app and the Contributor Archive
+  // (see ExplorerBlogList/ContributorArchive), so a new one red-dots both
+  // icons — hasNewBlog covers everything published in the last 7 days,
+  // hasNewReport is the Reports-only subset for advith.exe's icon.
   const hasNewBlog = notes.some(
-    note => note.tag !== 'Reports' && new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    note => new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   )
   const hasNewReport = notes.some(
     note => note.tag === 'Reports' && new Date(note.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -703,7 +719,7 @@ export default function HomeClient({
           onFocus={() => focusApp('blogs')}
           onMinimize={() => minimizeApp('blogs')}
           onToggleMaximize={() => toggleMaximize('blogs')}
-          onClose={() => closeApp('blogs')}
+          onClose={closeBlogsApp}
         >
           <div className="win98-window-content bg-[#A6A6A6] flex-1 min-h-0 flex flex-col overflow-hidden">
             {blogsView.mode === 'post' ? (

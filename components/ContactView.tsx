@@ -22,17 +22,9 @@ export default function ContactView({ featured }: ContactViewProps) {
         Have a question or want to work together?
         <br />
         <br />
-        Kindly email me and check out my Internet Shortcuts below. I&apos;ll respond as soon as possible.
+        Kindly email me at <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-300 hover:underline"></a>{CONTACT_EMAIL}</a>
+        or check out my Internet Shortcuts below. I&apos;ll respond as soon as possible.
       </p>
-
-      <div className="mt-8 space-y-2">
-        <p className="flex items-center gap-2">
-          <strong>Email:</strong>
-          <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-300 hover:underline">
-            {CONTACT_EMAIL}
-          </a>
-        </p>
-      </div>
 
       {/* Internet Shortcuts — moved here from the Home tab, which was
           getting cluttered with the photo, bio copy, and this all at once. */}

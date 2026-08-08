@@ -10,33 +10,45 @@ A nostalgic Windows 98-inspired portfolio and blog website built with Next.js an
 
 ## Features
 
-- 🖥️ Authentic Windows 98 UI components and styling
-- 📝 Markdown-based blog posts
-- 🔗 Social media and project links
-- 📄 Downloadable resume
+- 🖥️ Authentic Windows 98 desktop: draggable/resizable windows, a real taskbar
+  with Start menu, minimize/maximize/close, and drag-to-reorder taskbar buttons
+- 🪟 **advith.exe** — Home, About, Contact, and Resume tabs in one window
+- 📈 **Contribution Graph** — a GitHub-style 365-day contribution heatmap on
+  the Home tab, fetched live from GitHub's GraphQL API
+- 🗃️ **Contribution Archive** — monthly Contributor Reports grouped into a
+  year-by-year timeline, each tagged with `#repo` hashtags for what was
+  worked on
+- 🤖 **Automated monthly reports** — a scheduled GitHub Action scaffolds each
+  month's Contributor Report from the GitHub Search API (commits, PRs,
+  issues, reviews) with a narrative paragraph drafted by GitHub Models, then
+  opens it as a PR for review before it goes live (see
+  `scripts/generate-report.mjs` and `.github/workflows/monthly-report.yml`)
+- 📝 MDX-powered blog with tag filtering, search, and sortable columns in a
+  Win98 Explorer-style list
+- 🔋 A taskbar battery meter reading your actual device battery level
+  (Battery Status API), styled after old ThinkPads running Win98
+- 🎮 Minesweeper and Solitaire, built from scratch in React, plus Prince of
+  Persia embedded via archive.org's in-browser MS-DOS emulation
+- 🖼️ Gallery window with personal photo highlights
+- 🔗 Internet Shortcuts panel linking out to social/profile links, and a
+  downloadable resume
+- 🔊 Sound effects (click, error, cards) plus a synthesized Solitaire win
+  chime and Minesweeper explosion via the Web Audio API
+- 📜 In-app Credits & Licenses window with full third-party attribution
 - 💻 Responsive design
-- 🎨 Custom Windows 98 icons and assets
 
 ## Tech Stack
 
-- Next.js 14
+- Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS
-- MDX for blog posts
-
-## Project Structure
-
-```
-windows_portfolio/
-├── app/               # Next.js app router pages
-├── components/        # React components
-├── content/          # MDX blog posts
-├── public/           # Static assets
-│   ├── win98/       # Windows 98 icons and images
-│   └── ...
-├── styles/          # Global styles
-└── ...
-```
+- MDX (`@next/mdx`, `@mdx-js/*`) for blog posts and monthly reports
+- Zustand for window-manager state (open/closed, position, z-order, taskbar order)
+- Framer Motion for animations
+- date-fns for date formatting
+- gray-matter for MDX frontmatter parsing
+- GitHub Search API, GitHub GraphQL API, and GitHub Models — power the
+  Contribution Graph and the automated monthly report pipeline
 
 ## License
 

@@ -33,7 +33,7 @@ export default function ProjectsWindow() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 bg-[#c0c0c0] border-b-2 border-[#808080] px-2 py-1 flex-shrink-0">
+      <div className="flex flex-wrap items-center gap-2 pt-1 pb-2 bg-[#c0c0c0] border-b-2 border-[#808080] px-2 py-1 flex-shrink-0">
         <label htmlFor="project-search" className="text-black font-bold text-sm">
           🔍 Search:
         </label>

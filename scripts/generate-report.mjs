@@ -272,6 +272,12 @@ async function main() {
   const groups = groupByRepo(prsOpened, prsMerged, issuesOpened, reviewsGiven)
   const focusAreas = await buildFocusAreas(groups)
 
+  // Same repo list buildFocusAreas() already derives from `groups` — kept
+  // separately in frontmatter too so the archive list (ContributorArchive)
+  // can render "#pytorch #rust" hashtags without re-parsing the MDX body.
+  const repos = [...groups.keys()].sort()
+  const reposYaml = repos.length > 0 ? `[${repos.map((r) => `"${r}"`).join(', ')}]` : '[]'
+
   // `date` is the upload/publish date (first of the month *after* the one
   // being reported on — this runs at the start of the month covering last
   // month's activity), not the first day of the reported period itself.
@@ -282,7 +288,8 @@ date: "${until}"
 author: "Advith Krishnan"
 status: "Published"
 tag: "Reports"
-thumbnail: "/internet_shortcuts/github.webp"
+thumbnail: "/thumbnails/reports-github.webp"
+repos: ${reposYaml}
 ---`
 
   const body = `

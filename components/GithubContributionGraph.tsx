@@ -17,8 +17,9 @@ type ContributionsResponse = {
 
 // Same bucket thresholds GitHub itself uses, just recolored to the site's
 // sky-blue accent (see the "@Diacod-I" link above this component) instead
-// of GitHub's green, and dark enough at level 0 to sit on the win98 panel.
-const LEVEL_COLORS = ['#2b2b2b', '#0c4a6e', '#0369a1', '#0ea5e9', '#7dd3fc']
+// of GitHub's green. Level 0 sits a touch lighter than the panel background
+// below (#2b2b2b) so empty cells still read as a grid instead of vanishing.
+const LEVEL_COLORS = ['#3a3a3a', '#0c4a6e', '#0369a1', '#0ea5e9', '#7dd3fc']
 
 function levelFor(count: number): number {
   if (count <= 0) return 0
@@ -103,22 +104,35 @@ export default function GithubContributionGraph() {
       <div className="win98-titlebar">
         <span className="font-bold">Contribution Graph</span>
       </div>
-      <div className="bg-[#f0f0f0] border-2 p-2">
+      <div className="bg-[#2b2b2b] border-2 p-2">
         {failed ? (
-          <p className="text-xs italic p-2 text-black">Couldn&apos;t load contribution data right now.</p>
+          <p className="text-xs italic p-2 text-white">Couldn&apos;t load contribution data right now.</p>
         ) : !data ? (
-          <p className="text-xs italic p-2 text-black">Loading...</p>
+          <p className="text-xs italic p-2 text-white">Loading...</p>
         ) : (
           <>
-            <p className="text-xs font-bold text-black mb-2 px-1">
-              {data.totalContributions.toLocaleString()} contributions in the last year
-            </p>
+            <div className="flex items-center justify-between gap-2 mb-2 px-1">
+              <p className="text-xs font-bold text-white">
+                {data.totalContributions.toLocaleString()} contributions in the last year
+              </p>
+              <div className="flex items-center gap-1 text-[10px] text-white shrink-0">
+                <span>Less</span>
+                {LEVEL_COLORS.map((color) => (
+                  <div
+                    key={color}
+                    className="w-[10px] h-[10px] border border-white/10"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+                <span>More</span>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <div className="flex gap-[3px] w-max px-1 pt-4 pb-1">
                 {weeks.map((week, i) => (
                   <div key={i} className="flex flex-col gap-[3px] relative">
                     {labels[i] && (
-                      <span className="absolute -top-4 left-0 text-[9px] text-black font-bold whitespace-nowrap">
+                      <span className="absolute -top-4 left-0 text-[9px] text-white font-bold whitespace-nowrap">
                         {labels[i]}
                       </span>
                     )}
@@ -127,7 +141,7 @@ export default function GithubContributionGraph() {
                         <div
                           key={day.date}
                           title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${day.date}`}
-                          className="w-[10px] h-[10px] border border-black/20"
+                          className="w-[10px] h-[10px] border border-white/10"
                           style={{ backgroundColor: LEVEL_COLORS[levelFor(day.count)] }}
                         />
                       ) : (

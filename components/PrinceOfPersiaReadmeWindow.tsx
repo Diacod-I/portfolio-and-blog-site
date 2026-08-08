@@ -10,6 +10,8 @@ const README = `POP.TXT
 Press SPACE to skip the opening scenes.
 Press ENTER to continue after dying.
 
+Find the sword before fighting the soldier.
+
 Pause ............... Esc
 Show time left ...... Space
 Restart level ....... Ctrl + A

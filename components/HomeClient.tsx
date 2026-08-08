@@ -622,7 +622,7 @@ export default function HomeClient({
                     Contributor Activity - <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                  </h1>
                  <p className="text-gray-400 mb-4">
-                    "Free & Libre taste good! Open-Source taste good!" - Pulp Fiction prolly
+                    "Look at that subtle graph optimization pass. The tasteful vectorised register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
                  </p>
 
                 <div className="flex-1 min-w-0 flex flex-col gap-4">

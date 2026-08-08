@@ -139,7 +139,16 @@ export default function CreditsWindow() {
           logos belong to those organizations. All are used here in a
           nominative capacity to identify links to Advith&apos;s own profiles,
           repositories, and posts on those platforms; not affiliated with,
-          endorsed by, or sponsored by any of them.
+          endorsed by, or sponsored by any of them. The same GitHub octocat
+          mark, recolored onto a black background, is also used as the
+          default thumbnail for monthly Contributor Reports in the
+          Contribution Archive on the Home tab.
+        </li>
+        <li>
+          The Home tab&apos;s Contribution Graph displays Advith&apos;s own
+          public GitHub contribution history, fetched live from GitHub&apos;s
+          API — this is data about Advith&apos;s own account, not a
+          redistributed third-party asset.
         </li>
         <li>
           Club Penguin dance GIF, sourced via{' '}

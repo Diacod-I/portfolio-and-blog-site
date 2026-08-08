@@ -184,13 +184,12 @@ export default function FooterConsole({
         <div className="border-l-2 border-[#808080] h-8 flex-shrink-0"></div>
         <div className="border-l-2 border-[#ffffff] mr-2 h-8 flex-shrink-0"></div>
 
-        {/* Battery — real reading via the Battery Status API, renders
-            nothing when the browser doesn't support it (see the component
-            for why). Sits left of the clock, same as a real Win98 tray. */}
-        {mounted && <BatteryIndicator />}
-
-        {/* Clock - Always visible */}
-        <div className="px-2 win98-taskbar-time flex-shrink-0">
+        {/* Battery + Clock share one sunken tray box, battery first. The
+            battery reading (real, via the Battery Status API) renders
+            nothing when the browser doesn't support it — see that
+            component — so this box quietly falls back to just the clock. */}
+        <div className="px-2 win98-taskbar-time flex-shrink-0 flex items-center gap-2">
+          {mounted && <BatteryIndicator />}
           <span className="text-xs whitespace-nowrap">{mounted ? time : ''}</span>
         </div>
       </div>

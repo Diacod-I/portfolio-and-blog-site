@@ -74,10 +74,13 @@ export default function BatteryIndicator() {
 
   if (!battery) return null
 
+  // No wrapping box here on purpose — the caller (FooterConsole) renders
+  // this inline inside the same win98-taskbar-time box as the clock, so
+  // battery and time share one sunken tray instead of two side by side.
   return (
-    <div className="px-2 win98-taskbar-time flex-shrink-0 flex items-center gap-1.5">
+    <span className="flex items-center gap-1.5">
       <BatteryIcon level={battery.level} charging={battery.charging} />
       <span className="text-xs whitespace-nowrap">{Math.round(battery.level)}%</span>
-    </div>
+    </span>
   )
 }

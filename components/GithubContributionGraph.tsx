@@ -111,9 +111,22 @@ export default function GithubContributionGraph() {
           <p className="text-xs italic p-2 text-white">Loading...</p>
         ) : (
           <>
-            <p className="text-xs font-bold text-white mb-2 px-1">
-              {data.totalContributions.toLocaleString()} contributions in the last year
-            </p>
+            <div className="flex items-center justify-between gap-2 mb-2 px-1">
+              <p className="text-xs font-bold text-white">
+                {data.totalContributions.toLocaleString()} contributions in the last year
+              </p>
+              <div className="flex items-center gap-1 text-[10px] text-white shrink-0">
+                <span>Less</span>
+                {LEVEL_COLORS.map((color) => (
+                  <div
+                    key={color}
+                    className="w-[10px] h-[10px] border border-white/10"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+                <span>More</span>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <div className="flex gap-[3px] w-max px-1 pt-4 pb-1">
                 {weeks.map((week, i) => (

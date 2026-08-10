@@ -639,10 +639,23 @@ export default function HomeClient({
                       <p className="text-center text-white text-xs italic mt-1">This is me :D</p>
                     </div>
                     <p className="text-justify mb-3">
-                        I delve a few layers below the API everyone else stops
-                        at. The kernel, compilers, software beneath the software. I try contribute 
-                        to open-source systems code, publish research on the side,
-                        and write up what I learn along the way.
+                        AI engineer who'd rather read the CUDA source than the framework docs.
+                        I spend most of my time a few layers below the API everyone else stops
+                        at — kernels, compilers, the software beneath the software.<br/>
+                        
+                        I try contribute to open-source systems code, publish research on the side,
+                        and write up what I learn along the way. If something's fast, I want
+                        to know why; if it's slow, I still want to know why.
+                    </p>
+                    <p className="text-justify">
+                      Take a look through my{' '}
+                      <button onClick={() => openApp('gallery')} className="text-sky-300 underline hover:text-sky-200 font-bold">
+                        Gallery
+                      </button>{' '}
+                      for photos from my life, or read my latest thoughts over on{' '}
+                      <button onClick={() => openApp('blogs')} className="text-sky-300 underline hover:text-sky-200 font-bold">
+                        Blogs
+                      </button>.
                     </p>
 
                     {/* Work history */}

@@ -1,12 +1,13 @@
-# Advith's Portfolio
-
-A nostalgic Windows 98-inspired portfolio and blog website built with Next.js and Tailwind CSS.
-
 <p align="center">
   <a href="https://advithkrishnan.com" target="_blank">
     <img src="https://api.microlink.io/?url=https://advithkrishnan.com/&screenshot=true&meta=false&embed=screenshot.url&colorScheme=dark" alt="Advith's Blog" width="800px" />
   </a>
 </p>
+
+# Advith's Portfolio
+
+A nostalgic Windows 98-inspired portfolio and blog website built with Next.js and Tailwind CSS.
+
 
 ## Features
 

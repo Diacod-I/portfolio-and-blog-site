@@ -626,14 +626,17 @@ export default function HomeClient({
                       personality and curiosity, since the credentials/timeline
                       already live on LinkedIn and the Resume tab. */}
                   <div className="text-white text-sm leading-relaxed">
-                    <div className="float-right relative ml-4 mt-4 w-40 sm:w-56 aspect-square border-2 border-[#808080] overflow-hidden">
-                      <Image
-                        src="/Advith_Krishnan.webp"
-                        alt="Advith Krishnan"
-                        fill
-                        sizes="(max-width: 640px) 160px, 224px"
-                        className="object-cover"
-                      />
+                    <div className="float-right ml-4 mt-4 w-40 sm:w-56">
+                      <div className="relative aspect-square border-2 border-[#808080] overflow-hidden">
+                        <Image
+                          src="/Advith_Krishnan.webp"
+                          alt="Advith Krishnan"
+                          fill
+                          sizes="(max-width: 640px) 160px, 224px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <p className="text-center text-white text-xs italic mt-1">This is me :D</p>
                     </div>
                     <p className="text-justify mb-3">
                         I spend most of my time a few layers below the API everyone else stops

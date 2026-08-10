@@ -3,8 +3,14 @@
 import { useEffect, useRef } from 'react'
 
 const CLICK_SOUND_SRC = '/win98/click.mp3'
+// [data-clickable]: an escape hatch for elements that behave like a button
+// (onClick + cursor-pointer) but deliberately aren't role="button" — e.g.
+// ProjectsWindow's project cards, which already contain a real nested link
+// (the ⋮ menu) and shouldn't also be a focusable "button" wrapped around it
+// (see that component for why). Tag those with data-clickable to still get
+// the click sound without the accessibility downside of role="button".
 const INTERACTIVE_SELECTOR =
-  'button, a[href], [role="button"], input[type="button"], input[type="submit"]'
+  'button, a[href], [role="button"], input[type="button"], input[type="submit"], [data-clickable]'
 
 // Mounted once in the root layout (see app/layout.tsx). Two jobs:
 //

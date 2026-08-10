@@ -15,9 +15,10 @@
 // viewport, and a plain CSS solution is one less thing that can regress.
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { format } from 'date-fns'
-import projects from '@/data/projects'
+import projects, { type Project } from '@/data/projects'
 import TagChip from '@/components/TagChip'
 import { getTagColor } from '@/lib/tagColors'
 
@@ -29,6 +30,7 @@ import { getTagColor } from '@/lib/tagColors'
 const TAG_PREVIEW_COUNT = 14
 
 export default function ProjectsWindow() {
+  const router = useRouter()
   const [query, setQuery] = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [showAllTags, setShowAllTags] = useState(false)
@@ -47,6 +49,21 @@ export default function ProjectsWindow() {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [openMenuId])
+
+  // Whole-card click, since the card already reads as a button to some
+  // users (hover state, embossed border) even though only the ⋮ menu used
+  // to actually be clickable. Live URL wins, GitHub is the fallback, and a
+  // project with neither routes to the site's 404 instead of doing nothing.
+  // The ⋮ menu's own button/links stop propagation (see below) so they
+  // don't also fire this.
+  const handleCardClick = (p: Project) => {
+    const url = p.liveUrl || p.repoUrl
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } else {
+      router.push('/404')
+    }
+  }
 
   // Derived from whatever's actually in data/projects.ts right now — same
   // normalization TagChip uses (trim, lowercase, drop a leading "#") so a
@@ -159,9 +176,23 @@ export default function ProjectsWindow() {
           // empty space, same as icons in a real Explorer window.
           <div className="grid grid-cols-[repeat(auto-fill,280px)] gap-3">
             {visible.map((p, i) => (
+              // Whole card is clickable (see handleCardClick above), but
+              // deliberately not role="button"/tabIndex — this card already
+              // contains a real, keyboard-reachable interactive element (the
+              // ⋮ menu's links), and nesting a focusable "button" around
+              // other focusable controls is an accessibility anti-pattern
+              // (double tab-stops to the same destination, ambiguous for
+              // screen readers). Mouse/touch users get the click affordance;
+              // keyboard/AT users go through the menu's real links instead.
               <div
                 key={p.id}
-                className="w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden"
+                onClick={() => handleCardClick(p)}
+                // data-clickable, not role="button" (see the comment above)
+                // — this is just so SoundEffects.tsx's global click-sound
+                // listener picks it up too, same "clack" as every other
+                // interactive element on the site.
+                data-clickable
+                className="group w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden cursor-pointer hover:brightness-105 active:brightness-95"
               >
                 <div
                   className={`relative w-full aspect-[16/9] shrink-0 border-b-2 border-[#808080] ${
@@ -209,7 +240,10 @@ export default function ProjectsWindow() {
                       the card body (see below for why — same links, just
                       relocated and labeled). */}
                   {(p.liveUrl || p.repoUrl) && (
-                    <div className="project-card-menu absolute top-1.5 right-1.5">
+                    <div
+                      className="project-card-menu absolute top-1.5 right-1.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
                         type="button"
                         onClick={(e) => {
@@ -240,7 +274,10 @@ export default function ProjectsWindow() {
                               href={p.liveUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              onClick={() => setOpenMenuId(null)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setOpenMenuId(null)
+                              }}
                               className="flex items-center gap-2 px-2 py-1.5 text-xs font-bold text-black no-underline hover:bg-[#000080] hover:text-white"
                             >
                               <Image src="/win98/internet.webp" width={14} height={14} alt="" className="w-3.5 h-3.5 shrink-0" />
@@ -252,7 +289,10 @@ export default function ProjectsWindow() {
                               href={p.repoUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              onClick={() => setOpenMenuId(null)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setOpenMenuId(null)
+                              }}
                               className="flex items-center gap-2 px-2 py-1.5 text-xs font-bold text-black no-underline hover:bg-[#000080] hover:text-white"
                             >
                               <Image src="/internet_shortcuts/github.webp" width={14} height={14} alt="" className="w-3.5 h-3.5 shrink-0" />
@@ -265,12 +305,17 @@ export default function ProjectsWindow() {
                   )}
                 </div>
 
+                {/* Text turns white on hover, same as ContributorArchive's
+                    report rows (win98-button's hover:text-[#f9f9f9]) — but
+                    these spans set their own explicit colors instead of
+                    inheriting one, so that has to be group-hover here
+                    rather than a plain CSS inherit. */}
                 <div className="p-2 flex flex-col gap-1.5 flex-1 min-h-0">
-                  <span className="font-bold text-black text-sm break-words">{p.title}</span>
-                  <span className="text-[10px] text-[#555555] font-semibold">
+                  <span className="font-bold text-black text-sm break-words group-hover:text-white">{p.title}</span>
+                  <span className="text-[10px] text-[#555555] font-semibold group-hover:text-white">
                     {format(new Date(p.date), 'MMM dd, yyyy')}
                   </span>
-                  <span className="text-xs text-[#333333] line-clamp-3">{p.description}</span>
+                  <span className="text-xs text-[#222222] line-clamp-3 group-hover:text-white">{p.description}</span>
 
                   {p.tags && p.tags.length > 0 && (
                     <div className="flex flex-wrap justify-end gap-1 mt-1">

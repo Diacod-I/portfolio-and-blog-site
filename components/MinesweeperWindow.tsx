@@ -529,11 +529,11 @@ export default function MinesweeperWindow({ onMinSizeChange }: MinesweeperWindow
             sizing entirely (the BOARD alone decides the width), and
             min-width:100% then stretches this row back out to exactly the
             board's width, so the text wraps inside it. */}
-        <div className="flex-shrink-0 w-0 min-w-full px-2 pb-2 text-[11px] text-black text-center leading-snug">
+        <div className="flex-shrink-0 w-0 min-w-full px-2 pb-2 text-[11px] font-bold text-black text-center leading-snug">
           {gameState === 'won' && <span className="font-bold text-green-800">🎉 You win!</span>}
           {gameState === 'lost' && <span className="font-bold text-red-800">💥 Boom — try again.</span>}
           {(gameState === 'ready' || gameState === 'playing') && (
-            <span>Left-click - Reveal. Right-click - Flag.</span>
+            <span>Left-click: Reveal. Right-click: Flag.</span>
           )}
         </div>
       </div>

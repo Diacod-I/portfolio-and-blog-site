@@ -134,7 +134,7 @@ export default function ProjectsWindow() {
       )}
 
       {/* Grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto bg-[#666666] p-3">
+      <div className="flex-1 min-h-0 overflow-y-auto bg-[#222222] p-3">
         {projects.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <p className="text-white text-sm italic p-4 text-center">
@@ -163,7 +163,11 @@ export default function ProjectsWindow() {
                 key={p.id}
                 className="w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden"
               >
-                <div className="relative w-full aspect-[16/9] shrink-0 bg-[#222222] border-b-2 border-[#808080]">
+                <div
+                  className={`relative w-full aspect-[16/9] shrink-0 border-b-2 border-[#808080] ${
+                    p.thumbnail ? 'bg-[#222222]' : 'bg-[#008080]'
+                  }`}
+                >
                   {p.thumbnail ? (
                     <Image
                       src={p.thumbnail}
@@ -173,6 +177,10 @@ export default function ProjectsWindow() {
                       className="object-cover"
                     />
                   ) : (
+                    // Classic Windows 98 desktop teal (#008080) behind the
+                    // fallback folder icon, instead of plain dark gray — a
+                    // project with no thumbnail now reads as "an icon sitting
+                    // on the desktop" rather than an empty black box.
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Image src="/win98/folder.webp" alt="" width={64} height={64} className="w-16 h-16" />
                     </div>

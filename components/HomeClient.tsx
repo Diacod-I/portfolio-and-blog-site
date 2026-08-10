@@ -614,19 +614,19 @@ export default function HomeClient({
                   </h1>
                   <span className="text-white text-md min-h-[28px]">
                     &gt; {" "} <span
-                      className="inline-block transition-opacity duration-300"
+                      className="inline-block text-black bg-white px-2 font-bold transition-opacity duration-300"
                       style={{ letterSpacing: '0.5px' }}
                     >
                       {displayText.trim()}
                     </span>
-                    &nbsp;who works on cool stuff!
+                    &nbsp;who works on cool stuff.
                   </span>
 
                   {/* Bio copy: deliberately not a resume rehash — the goal is
                       personality and curiosity, since the credentials/timeline
                       already live on LinkedIn and the Resume tab. */}
-                  <div className="text-white text-sm leading-relaxed mt-1">
-                    <div className="float-right relative ml-4 mb-3 w-40 sm:w-56 aspect-square border-2 border-[#808080] overflow-hidden">
+                  <div className="text-white text-sm leading-relaxed">
+                    <div className="float-right relative ml-4 mt-4 w-40 sm:w-56 aspect-square border-2 border-[#808080] overflow-hidden">
                       <Image
                         src="/Advith_Krishnan.webp"
                         alt="Advith Krishnan"
@@ -635,34 +635,17 @@ export default function HomeClient({
                         className="object-cover"
                       />
                     </div>
-                    <h4 className="text-md"><i>Computer science advances by forgetting.</i></h4>
                     <p className="text-justify mb-3">
-                        AI engineer who'd rather read the CUDA source than the framework docs.
-                        I spend most of my time a few layers below the API everyone else stops
-                        at — kernels, compilers, the software beneath the software.<br/>
-                        
-                        I try contribute to open-source systems code, publish research on the side,
-                        and write up what I learn along the way. If something's fast, I want
-                        to know why; if it's slow, I still want to know why.
+                        I delve a few layers below the API everyone else stops
+                        at. The kernel, compilers, software beneath the software. I try contribute 
+                        to open-source systems code, publish research on the side,
+                        and write up what I learn along the way.
                     </p>
-                    <p className="text-justify">
-                      {/* Plain text, not a launcher — advith.exe shouldn't reach
-                          into another app's window state. Gallery and Blogs are
-                          their own standalone apps; open them from the desktop
-                          or taskbar like anything else. */}
-                      Open my <span className="font-bold">Gallery</span> app for photos from my life, or my{' '}
-                      <span className="font-bold">Blogs</span> app to read my latest thoughts.
-                    </p>
+
+                    {/* Work history */}
+                    <ExperienceSection />
                     <div className="clear-both" />
                   </div>
-
-                  {/* Work history — a second, self-contained content block
-                      so the tab doesn't just end after the bio (that's what
-                      left a big empty void once the window got stretched
-                      taller than the bio text — see the maxSize cap on this
-                      window below, which now also limits how tall it can be
-                      stretched in the first place). */}
-                  <ExperienceSection />
                 </div>
             </div>
             ) : (

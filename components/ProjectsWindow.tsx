@@ -187,6 +187,11 @@ export default function ProjectsWindow() {
               <div
                 key={p.id}
                 onClick={() => handleCardClick(p)}
+                // data-clickable, not role="button" (see the comment above)
+                // — this is just so SoundEffects.tsx's global click-sound
+                // listener picks it up too, same "clack" as every other
+                // interactive element on the site.
+                data-clickable
                 className="group w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden cursor-pointer hover:brightness-105 active:brightness-95"
               >
                 <div

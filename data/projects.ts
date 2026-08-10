@@ -44,14 +44,14 @@ const allProjects: Project[] = [
   //   featured: true,
   // },
   {
-    id: 'metal-autograd',
-    title: 'Metal Autograd (MAG)',
-    description: 'An Autograd framework for Apple Metal',
-    tags: ['Metal Shader', 'Python'],
-    thumbnail: '/project-thumbnails/metal-autograd.png',
-    liveUrl: '',
-    repoUrl: 'https://github.com/Diacod-I/metal-autograd',
-    date: '2026-07-01',
+    id: 'warthog',
+    title: 'Warthog',
+    description: 'Fast, memory-safe ML/DL library without NumPy/PyTorch.',
+    tags: ['rust', 'python'],
+    thumbnail: '',
+    liveUrl: 'https://github.com/Diacod-I/warthog',
+    repoUrl: 'https://github.com/Diacod-I/warthog',
+    date: '2026-07-11',
     wip: true
   },
 

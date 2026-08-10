@@ -6,11 +6,13 @@ import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
 import ContactView from '@/components/ContactView'
 import ResumeView from '@/components/ResumeView'
+import ExperienceSection from '@/components/ExperienceSection'
 import CreditsWindow from '@/components/CreditsWindow'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
 import ExplorerBlogList from '@/components/ExplorerBlogList'
 import BlogPostView from '@/components/BlogPostView'
+import ReportViewer from '@/components/ReportViewer'
 import GalleryWindow from '@/components/GalleryWindow'
 import PrinceOfPersiaWindow from '@/components/PrinceOfPersiaWindow'
 import PrinceOfPersiaReadmeWindow from '@/components/PrinceOfPersiaReadmeWindow'
@@ -34,11 +36,18 @@ export type BlogsView =
   | { mode: 'list' }
   | { mode: 'post'; note: Note; seeAlso: Note[]; content: React.ReactNode }
 
+// What the standalone Report window shows — only populated when landing on
+// /reports/[slug] (see that route). Unlike BlogsView there's no 'list' mode:
+// the report list itself lives in ContributorArchive on advith.exe, not in
+// this window — this window only ever shows a single report.
+export type ReportView = { note: Note; content: React.ReactNode }
+
 type HomeClientProps = {
   notes: Note[]
   featured: FeaturedLink[]
   forceOpenApp?: AppId
   blogsView?: BlogsView
+  reportView?: ReportView
   /** Which advith.exe tab to land on. Defaults to 'home'. */
   initialHomeTab?: HomeTab
 }
@@ -54,6 +63,9 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   minesweeper: { name: 'Minesweeper', icon: '/win98/minesweeper.svg' },
   solitaire: { name: 'Solitaire', icon: '/win98/solitaire.png' },
   projects: { name: 'Projects', icon: '/win98/folder.webp' },
+  // Distinct icon from Blogs' notepad.webp — this is its own app, launched
+  // contextually from a report link, never pinned to the desktop.
+  report: { name: 'Report Viewer', icon: '/win98/notes.webp' },
 }
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
@@ -73,6 +85,9 @@ const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
   minesweeper: { col: 1, row: 0 },
   solitaire: { col: 1, row: 1 },
   projects: { col: 1, row: 2 },
+  // Never rendered as a <DesktopIcon /> (see NO_DESKTOP_ICON) — needs a
+  // cell only because Record<AppId, ...> requires one.
+  report: { col: 1, row: 3 },
 }
 
 // Bumped to v2: moved minesweeper/solitaire from column 0 rows 6-7 to
@@ -90,13 +105,14 @@ const ICON_POS_KEY = 'desktop-icon-cells-v2'
 // that cell must not count as "occupied" in moveIcon's collision check
 // below. Otherwise it's an invisible dead cell nothing can ever be dropped
 // on or swapped with — which is exactly the "glitched cell" bug this fixes.
-const NO_DESKTOP_ICON: AppId[] = ['credits', 'popReadme']
+const NO_DESKTOP_ICON: AppId[] = ['credits', 'popReadme', 'report']
 
 export default function HomeClient({
   notes,
   featured,
   forceOpenApp,
   blogsView = { mode: 'list' },
+  reportView,
   initialHomeTab = 'home',
 }: HomeClientProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -177,6 +193,14 @@ export default function HomeClient({
   const closeBlogsApp = useCallback(() => {
     closeApp('blogs')
     if (pathname?.startsWith('/blogs')) {
+      router.push('/')
+    }
+  }, [closeApp, pathname, router])
+
+  // Same URL-reset need as closeBlogsApp above, for /reports/[slug].
+  const closeReportApp = useCallback(() => {
+    closeApp('report')
+    if (pathname?.startsWith('/reports')) {
       router.push('/')
     }
   }, [closeApp, pathname, router])
@@ -298,7 +322,8 @@ export default function HomeClient({
     wins.popReadme.status !== 'closed' ||
     wins.minesweeper.status !== 'closed' ||
     wins.solitaire.status !== 'closed' ||
-    wins.projects.status !== 'closed'
+    wins.projects.status !== 'closed' ||
+    wins.report.status !== 'closed'
   useEffect(() => {
     if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
     const timer = setTimeout(() => {
@@ -469,6 +494,7 @@ export default function HomeClient({
         cell={iconCells.advith}
         showBadge={hasNewReport}
         isActive={wins.advith.status !== 'closed'}
+        priority
         onOpen={() => openApp('advith')}
         onMove={moveIcon}
       />
@@ -558,6 +584,11 @@ export default function HomeClient({
           maximized={wins.advith.maximized}
           defaultInset={{ top: 5, right: 5, bottom: 43, left: 5 }}
           defaultSize={{ w: 860, h: 580 }}
+          // The About tab's bio is short and fixed-height — stretched much
+          // past this, the tab was just empty space below the text (see
+          // ExperienceSection above, added to fill some of that room; this
+          // caps how far the void can grow regardless).
+          maxSize={{ w: 1100, h: 760 }}
           cardOffset={{ x: 0, y: -10 }}
           rect={wins.advith.rect}
           onRectChange={(r) => setRect('advith', r)}
@@ -606,26 +637,32 @@ export default function HomeClient({
                     </div>
                     <h4 className="text-md"><i>Computer science advances by forgetting.</i></h4>
                     <p className="text-justify mb-3">
-                      The instruction set lets us forget the transistor; the compiler lets us forget the instruction set; the operating system
-                      lets us forget the machine; and distributed systems that serve software to the world let us forget there was ever
-                      a single machine at all.<br/><br/>
-                      Each abstraction is a permission to stop understanding the layer beneath. This is the bargain that makes the field possible, and almost everyone keeps it.
-                      I wanted to try the opposite. What unsettles me is how much of the machine is hidden by design, and how rarely anyone climbs down to see it.
-                      This portfolio is my attempt to climb down, and back up: from bits and microarchitecture through kernels and compilers to the high-availability systems
-                      the world runs on, and to understand, however partially, how each layer comes to rest on the one beneath it.
+                        AI engineer who'd rather read the CUDA source than the framework docs.
+                        I spend most of my time a few layers below the API everyone else stops
+                        at — kernels, compilers, the software beneath the software.<br/>
+                        
+                        I try contribute to open-source systems code, publish research on the side,
+                        and write up what I learn along the way. If something's fast, I want
+                        to know why; if it's slow, I still want to know why.
                     </p>
                     <p className="text-justify">
-                      Take a look through my{' '}
-                      <button onClick={() => openApp('gallery')} className="text-sky-300 underline hover:text-sky-200 font-bold">
-                        Gallery
-                      </button>{' '}
-                      for photos from my life, or read my latest thoughts over on{' '}
-                      <button onClick={() => openApp('blogs')} className="text-sky-300 underline hover:text-sky-200 font-bold">
-                        Blogs
-                      </button>.
+                      {/* Plain text, not a launcher — advith.exe shouldn't reach
+                          into another app's window state. Gallery and Blogs are
+                          their own standalone apps; open them from the desktop
+                          or taskbar like anything else. */}
+                      Open my <span className="font-bold">Gallery</span> app for photos from my life, or my{' '}
+                      <span className="font-bold">Blogs</span> app to read my latest thoughts.
                     </p>
                     <div className="clear-both" />
                   </div>
+
+                  {/* Work history — a second, self-contained content block
+                      so the tab doesn't just end after the bio (that's what
+                      left a big empty void once the window got stretched
+                      taller than the bio text — see the maxSize cap on this
+                      window below, which now also limits how tall it can be
+                      stretched in the first place). */}
+                  <ExperienceSection />
                 </div>
             </div>
             ) : (
@@ -639,7 +676,7 @@ export default function HomeClient({
                     Contributor Activity - <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                  </h1>
                  <p className="text-gray-400 mb-4">
-                    "Free & Libre taste good! Open-Source taste good!" - Pulp Fiction prolly
+                    "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
                  </p>
 
                 <div className="flex-1 min-w-0 flex flex-col gap-4">
@@ -728,6 +765,39 @@ export default function HomeClient({
               <BlogPostView note={blogsView.note} seeAlso={blogsView.seeAlso} content={blogsView.content} />
             ) : (
               <ExplorerBlogList notes={notes} />
+            )}
+          </div>
+        </Win98Window>
+      )}
+
+      {/* ---- Report window: a single contributor report, standalone from
+           Blogs — landed here via /reports/[slug] (see that route). Never
+           shows a list; ContributorArchive on advith.exe is the index. ---- */}
+      {wins.report.status !== 'closed' && (
+        <Win98Window
+          title="Report Viewer"
+          icon={APPS.report.icon}
+          zIndex={40 + wins.report.z}
+          minimized={wins.report.status === 'minimized'}
+          isFocused={focusedId === 'report'}
+          maximized={wins.report.maximized}
+          defaultInset={{ top: 24, right: 24, bottom: 43, left: 24 }}
+          defaultSize={{ w: 680, h: 500 }}
+          cardOffset={{ x: 90, y: -10 }}
+          rect={wins.report.rect}
+          onRectChange={(r) => setRect('report', r)}
+          onFocus={() => focusApp('report')}
+          onMinimize={() => minimizeApp('report')}
+          onToggleMaximize={() => toggleMaximize('report')}
+          onClose={closeReportApp}
+        >
+          <div className="win98-window-content bg-[#A6A6A6] flex-1 min-h-0 flex flex-col overflow-hidden">
+            {reportView ? (
+              <ReportViewer note={reportView.note} content={reportView.content} />
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-4">
+                <p className="text-black text-sm italic">No report loaded.</p>
+              </div>
             )}
           </div>
         </Win98Window>

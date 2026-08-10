@@ -47,6 +47,12 @@ type Win98WindowProps = {
    *  shrunk past the point where content would get clipped/hidden instead
    *  of just laid out smaller. */
   minSize?: { w: number; h: number }
+  /** Per-window ceiling for drag-resizing. Unset (Infinity) by default — a
+   *  window can otherwise be stretched all the way to the work-area edges.
+   *  Useful for windows whose content doesn't grow (e.g. a short bio), where
+   *  stretching past a certain size just leaves a big empty void instead of
+   *  showing more content. */
+  maxSize?: { w: number; h: number }
   /** False for windows with a fixed, content-driven size (e.g. Minesweeper,
    *  which — like the real thing — always fits its board exactly and can't
    *  be dragged bigger/smaller). Hides the resize handles; the titlebar can
@@ -118,6 +124,7 @@ export default function Win98Window({
   defaultSize,
   cardOffset = { x: 0, y: 0 },
   minSize = { w: MIN_W, h: MIN_H },
+  maxSize = { w: Infinity, h: Infinity },
   resizable = true,
   maximizable = true,
   rect,
@@ -220,18 +227,19 @@ export default function Win98Window({
     const maxH = window.innerHeight - TASKBAR_H
 
     // East/south edges grow away from their fixed opposite edge — same math
-    // as the original bottom-right-only grip.
+    // as the original bottom-right-only grip. maxSize is an additional cap
+    // below the work-area edge, for windows that shouldn't stretch that far.
     if (dir.includes('e')) {
-      w = Math.min(Math.max(r.w + dx, minSize.w), maxW - r.x - 4)
+      w = Math.min(Math.max(r.w + dx, minSize.w), maxW - r.x - 4, maxSize.w)
     }
     if (dir.includes('s')) {
-      h = Math.min(Math.max(r.h + dy, minSize.h), maxH - r.y)
+      h = Math.min(Math.max(r.h + dy, minSize.h), maxH - r.y, maxSize.h)
     }
     // West/north edges move the origin too, keeping the opposite (right/
     // bottom) edge fixed in place — like dragging a real window's left or
     // top border.
     if (dir.includes('w')) {
-      let newW = Math.max(r.w - dx, minSize.w)
+      let newW = Math.min(Math.max(r.w - dx, minSize.w), maxSize.w)
       let newX = r.x + r.w - newW
       if (newX < 0) {
         newX = 0
@@ -241,7 +249,7 @@ export default function Win98Window({
       w = newW
     }
     if (dir.includes('n')) {
-      let newH = Math.max(r.h - dy, minSize.h)
+      let newH = Math.min(Math.max(r.h - dy, minSize.h), maxSize.h)
       let newY = r.y + r.h - newH
       if (newY < 0) {
         newY = 0

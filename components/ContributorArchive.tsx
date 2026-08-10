@@ -7,10 +7,12 @@
 // feed — that detail already lives inside each report's own "Focus areas"
 // section. This widget is the one place reports show up on the site.
 //
-// Report rows link to /blogs/[slug] to actually read the full report —
-// that route forces the separate "Advith's Blogs" window open (see that
-// route's forceOpenApp="blogs"), which is the same way every other blog
-// reference on the site works (ExplorerBlogList, etc.).
+// Report rows link to /reports/[slug] to actually read the full report —
+// that route forces open a standalone Report window (see that route's
+// forceOpenApp="report" and components/ReportViewer.tsx), decoupled from
+// the Blogs window that every other blog reference on the site opens
+// (ExplorerBlogList, etc.). Reports are still stored/compiled as ordinary
+// Notes (lib/notes.ts) — only the window/app identity is separate.
 //
 // .win98-window chrome + ScrollPanel + win98-button rows, same structure as
 // ContactView's Internet Shortcuts panel — but with the dark content panel
@@ -21,6 +23,7 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
 import ScrollPanel from '@/components/ScrollPanel'
+import TagChip from '@/components/TagChip'
 import type { Note } from '@/lib/notes'
 
 type ContributorArchiveProps = {
@@ -62,17 +65,19 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                     {reportsByYear.get(year)!.map((note) => (
                       <Link
                         key={note.slug}
-                        href={`/blogs/${note.slug}`}
+                        href={`/reports/${note.slug}`}
                         className="win98-button p-2 flex flex-col min-w-0 no-underline"
                       >
                         <span className="block text-sm font-bold truncate min-w-0">{note.title}</span>
-                        <span className="flex items-center justify-between gap-2 min-w-0">
+                        <span className="flex items-start justify-between gap-2 min-w-0 flex-wrap">
                           <span className="text-[10px] text-[#444] font-bold truncate">
                             {format(new Date(note.date), 'MMM dd, yyyy')}
                           </span>
                           {note.repos.length > 0 && (
-                            <span className="text-[10px] text-[#444] font-bold truncate text-right shrink-0">
-                              {note.repos.map((r) => `#${r.split('/')[1] ?? r}`).join(' ')}
+                            <span className="flex flex-wrap gap-1 justify-end">
+                              {note.repos.map((r) => (
+                                <TagChip key={r} tag={r.split('/')[1] ?? r} />
+                              ))}
                             </span>
                           )}
                         </span>

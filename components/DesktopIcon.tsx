@@ -35,6 +35,10 @@ type DesktopIconProps = {
   isActive?: boolean
   /** Grayed-out look (win98 "unavailable"); parent still receives onOpen */
   disabled?: boolean
+  /** Passed straight to next/image — set true only for whichever icon is
+   *  actually the page's LCP element (see HomeClient), not every icon, or
+   *  it stops meaning anything. */
+  priority?: boolean
   onOpen: () => void
   onMove: (id: string, cell: GridCell) => void
 }
@@ -49,6 +53,7 @@ export default function DesktopIcon({
   showBadge = false,
   isActive = false,
   disabled = false,
+  priority = false,
   onOpen,
   onMove,
 }: DesktopIconProps) {
@@ -142,7 +147,15 @@ export default function DesktopIcon({
             width/height on next/image stretches a non-square source to
             fit exactly — this letterboxes it within the same 56x56 slot
             instead of distorting it. */}
-        <Image src={icon} alt="" fill sizes="56px" className="object-contain" draggable={false} />
+        <Image
+          src={icon}
+          alt=""
+          fill
+          sizes="56px"
+          className="object-contain"
+          draggable={false}
+          priority={priority}
+        />
         {showBadge && (
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse-expand"></span>
         )}

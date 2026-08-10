@@ -40,7 +40,7 @@ function BlogRow({ note, compact }: { note: Note; compact: boolean }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={`grid items-start px-2 py-2 no-underline text-black hover:bg-[#000080] hover:text-white group border-b border-[#e5e5e5] ${
-          compact ? 'bg-zinc-700 grid-cols-1' : 'bg-zinc-700 grid-cols-[1fr_130px_110px]'
+          compact ? 'bg-[#444] grid-cols-1' : 'bg-[#444] grid-cols-[1fr_130px_110px]'
         }`}
       >
         <span className="flex items-start gap-3 min-w-0 pr-6">
@@ -53,7 +53,7 @@ function BlogRow({ note, compact }: { note: Note; compact: boolean }) {
               className="w-[120px] h-[68px] object-cover shrink-0 border-2 border-[#808080]"
             />
           ) : (
-            <span className="w-[120px] h-[68px] flex items-center justify-center shrink-0 border-2 border-[#808080] bg-[#1f1f1f]">
+            <span className="w-[120px] h-[68px] flex items-center justify-center shrink-0 border-2 border-[#808080] bg-[#222222]">
               <Image
                 src="/win98/notes.webp"
                 alt=""
@@ -235,7 +235,7 @@ export default function ExplorerBlogList({ notes }: ExplorerBlogListProps) {
           artificial min-height here — a short window should shrink this
           (it already scrolls internally), not push the status bar below
           the window's own frame. */}
-      <div className="bg-[#666666] flex-1 min-h-0 overflow-y-auto">
+      <div className="bg-[#222222] flex-1 min-h-0 overflow-y-auto">
         {visible.length === 0 ? (
           <p className="text-white text-sm p-4 italic">
             {notes.length === 0

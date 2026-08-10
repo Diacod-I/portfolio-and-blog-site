@@ -17,7 +17,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme' | 'minesweeper' | 'solitaire' | 'projects'
+export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme' | 'minesweeper' | 'solitaire' | 'projects' | 'report'
 export type WinStatus = 'closed' | 'open' | 'minimized'
 export type Rect = { x: number; y: number; w: number; h: number }
 export type WinState = {
@@ -41,6 +41,9 @@ const initialWins: Record<AppId, WinState> = {
   minesweeper: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   solitaire: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   projects: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
+  // Standalone contributor-report viewer — its own window/app instead of
+  // borrowing the Blogs window (see ReportViewer.tsx / app/reports/[slug]).
+  report: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
 }
 
 type WindowStore = {
@@ -113,10 +116,10 @@ export const useWindowStore = create<WindowStore>()(
       setTaskOrder: (ids) => set({ taskOrder: ids }),
     }),
     {
-      // Bumped to v9: added 'projects'. Older persisted state wouldn't have
+      // Bumped to v10: added 'report'. Older persisted state wouldn't have
       // this key, which would crash on read — bumping the key just starts
       // fresh instead of trying to migrate.
-      name: 'win98-window-state-v9',
+      name: 'win98-window-state-v10',
       storage: createJSONStorage(() => sessionStorage),
       skipHydration: true,
     }

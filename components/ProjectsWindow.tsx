@@ -315,7 +315,7 @@ export default function ProjectsWindow() {
                   <span className="text-[10px] text-[#555555] font-semibold group-hover:text-white">
                     {format(new Date(p.date), 'MMM dd, yyyy')}
                   </span>
-                  <span className="text-xs text-[#222222] line-clamp-3 group-hover:text-white">{p.description}</span>
+                  <span className="text-xs font-semibold text-[#222222] line-clamp-3 group-hover:text-white">{p.description}</span>
 
                   {p.tags && p.tags.length > 0 && (
                     <div className="flex flex-wrap justify-end gap-1 mt-1">

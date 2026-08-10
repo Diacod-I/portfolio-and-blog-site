@@ -187,7 +187,7 @@ export default function ProjectsWindow() {
               <div
                 key={p.id}
                 onClick={() => handleCardClick(p)}
-                className="w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden cursor-pointer hover:brightness-105 active:brightness-95"
+                className="group w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden cursor-pointer hover:brightness-105 active:brightness-95"
               >
                 <div
                   className={`relative w-full aspect-[16/9] shrink-0 border-b-2 border-[#808080] ${
@@ -300,12 +300,17 @@ export default function ProjectsWindow() {
                   )}
                 </div>
 
+                {/* Text turns white on hover, same as ContributorArchive's
+                    report rows (win98-button's hover:text-[#f9f9f9]) — but
+                    these spans set their own explicit colors instead of
+                    inheriting one, so that has to be group-hover here
+                    rather than a plain CSS inherit. */}
                 <div className="p-2 flex flex-col gap-1.5 flex-1 min-h-0">
-                  <span className="font-bold text-black text-sm break-words">{p.title}</span>
-                  <span className="text-[10px] text-[#555555] font-semibold">
+                  <span className="font-bold text-black text-sm break-words group-hover:text-white">{p.title}</span>
+                  <span className="text-[10px] text-[#555555] font-semibold group-hover:text-white">
                     {format(new Date(p.date), 'MMM dd, yyyy')}
                   </span>
-                  <span className="text-xs text-[#222222] line-clamp-3">{p.description}</span>
+                  <span className="text-xs text-[#222222] line-clamp-3 group-hover:text-white">{p.description}</span>
 
                   {p.tags && p.tags.length > 0 && (
                     <div className="flex flex-wrap justify-end gap-1 mt-1">

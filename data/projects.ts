@@ -48,7 +48,7 @@ const allProjects: Project[] = [
     title: 'Warthog',
     description: 'Fast, memory-safe ML/DL library without NumPy/PyTorch.',
     tags: ['rust', 'python'],
-    thumbnail: '',
+    thumbnail: '/project-thumbnails/warthog.png',
     liveUrl: 'https://github.com/Diacod-I/warthog',
     repoUrl: 'https://github.com/Diacod-I/warthog',
     date: '2026-07-11',

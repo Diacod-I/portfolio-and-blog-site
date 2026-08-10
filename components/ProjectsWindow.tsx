@@ -158,7 +158,7 @@ export default function ProjectsWindow() {
           // always exactly 280px, full stop — extra row width just becomes
           // empty space, same as icons in a real Explorer window.
           <div className="grid grid-cols-[repeat(auto-fill,280px)] gap-3">
-            {visible.map((p) => (
+            {visible.map((p, i) => (
               <div
                 key={p.id}
                 className="w-[280px] bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] flex flex-col overflow-hidden"
@@ -175,6 +175,11 @@ export default function ProjectsWindow() {
                       fill
                       sizes="260px"
                       className="object-cover"
+                      // Scoped to the first card, not every thumbnail — only
+                      // the first row is actually above the fold, and this
+                      // one's the one Next flagged as the LCP element. Every
+                      // other thumbnail should stay lazy-loaded.
+                      priority={i === 0}
                     />
                   ) : (
                     // Classic Windows 98 desktop teal (#008080) behind the

@@ -270,7 +270,7 @@ export default function ProjectsWindow() {
                   <span className="text-[10px] text-[#555555] font-semibold">
                     {format(new Date(p.date), 'MMM dd, yyyy')}
                   </span>
-                  <span className="text-xs text-[#333333] line-clamp-3">{p.description}</span>
+                  <span className="text-xs text-[#222222] line-clamp-3">{p.description}</span>
 
                   {p.tags && p.tags.length > 0 && (
                     <div className="flex flex-wrap justify-end gap-1 mt-1">

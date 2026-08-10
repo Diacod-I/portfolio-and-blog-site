@@ -1007,7 +1007,7 @@ export default function SolitaireWindow({ windowVisible = true }: SolitaireWindo
         </div>
       )}
 
-      <div className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#c0c0c0] px-2 py-1 border-t-2 border-[#dfdfdf] text-xs text-black">
+      <div className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#c0c0c0] px-2 py-1 border-t-2 border-[#dfdfdf] text-xs font-bold text-black">
         {won ? (
           <span className="font-bold text-green-800">🎉 You win!</span>
         ) : autoCompleting ? (

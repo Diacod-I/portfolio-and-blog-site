@@ -3,7 +3,7 @@ title: "I built a terminal that tells you where you are"
 date: "2026-08-13"
 author: "Advith Krishnan"
 status: "Published"
-tag: "Low Level"
+tag: "Misc"
 thumbnail: "/thumbnails/dot-files.webp"
 ---
 

@@ -54,7 +54,16 @@ const allProjects: Project[] = [
     date: '2026-07-11',
     wip: true
   },
-
+  {
+    id: 'dot-files',
+    title: 'dot-files', 
+    description: 'My config dot files (Neovim + tmux + Starship + zsh)', 
+    tags: ['shell', 'lua'],
+    thumbnail: '',
+    liveUrl: 'https://github.com/Diacod-I/dot-files',
+    repoUrl: 'https://github.com/Diacod-I/dot-files',
+    date: '2026-08-13',
+  },  
 ]
 
 const projects: Project[] = allProjects

@@ -59,7 +59,7 @@ const allProjects: Project[] = [
     title: 'dot-files', 
     description: 'My config dot files (Neovim + tmux + Starship + zsh)', 
     tags: ['shell', 'lua'],
-    thumbnail: '',
+    thumbnail: '/project-thumbnails/dot-files.png',
     liveUrl: 'https://github.com/Diacod-I/dot-files',
     repoUrl: 'https://github.com/Diacod-I/dot-files',
     date: '2026-08-13',

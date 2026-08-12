@@ -1,0 +1,83 @@
+---
+title: "I built a terminal that tells you where you are"
+date: "2026-08-13"
+author: "Advith Krishnan"
+status: "Published"
+tag: "Low Level"
+thumbnail: "/thumbnails/dot-files.webp"
+---
+
+I spent a while rebuilding my terminal recently. Not re-theming it. Rebuilding it. New prompt, new listing commands, Neovim and tmux behaviors I'd been meaning to fix for two years. The whole thing lives here: [github.com/Diacod-I/dot-files](https://github.com/Diacod-I/dot-files/tree/main). This post is the reasoning behind it.
+
+## The Core Idea
+
+1) **The best tools disappear**. A prompt you have to read carefully is a prompt that's failing at its job. So the design goal was simple: surface what's unusual, hide what's normal, and never make me squint.
+
+2) **The prompt reacts to context**. Most prompts dump everything onto one line: path, branch, git status, versions, all crammed together, in the same color, whether or not any of it matters right now. I went the other way. I tried a column format where each piece of information gets its own row, and rows appear only when they're relevant.
+
+- The directory row shows the repo-relative path when I'm inside a git repo (warthog/src/backend) and the path from ~ when I'm loose in the filesystem. I never see a wall of absolute path I have to parse.
+- The branch row only exists inside a repo. And the moment I'm not on main or master, it grows a white-on-red `⚠ OFF-MAIN` flag. This has genuinely stopped me from committing to the wrong branch more than once — the whole point is that it's impossible to not notice.
+- The venv row shows only when a `virtualenv` is active. The language rows (`rust`, `py`) auto-hide outside the relevant project.
+- The rule is: if a row is on screen, it's telling me something. Nothing decorative, nothing always-on.
+
+This is built with custom starship modules that shell out to git and check the environment per prompt. The branch flag, for instance, is just:
+
+bash
+> b=$(git branch --show-current)
+> if [ "$b" != main ] && [ "$b" != master ]; then
+>   printf "%s  \033[1;37;41m ⚠ OFF-MAIN \033[0m" "$b"
+> else
+>   printf "%s" "$b"
+> fi
+
+
+3) **A rule that brackets every command**. Above each prompt is a full-width horizontal rule. It sounds trivial, but it solves a real annoyance for me: scrolling up through a session and not being able to tell where one command's output ends and the next begins. With a rule bracketing every command, that ambiguity disappears. The fiddly part was making it resize-safe inside tmux. $COLUMNS doesn't propagate into starship's subshell, and tput cols reports the wrong width inside a tmux pane. The fix was to ask tmux directly:
+
+bash
+> w=$(tmux display -p "#{pane_width}" 2>/dev/null || tput cols)
+
+tmux always knows its own pane width and updates it live on resize, with tput cols as the fallback for a bare terminal. The rule also carries a per-command counter (#7) that resets with cls — a small thing, but it makes "how much have I done in this session" answerable at a glance.
+
+4) **Listings you can actually scan**. I have about thirty project folders. A plain `ls` of that is a wall. So `ls`/`ll`/`lf`/`lt` are functions wrapping `eza`, indented for readability, and `lf` does something specific: it's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down. Speaking with a few developers, they seem to agree experiencing delays just from reading large `ls` outputs
+
+Getting that right taught me a lesson I'll keep: don't parse ANSI escape codes with a regex. My first several attempts tried to strip `eza`'s color codes to re-style the first letter, and each one leaked a different fragment `(36m, 1;4m)` as literal text, because eza emits color and bold and underline codes and hand-parsing all of them is a losing game. The version that finally worked never strips anything — it reads through the escape codes and inserts styling around just the first letter:
+
+perl
+> perl -pe 's/(\e\[[0-9;]*m)+\K([[:alnum:]])/\e[1;4m$2\e[22;24m/'
+
+5) **Git you can read**. Interactive rebase is where a lot of people (including me) get lost. The `pick`/`reword`/`squash`/`drop` list is powerful and completely undifferentiated by default, since every command has the same color. So I color-coded them by meaning: green `pick` (keep), red `drop` (delete), purple `squash` (fold up), and so on. It's a gitrebase `FileType` autocmd in Neovim that matches each command word and paints it at a priority high enough to beat treesitter's:
+
+lua
+> vim.fn.matchadd("RebaseDrop", "\\v^(d|drop)>", 200)  -- red
+
+Suddenly the plan reads like a plan instead of a wall of identical verbs. Merge conflicts get the same treatment via `git-conflict.nvim`, which shades the two sides and lets me resolve with a keystroke instead of hand-matching <<<<<<< markers.
+
+## The Neovim 0.12 gotcha (a public service announcement)
+
+If you're on Neovim 0.12 and your treesitter setup is crashing or your parsers silently aren't installing, here's the thing that cost me an evening: `nvim-treesitter`'s main branch is now required, and it has a completely different API. Don't do `ensure_installed` in a setup() call. Instead:
+
+lua
+> require("nvim-treesitter").install({ "lua", "python", "rust", ... })
+
+...plus a `FileType` autocmd that calls vim.treesitter.start() per buffer, because highlighting isn't auto-enabled anymore. Two more traps I hit: the git_rebase parser and the gitrebase filetype have different names and you have to register the mapping yourself (vim.treesitter.language.register("git_rebase", "gitrebase")), and Telescope's previewer will crash with a languagetree error unless you disable treesitter in the preview. If you've been fighting any of these, that's the fix.
+
+## The small tools that compound
+
+None of these are novel, but together they're the difference between friction and flow:
+
+`atuin` — Ctrl-R history that's actually searchable, with timing and context. I stopped memorizing commands and started just... finding them.
+`zoxide` — z warthog jumps to a frecent directory. With thirty projects, this beats any listing.
+`fzf` — fuzzy everything.
+`zsh-syntax-highlighting` — colors my input as I type (dim args, green commands, cyan paths, red typos), so the command line reads differently from program output. The single biggest legibility win, and it was already installed — I just hadn't styled it.
+
+## What I actually took from this
+
+Two things.
+
+First, most of my time went into fighting layers that emit their own formatting. The fixes that worked all shared a shape: stop wrestling the layer, look up directly what you need, or insert around its output instead of tearing through it. That's a debugging instinct I shall carry forward.
+
+Second, a terminal is craft, not a destination. The next thing I ship will run through exactly the same path, and it'll be the work I actually care about: making things run faster.
+
+For now, though, I can build better. That was the point. Until next time, take care. 
+
+Configs, README, and install steps: [github.com/Diacod-I/dot-files](https://github.com/Diacod-I/dot-files/tree/main).

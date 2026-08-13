@@ -42,7 +42,7 @@ tmux always knows its own pane width and updates it live on resize, with tput co
 
 4) **Listings you can actually scan**. I have about thirty project folders. A plain `ls` of that is a wall. So `ls`/`ll`/`lf`/`lt` are functions wrapping `eza`, indented for readability, and `lf` does something specific: it's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down. Speaking with a few developers, they seem to agree experiencing delays just from reading large `ls` outputs
 
-Getting that right taught me a lesson I'll keep: don't parse ANSI escape codes with a regex. My first several attempts tried to strip `eza`'s color codes to re-style the first letter, and each one leaked a different fragment `(36m, 1;4m)` as literal text, because eza emits color and bold and underline codes and hand-parsing all of them is a losing game. The version that finally worked never strips anything — it reads through the escape codes and inserts styling around just the first letter:
+Getting that right taught me a lesson I'll keep: don't parse ANSI escape codes with a regex. My first several attempts tried to strip `eza`'s color codes to re-style the first letter, and each one leaked a different fragment `(36m, 1;4m)` as literal text, because eza emits color and bold and underline codes and hand-parsing all of them is a losing game. The version that finally worked never strips anything, and instead reads through escape codes and inserts styling around just the first letter:
 
 ```perl
 perl -pe 's/(\e\[[0-9;]*m)+\K([[:alnum:]])/\e[1;4m$2\e[22;24m/'
@@ -56,7 +56,7 @@ vim.fn.matchadd("RebaseDrop", "\\v^(d|drop)>", 200)  -- red
 
 Suddenly the plan reads like a plan instead of a wall of identical verbs. Merge conflicts get the same treatment via `git-conflict.nvim`, which shades the two sides and lets me resolve with a keystroke instead of hand-matching `<<<<<<<` markers.
 
-## The Neovim 0.12 gotcha (a public service announcement)
+## The Neovim 0.12 gotcha
 
 If you're on Neovim 0.12 and your treesitter setup is crashing or your parsers silently aren't installing, here's the thing that cost me an evening: `nvim-treesitter`'s main branch is now required, and it has a completely different API. Don't do `ensure_installed` in a setup() call. Instead:
 
@@ -70,10 +70,10 @@ require("nvim-treesitter").install({ "lua", "python", "rust", ... })
 
 None of these are novel, but together they're the difference between friction and flow:
 
-`atuin` — Ctrl-R history that's actually searchable, with timing and context. I stopped memorizing commands and started just... finding them.
-`zoxide` — z warthog jumps to a frecent directory. With thirty projects, this beats any listing.
-`fzf` — fuzzy everything.
-`zsh-syntax-highlighting` — colors my input as I type (dim args, green commands, cyan paths, red typos), so the command line reads differently from program output. The single biggest legibility win, and it was already installed — I just hadn't styled it.
+- `atuin` — Ctrl-R history that's actually searchable, with timing and context. I stopped memorizing commands and started just... finding them.
+- `zoxide` — z warthog jumps to a frecent directory. With thirty projects, this beats any listing.
+- `fzf` — fuzzy everything.
+- `zsh-syntax-highlighting` — colors my input as I type (dim args, green commands, cyan paths, red typos), so the command line reads differently from program output. The single biggest legibility win, and it was already installed — I just hadn't styled it.
 
 ## What I actually took from this
 

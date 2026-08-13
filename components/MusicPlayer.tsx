@@ -153,7 +153,8 @@ export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: Mu
   const [duration, setDuration] = useState(0)
 
   // --- YouTube mode state ---
-  const ytHostRef = useRef<HTMLDivElement>(null)
+  const ytHostRef = useRef<HTMLDivElement>(null) // stable, React-owned wrapper — never mutated by the API
+  const ytMountRef = useRef<HTMLDivElement | null>(null) // plain node handed to YT.Player, which replaces it with an <iframe>
   const ytPlayerRef = useRef<YTPlayer | null>(null)
   const ytPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [ytReady, setYtReady] = useState(false)
@@ -175,7 +176,18 @@ export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: Mu
 
     loadYouTubeApi().then(() => {
       if (cancelled || !ytHostRef.current || !window.YT) return
-      ytPlayerRef.current = new window.YT.Player(ytHostRef.current, {
+      // The IFrame API doesn't render *inside* the element you hand it —
+      // it destructively replaces that element with an <iframe>. Handing
+      // it ytHostRef.current directly would mean replacing a node React
+      // itself rendered and still believes exists; React later tries to
+      // remove/reconcile that now-gone node and throws a `removeChild`
+      // NotFoundError. Give the API a plain node React never put in its
+      // own tree instead — ytHostRef stays an untouched, stable wrapper.
+      const mount = document.createElement('div')
+      ytHostRef.current.appendChild(mount)
+      ytMountRef.current = mount
+
+      ytPlayerRef.current = new window.YT.Player(mount, {
         videoId: songMeta.id,
         playerVars: { playsinline: 1 },
         events: {
@@ -188,8 +200,15 @@ export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: Mu
     return () => {
       cancelled = true
       if (ytPollRef.current) clearInterval(ytPollRef.current)
+      // destroy() removes the <iframe> that replaced our mount node. If
+      // cleanup runs before the API even loaded, that swap never happened
+      // — fall back to removing the still-plain mount node ourselves.
       ytPlayerRef.current?.destroy()
       ytPlayerRef.current = null
+      if (ytMountRef.current?.parentNode) {
+        ytMountRef.current.parentNode.removeChild(ytMountRef.current)
+      }
+      ytMountRef.current = null
       setYtReady(false)
       setYtPlaying(false)
       setYtCurrent(0)

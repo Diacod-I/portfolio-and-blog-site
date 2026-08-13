@@ -16,6 +16,7 @@ module.exports = {
     'bg-emerald-300', 'text-emerald-950',
     'bg-orange-300', 'text-orange-950',
     'bg-pink-300', 'text-pink-950',
+    'bg-red-300', 'text-red-950',
     'bg-gray-300', 'text-gray-900',
   ],
   darkMode: 'class',

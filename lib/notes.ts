@@ -26,6 +26,14 @@ export type Note = {
    *  rendered as "#repo" hashtags in ContributorArchive. Empty for non-report
    *  posts, or older reports scaffolded before this field existed. */
   repos: string[]
+  /** Public path to an optional background track for this post (e.g.
+   *  "/music/lofi.mp3"), rendered as a small Win98 media-player widget
+   *  under the thumbnail (see MusicPlayer.tsx). Null when the post has no
+   *  `song` frontmatter — the player just doesn't render. */
+  song: string | null
+  /** Track name shown in the player. Falls back to the post title if a
+   *  `song` is set but `songTitle` isn't. */
+  songTitle: string | null
 }
 
 export type NoteWithContent = Note & { content: string }
@@ -68,6 +76,8 @@ async function parseNote(slug: string, fileContent: string): Promise<NoteWithCon
     thumbnail: await findThumbnail(slug, data.thumbnail),
     tag: isTag(data.tag) ? data.tag : DEFAULT_TAG,
     repos: Array.isArray(data.repos) ? data.repos.filter((r): r is string => typeof r === 'string') : [],
+    song: typeof data.song === 'string' && data.song.trim() ? data.song : null,
+    songTitle: typeof data.songTitle === 'string' && data.songTitle.trim() ? data.songTitle : null,
     content,
   }
 }

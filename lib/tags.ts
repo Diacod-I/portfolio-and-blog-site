@@ -20,7 +20,9 @@ export const TAG_STYLES: Record<Tag, string> = {
   'Low Level': 'bg-emerald-300 text-emerald-950',
   Cooking: 'bg-orange-300 text-orange-950',
   Life: 'bg-pink-300 text-pink-950',
-  Reports: 'bg-yellow-300 text-yellow-950',
+  // Distinct from the "NEW" badge (also yellow, see ExplorerBlogList) so the
+  // two don't blend together when a post is both new and tagged Reports.
+  Reports: 'bg-red-300 text-red-950',
   Misc: 'bg-gray-300 text-gray-900',
 }
 

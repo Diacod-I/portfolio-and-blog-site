@@ -126,6 +126,26 @@
     background-color: #000080 !important;
     color: white !important;
   }
+
+  /* Blog post body (BlogPostView's .prose wrapper). Tailwind Typography's
+     default `code` styling leans on a font-family swap to set code apart
+     from prose — useless here since the site already forces `font-mono`
+     on every element (see the `*` rule above), so inline code and fenced
+     blocks rendered as indistinguishable plain text. Style them explicitly
+     instead, in a terminal-green-on-black look that fits the theme. */
+  .prose :where(code):not(:where(pre code)) {
+    @apply bg-black text-[#7CFC9A] px-1 py-0.5 rounded-sm;
+  }
+  .prose :where(code):not(:where(pre code))::before,
+  .prose :where(code):not(:where(pre code))::after {
+    content: '' !important;
+  }
+  .prose pre {
+    @apply bg-black border-2 border-[#808080] rounded-none p-3;
+  }
+  .prose pre code {
+    @apply bg-transparent text-[#7CFC9A] p-0;
+  }
 }
 
 /* Windows 98-style scrollbar */

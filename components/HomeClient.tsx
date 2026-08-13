@@ -68,6 +68,30 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   report: { name: 'Report Viewer', icon: '/win98/notes.webp' },
 }
 
+// Flavor text for each app's splash (see WindowsLoader) — shown only the
+// first time an app opens in a session (see openApp below), same as the
+// window-maximize-on-first-open behavior. Kept short: it's a beat of
+// personality on the way in, not something anyone should have to read.
+const LOADING_MESSAGES: Record<AppId, string> = {
+  advith: 'Booting up advith.exe...',
+  blogs: 'Indexing blog posts...',
+  gallery: 'Loading photo gallery...',
+  credits: 'Rolling the credits...',
+  pop: 'Loading Prince of Persia...',
+  popReadme: 'Opening the manual...',
+  minesweeper: 'Planting mines...',
+  solitaire: 'Shuffling the deck...',
+  projects: 'Unpacking project files...',
+  report: 'Opening report...',
+}
+
+// How long each splash stays up. advith.exe does the most on first paint
+// (nav chrome, GitHub activity fetch) so it gets a beat longer; everything
+// else is quick enough that the default reads as a deliberate flourish
+// rather than the app actually being slow.
+const LOADING_DURATIONS: Partial<Record<AppId, number>> = { advith: 900 }
+const DEFAULT_LOADING_DURATION = 650
+
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
 // but 'credits' never gets a <DesktopIcon /> rendered — see the JSX below.
 // It's launched from the taskbar's "Credits" link, not pinned to the desktop.
@@ -115,7 +139,9 @@ export default function HomeClient({
   reportView,
   initialHomeTab = 'home',
 }: HomeClientProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  // Which app (if any) is showing its loading splash right now — see
+  // WindowsLoader and the LOADING_MESSAGES/LOADING_DURATIONS registry above.
+  const [loadingApp, setLoadingApp] = useState<AppId | null>(null)
   // advith.exe's Home/Contact/Resume tabs — local state, no navigation
   // involved (see Navbar). Seeded once from whichever route we landed on.
   const [homeTab, setHomeTab] = useState<HomeTab>(initialHomeTab)
@@ -172,13 +198,18 @@ export default function HomeClient({
 
   const openApp = useCallback(async (id: AppId) => {
     registerApp(id)
-    if (id === 'advith' && wins.advith.status === 'closed') {
-      setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setIsLoading(false)
+    // Splash only on a genuinely fresh open (closed -> open), same rule as
+    // the window-maximize-on-first-open behavior — reading getState()
+    // directly instead of a reactive `wins` dependency keeps this callback's
+    // identity stable across the frequent window-store updates (drag/resize)
+    // that don't actually need to retrigger it.
+    if (useWindowStore.getState().wins[id].status === 'closed') {
+      setLoadingApp(id)
+      await new Promise(resolve => setTimeout(resolve, LOADING_DURATIONS[id] ?? DEFAULT_LOADING_DURATION))
+      setLoadingApp(null)
     }
     focusApp(id)
-  }, [wins.advith.status, focusApp, registerApp])
+  }, [focusApp, registerApp])
 
   const minimizeApp = storeMinimizeApp
   const closeApp = storeCloseApp
@@ -938,7 +969,13 @@ export default function HomeClient({
         </Win98Window>
       )}
 
-      {isLoading && <WindowsLoader />}
+      {loadingApp && (
+        <WindowsLoader
+          title={`Loading ${APPS[loadingApp].name}...`}
+          icon={APPS[loadingApp].icon}
+          message={LOADING_MESSAGES[loadingApp]}
+        />
+      )}
     </div>
     <FooterConsole
       activeApps={taskbarApps}

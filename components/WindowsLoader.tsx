@@ -1,39 +1,58 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+// App-launch splash, shown briefly the first time an app opens in a
+// session (see openApp in HomeClient.tsx). Per-app: the titlebar and body
+// both use that app's own icon, and the message is app-specific (see
+// LOADING_MESSAGES in HomeClient.tsx) — reads as "this app is starting",
+// not a generic system dialog reused for everything.
+//
+// The progress indicator is a sunken track with a block of color sweeping
+// back and forth, rather than a spinning circle — win98 "please wait"
+// dialogs (installers, app splashes) used exactly this marquee-style bar,
+// a spinning circle is more a 2000s-and-on web convention than a win98 one.
+
 import Image from 'next/image'
 
-export default function WindowsLoader() {
-  const [isVisible, setIsVisible] = useState(false)
+type WindowsLoaderProps = {
+  /** Titlebar text, e.g. "Loading Minesweeper..." */
+  title: string
+  /** The app's own icon — used in both the titlebar and the body. */
+  icon: string
+  /** Per-app flavor text, e.g. "Sweeping for mines..." */
+  message: string
+}
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true)
-    },400)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (!isVisible) return null
-
+export default function WindowsLoader({ title, icon, message }: WindowsLoaderProps) {
   return (
     <div
-      className="win98-window fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-[200px]"
+      className="win98-window win98-loader-pop fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72"
       style={{ zIndex: 20000 }}
     >
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
-          <Image src="/win98/info.webp" alt="Loading" width={20} height={20} className="w-4 h-4" />
-          <span>Loading..</span>
+          <Image src={icon} alt="" width={16} height={16} className="w-4 h-4 object-contain" />
+          <span>{title}</span>
         </div>
       </div>
-      <div className="p-4 bg-[#c0c0c0] flex items-center gap-4">
-        {/* shrink-0: without it, a narrow flex row (e.g. this window on a
-            phone-width screen) squeezes the circle's width but not its
-            height, turning it into an oval. min-w-0 on the text lets it
-            wrap instead of forcing the circle to give up its space. */}
-        <div className="animate-spin border-4 border-[#000080] border-t-transparent rounded-full w-8 h-8 shrink-0"></div>
-        <span className="min-w-0">Loading advith.exe...</span>
+      <div className="p-4 bg-[#c0c0c0] flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <Image
+            src={icon}
+            alt=""
+            width={32}
+            height={32}
+            className="w-8 h-8 object-contain shrink-0"
+          />
+          {/* min-w-0 lets this wrap instead of squeezing the icon into an
+              oval — same reasoning as the old single-app version of this
+              component. */}
+          <span className="min-w-0 text-sm leading-snug">{message}</span>
+        </div>
+        {/* Sunken track (dark top/left, light bottom/right — the inverse of
+            a raised win98-button) with a marquee block sweeping across it. */}
+        <div className="h-4 bg-white border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white overflow-hidden">
+          <div className="h-full w-1/3 bg-[#000080] win98-loader-marquee" />
+        </div>
       </div>
     </div>
   )

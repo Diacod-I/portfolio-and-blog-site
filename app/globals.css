@@ -188,7 +188,11 @@
   .animate-gradient,
   .animate-pulse-expand,
   .animate-gradient-pulse,
-  .animate-pulse-spiky {
+  .animate-pulse-spiky,
+  .win98-loader-marquee {
+    animation: none !important;
+  }
+  .win98-loader-pop {
     animation: none !important;
   }
 }
@@ -233,4 +237,23 @@
 }
 .animate-pulse-spiky {
   animation: pulseSpiky 1.1s ease-in-out infinite;
+}
+
+/* WindowsLoader app-launch splash (see components/WindowsLoader.tsx):
+   a quick scale+fade pop-in so the dialog doesn't just teleport onto
+   the screen, and a marquee block sweeping across the sunken progress
+   track — the win98-era stand-in for an indeterminate spinner. */
+@keyframes win98LoaderPop {
+  0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.win98-loader-pop {
+  animation: win98LoaderPop 150ms ease-out;
+}
+@keyframes win98LoaderMarquee {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.win98-loader-marquee {
+  animation: win98LoaderMarquee 1.1s ease-in-out infinite;
 }

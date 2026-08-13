@@ -11,9 +11,14 @@ I spent a while rebuilding my terminal recently. Not re-theming it. Rebuilding i
 
 ## The Core Idea
 
-1) **The best tools disappear**. A prompt you have to read carefully is a prompt that's failing at its job. So the design goal was simple: surface what's unusual, hide what's normal, and never make me squint.
+### The best tools disappear.
 
-2) **The prompt reacts to context**. Most prompts dump everything onto one line: path, branch, git status, versions, all crammed together, in the same color, whether or not any of it matters right now. I went the other way. I tried a column format where each piece of information gets its own row, and rows appear only when they're relevant.
+A prompt you have to read carefully is a prompt that's failing at its job. So the design goal was simple: surface what's unusual, hide what's normal, and never make me squint.
+So the real work was pinning down what actually feels unusual and identifying the habits a dev runs on autopilot and only notice when something's off.
+
+### The prompt reacts to context.
+
+Most prompts dump everything onto one line: path, branch, git status, versions, all crammed together, in the same color, whether or not any of it matters right now. I went the other way. I tried a column format where each piece of information gets its own row, and rows appear only when they're relevant, that way it becomes more of a top-to-bottom reading (quick for surface level eyeball comparisons). The layout is as follows:
 
 - The directory row shows the repo-relative path when I'm inside a git repo (warthog/src/backend) and the path from ~ when I'm loose in the filesystem. I never see a wall of absolute path I have to parse.
 - The branch row only exists inside a repo. And the moment I'm not on main or master, it grows a white-on-red `⚠ OFF-MAIN` flag. This has genuinely stopped me from committing to the wrong branch more than once — the whole point is that it's impossible to not notice.
@@ -32,7 +37,9 @@ fi
 ```
 
 
-3) **A rule that brackets every command**. Above each prompt is a full-width horizontal rule. It sounds trivial, but it solves a real annoyance for me: scrolling up through a session and not being able to tell where one command's output ends and the next begins. With a rule bracketing every command, that ambiguity disappears. The fiddly part was making it resize-safe inside tmux. $COLUMNS doesn't propagate into starship's subshell, and tput cols reports the wrong width inside a tmux pane. The fix was to ask tmux directly:
+### A rule that brackets every command.
+
+Above each prompt is a full-width horizontal rule. It sounds trivial, but it solves a real annoyance for me: scrolling up through a session and not being able to tell where one command's output ends and the next begins. With a rule bracketing every command, that ambiguity disappears. The fiddly part was making it resize-safe inside tmux. $COLUMNS doesn't propagate into starship's subshell, and tput cols reports the wrong width inside a tmux pane. The fix was to ask tmux directly:
 
 ```bash
 w=$(tmux display -p "#{pane_width}" 2>/dev/null || tput cols)
@@ -40,7 +47,9 @@ w=$(tmux display -p "#{pane_width}" 2>/dev/null || tput cols)
 
 tmux always knows its own pane width and updates it live on resize, with tput cols as the fallback for a bare terminal. The rule also carries a per-command counter (#7) that resets with cls — a small thing, but it makes "how much have I done in this session" answerable at a glance.
 
-4) **Listings you can actually scan**. I have about thirty project folders. A plain `ls` of that is a wall. So `ls`/`ll`/`lf`/`lt` are functions wrapping `eza`, indented for readability, and `lf` does something specific: it's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down. Speaking with a few developers, they seem to agree experiencing delays just from reading large `ls` outputs
+### Listings you can actually scan.
+
+I have about thirty project folders. A plain `ls` of that is a wall. So `ls`/`ll`/`lf`/`lt` are functions wrapping `eza`, indented for readability, and `lf` does something specific: it's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down. A few developers I've talked to hit the same lag just parsing a big ls dump.
 
 Getting that right taught me a lesson I'll keep: don't parse ANSI escape codes with a regex. My first several attempts tried to strip `eza`'s color codes to re-style the first letter, and each one leaked a different fragment `(36m, 1;4m)` as literal text, because eza emits color and bold and underline codes and hand-parsing all of them is a losing game. The version that finally worked never strips anything, and instead reads through escape codes and inserts styling around just the first letter:
 
@@ -48,7 +57,11 @@ Getting that right taught me a lesson I'll keep: don't parse ANSI escape codes w
 perl -pe 's/(\e\[[0-9;]*m)+\K([[:alnum:]])/\e[1;4m$2\e[22;24m/'
 ```
 
-5) **Git you can read**. Interactive rebase is where a lot of people (including me) get lost. The `pick`/`reword`/`squash`/`drop` list is powerful and completely undifferentiated by default, since every command has the same color. So I color-coded them by meaning: green `pick` (keep), red `drop` (delete), purple `squash` (fold up), and so on. It's a gitrebase `FileType` autocmd in Neovim that matches each command word and paints it at a priority high enough to beat treesitter's:
+\K tells perl to keep the matched color codes untouched and only wrap the first letter; `22;24` resets bold and underline without killing eza's color.
+
+### Git you can read.
+
+Interactive rebase is where a lot of people (including me) get lost. The `pick`/`reword`/`squash`/`drop` list is powerful and completely undifferentiated by default, since every command has the same color. So I color-coded them by meaning: green `pick` (keep), red `drop` (delete), purple `squash` (fold up), and so on. It's a gitrebase `FileType` autocmd in Neovim that matches each command word and paints it at a priority high enough to beat treesitter's:
 
 ```lua
 vim.fn.matchadd("RebaseDrop", "\\v^(d|drop)>", 200)  -- red

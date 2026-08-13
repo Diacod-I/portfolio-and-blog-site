@@ -75,6 +75,7 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
               alt=""
               width={1280}
               height={720}
+              priority
               className="w-full max-w-2xl mx-auto h-auto max-h-96 object-cover border-2 border-[#808080] mb-6"
             />
           )}

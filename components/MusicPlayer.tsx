@@ -119,6 +119,11 @@ function PlayerChrome({
 
   return (
     <div className="bg-white/5 rounded-2xl px-4 py-3 mb-6 flex items-center gap-3 select-none">
+      {/* Sitting directly under the post thumbnail, a bare play icon +
+          scrubber reads as leftover video controls for that image (as if
+          the thumbnail were a paused video). A music note makes it clear
+          this is a separate, audio-only "now playing" widget. */}
+      <span aria-hidden className="text-gray-500 shrink-0 text-sm leading-none">♫</span>
       <button
         onClick={onToggle}
         disabled={disabled}

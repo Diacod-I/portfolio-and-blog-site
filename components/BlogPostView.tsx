@@ -38,15 +38,15 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 text-white select-text">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 text-white select-text">
         {/* Single capped, centered column for everything — title, meta,
             thumbnail, body, and see-also all share the same margin, a bit
             narrower than the window itself for a Medium-style layout.
-            Widened from max-w-2xl: a narrower column wraps every paragraph
-            onto more lines, which is what actually reads as "wall of text"
-            (more vertical scroll for the same words), not the side margins
-            themselves. */}
-        <div className="max-w-3xl mx-auto w-full">
+            Widened again (2xl -> 3xl -> 4xl): a narrower column wraps every
+            paragraph onto more lines, which is what actually reads as
+            "wall of text" (more vertical scroll for the same words), not
+            the side margins themselves. */}
+        <div className="max-w-4xl mx-auto w-full">
 
           {/* Medium-style header: full-width title (free to wrap onto as many
               lines as it needs — it's no longer sharing a flex row with the

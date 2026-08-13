@@ -5,6 +5,7 @@ author: "Advith Krishnan"
 status: "Published"
 tag: "Misc"
 thumbnail: "/thumbnails/dot-files.webp"
+song: "https://music.youtube.com/watch?v=7sbSAbr93ZY&si=Ze-AZUOnj8y5pYeP"
 ---
 
 I spent a while rebuilding my terminal recently. Not re-theming it. Rebuilding it. New prompt, new listing commands, Neovim and tmux behaviors I'd been meaning to fix for two years. The whole thing lives here: [github.com/Diacod-I/dot-files](https://github.com/Diacod-I/dot-files/tree/main). This post is the reasoning behind it.
@@ -57,7 +58,7 @@ Getting that right taught me a lesson I'll keep: don't parse ANSI escape codes w
 perl -pe 's/(\e\[[0-9;]*m)+\K([[:alnum:]])/\e[1;4m$2\e[22;24m/'
 ```
 
-\K tells perl to keep the matched color codes untouched and only wrap the first letter; `22;24` resets bold and underline without killing eza's color.
+`\K` tells perl to keep the matched color codes untouched and only wrap the first letter; `22;24` resets bold and underline without killing eza's color.
 
 ### Git you can read.
 

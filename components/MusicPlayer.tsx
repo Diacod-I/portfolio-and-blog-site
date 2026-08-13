@@ -1,19 +1,29 @@
 'use client'
 
 // A tiny Win98 "media player"-style widget shown under a blog post's
-// thumbnail (see BlogPostView.tsx) — play/pause, a clickable seek bar, and
-// the track name. Purely decorative background music for the post, not a
-// podcast player: no volume/queue/etc, just enough to feel like a Win98
-// applet without becoming its own app.
+// thumbnail (see BlogPostView.tsx). Two modes depending on what a post's
+// `song` frontmatter resolves to (see lib/notes.ts):
 //
-// Renders nothing if `src` is falsy — most posts won't set a `song` in
-// frontmatter, and this component is unconditionally mountable either way.
+//  - Self-hosted mp3 (`song` is a local path, `songMeta` is null): true
+//    in-page playback — play/pause, a clickable seek bar, elapsed time.
+//  - YouTube URL (`songMeta` populated via YouTube's public oEmbed at
+//    build time): YouTube doesn't offer a way to stream a full track into
+//    a custom player without their own SDK/branding, so this shows the
+//    fetched title/artist/thumbnail in our own UI and links out to
+//    actually play it on YouTube.
+//
+// Renders nothing if the post has no `song` at all.
 
 import { useEffect, useRef, useState } from 'react'
+import type { YouTubeSongMeta } from '@/lib/notes'
 
 type MusicPlayerProps = {
-  src: string | null
-  title: string
+  song: string | null
+  songTitle: string | null
+  songMeta: YouTubeSongMeta | null
+  /** Post title — the fallback display name for a self-hosted mp3 that
+   *  didn't also set `songTitle`. */
+  postTitle: string
 }
 
 function formatTime(seconds: number): string {
@@ -23,7 +33,7 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-export default function MusicPlayer({ src, title }: MusicPlayerProps) {
+export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [playing, setPlaying] = useState(false)
   const [current, setCurrent] = useState(0)
@@ -36,9 +46,38 @@ export default function MusicPlayer({ src, title }: MusicPlayerProps) {
     setPlaying(false)
     setCurrent(0)
     setDuration(0)
-  }, [src])
+  }, [song])
 
-  if (!src) return null
+  if (!song) return null
+
+  if (songMeta) {
+    return (
+      <a
+        href={songMeta.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="win98-app-window flex items-center gap-2 px-2 py-2 mb-6 select-none no-underline hover:bg-[#d5d5d5] transition-colors"
+      >
+        {songMeta.thumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element -- external YouTube CDN thumbnail, not worth allowlisting in next.config for one component
+          <img
+            src={songMeta.thumbnail}
+            alt=""
+            className="w-10 h-10 object-cover border-2 border-[#808080] shrink-0"
+          />
+        ) : (
+          <span className="win98-button w-10 h-10 flex items-center justify-center shrink-0 text-black">▶</span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-black text-xs font-bold truncate">{songTitle ?? songMeta.title}</p>
+          {songMeta.author && <p className="text-black/70 text-[10px] truncate">{songMeta.author}</p>}
+        </div>
+        <span className="win98-button px-2 py-1 shrink-0 text-black text-[10px] font-bold">
+          ▶ YouTube
+        </span>
+      </a>
+    )
+  }
 
   const toggle = () => {
     const audio = audioRef.current
@@ -66,7 +105,7 @@ export default function MusicPlayer({ src, title }: MusicPlayerProps) {
     <div className="win98-app-window flex items-center gap-2 px-2 py-2 mb-6 select-none">
       <audio
         ref={audioRef}
-        src={src}
+        src={song}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
         onEnded={() => setPlaying(false)}
@@ -79,15 +118,12 @@ export default function MusicPlayer({ src, title }: MusicPlayerProps) {
         {playing ? '❚❚' : '▶'}
       </button>
       <div className="min-w-0 flex-1">
-        <p className="text-black text-xs font-bold truncate">{title}</p>
+        <p className="text-black text-xs font-bold truncate">{songTitle ?? postTitle}</p>
         <div
           onClick={seek}
           className="win98-window-content !p-0 h-3 mt-1 cursor-pointer relative overflow-hidden"
         >
-          <div
-            className="h-full bg-[#000080]"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="h-full bg-[#000080]" style={{ width: `${progress}%` }} />
         </div>
       </div>
       <span className="text-black text-[10px] font-bold shrink-0 tabular-nums">

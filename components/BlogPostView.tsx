@@ -75,7 +75,12 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
             />
           )}
 
-          <MusicPlayer src={note.song} title={note.songTitle ?? note.title} />
+          <MusicPlayer
+            song={note.song}
+            songTitle={note.songTitle}
+            songMeta={note.songMeta}
+            postTitle={note.title}
+          />
 
           <div className="prose prose-invert max-w-none text-justify">{content}</div>
 

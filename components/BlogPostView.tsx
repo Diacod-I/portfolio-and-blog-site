@@ -40,14 +40,18 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
 
       <div className="flex-1 min-h-0 overflow-y-auto p-3 text-white select-text">
         {/* Single capped, centered column for everything — title, meta,
-            thumbnail, body, and see-also all share the same margin, a bit
-            narrower than the window itself for a Medium-style layout.
-            Widened again (2xl -> 3xl -> 4xl): a narrower column wraps every
-            paragraph onto more lines, which is what actually reads as
-            "wall of text" (more vertical scroll for the same words), not
-            the side margins themselves. */}
-        <div className="max-w-4xl mx-auto w-full">
+            thumbnail, music player, and body all share the exact same
+            max-width, matched to Medium's own article measure (~680px)
+            rather than stretched wide. A narrower column does wrap more
+            lines per paragraph, but that's what a real reading column
+            looks like — a wide column reads as a wall of text in a
+            different way (eyes have to travel too far per line). */}
+        <div className="max-w-2xl mx-auto w-full">
 
+          {/* A little breathing room above the title, same as Medium: the
+              title isn't jammed against the window's top edge, it settles
+              in around eye level first. */}
+          <div className="pt-6">
           {/* Medium-style header: full-width title (free to wrap onto as many
               lines as it needs — it's no longer sharing a flex row with the
               tag badge, which was squeezing it into a narrower column and
@@ -64,19 +68,19 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
             <span>·</span>
             <span>{note.author}</span>
           </div>
+          </div>
 
           {note.thumbnail && (
-            // Capped at the column's old (pre-widen) max-w-2xl width and
-            // centered independently of the now-wider max-w-4xl text column
-            // above — only the prose needed the extra width, the thumbnail
-            // looked right at its original size.
+            // Same max-w-2xl column as everything else now — thumbnail,
+            // music player, and prose all share one consistent width
+            // instead of the thumbnail being capped separately.
             <Image
               src={note.thumbnail}
               alt=""
               width={1280}
               height={720}
               priority
-              className="w-full max-w-2xl mx-auto h-auto max-h-96 object-cover border-2 border-[#808080] mb-6"
+              className="w-full h-auto max-h-96 object-cover border-2 border-[#808080] mb-6"
             />
           )}
 

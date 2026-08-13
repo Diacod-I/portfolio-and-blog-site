@@ -607,6 +607,12 @@ export default function HomeClient({
               <ResumeView />
             ) : homeTab === 'about' ? (
             <div className="flex-1 min-h-0 overflow-y-auto p-4">
+                {/* Same Medium-style capped column as Contact (max-w-3xl,
+                    centered) instead of stretching to the full window width
+                    — and a little top padding so the title settles in
+                    around eye level instead of sitting flush against the
+                    top edge. */}
+                <div className="max-w-3xl mx-auto w-full pt-4">
                 {/* About/bio */}
                 <div className="flex-1 min-w-0 flex flex-col gap-3">
                   <h1 className="text-white text-3xl font-bold">
@@ -651,9 +657,13 @@ export default function HomeClient({
                     <div className="clear-both" />
                   </div>
                 </div>
+                </div>
             </div>
             ) : (
             <div className="flex-1 min-h-0 overflow-y-auto p-4">
+                {/* Same Medium-style capped column as Contact/About — see
+                    the comment above the About tab's wrapper. */}
+                <div className="max-w-3xl mx-auto w-full pt-4">
                 {/* Home dashboard: live GitHub activity feed + latest monthly
                     report widget. The bio/photo content that used to live
                     here now lives under the About tab (see above) — this tab
@@ -669,6 +679,7 @@ export default function HomeClient({
                 <div className="flex-1 min-w-0 flex flex-col gap-4">
                   <GithubContributionGraph />
                   <ContributorArchive notes={notes} />
+                </div>
                 </div>
             </div>
             )}

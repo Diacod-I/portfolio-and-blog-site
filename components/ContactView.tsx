@@ -16,7 +16,7 @@ type ContactViewProps = {
 
 export default function ContactView({ featured }: ContactViewProps) {
   return (
-    <div className="max-w-3xl mx-auto text-white select-text">
+    <div className="max-w-3xl mx-auto text-white select-text pt-4">
       <h1 className="text-2xl font-bold mb-6 text-center">Get in Touch with me!</h1>
       <p>
         Have a question or want to work together?

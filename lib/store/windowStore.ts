@@ -29,6 +29,15 @@ export type WinState = {
   preMaximizeRect: Rect | null
 }
 
+// Apps whose window is content-driven and never meant to be maximized —
+// see resizable={false}/maximizable={false} on Minesweeper's Win98Window
+// in HomeClient.tsx: like the real game, its window always fits the
+// current difficulty's board exactly. Excluded from the "opens maximized
+// by default" behavior below — forcing maximized would fill the screen
+// with frame while the actual board stays a small fixed square floating
+// inside it.
+const NOT_MAXIMIZABLE: AppId[] = ['minesweeper']
+
 const initialWins: Record<AppId, WinState> = {
   advith: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   blogs: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
@@ -77,10 +86,26 @@ export const useWindowStore = create<WindowStore>()(
       focusApp: (id) =>
         set((s) => {
           const z = s.zCounter + 1
+          const w = s.wins[id]
+          // Windows open maximized by default, same as clicking a real
+          // taskbar shortcut for the first time — full mode, not a small
+          // card the user has to stretch out themselves. Only applies the
+          // moment a window actually transitions from closed -> open, so
+          // re-focusing an already-open (or minimized) window never
+          // overrides a size/maximize state the user already chose.
+          const openingFresh = w.status === 'closed'
           return {
             zCounter: z,
             taskOrder: s.taskOrder.includes(id) ? s.taskOrder : [...s.taskOrder, id],
-            wins: { ...s.wins, [id]: { ...s.wins[id], status: 'open', z } },
+            wins: {
+              ...s.wins,
+              [id]: {
+                ...w,
+                status: 'open',
+                z,
+                maximized: openingFresh && !NOT_MAXIMIZABLE.includes(id) ? true : w.maximized,
+              },
+            },
           }
         }),
 

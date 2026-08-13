@@ -66,12 +66,16 @@ export default function BlogPostView({ note, seeAlso, content }: BlogPostViewPro
           </div>
 
           {note.thumbnail && (
+            // Capped at the column's old (pre-widen) max-w-2xl width and
+            // centered independently of the now-wider max-w-4xl text column
+            // above — only the prose needed the extra width, the thumbnail
+            // looked right at its original size.
             <Image
               src={note.thumbnail}
               alt=""
               width={1280}
               height={720}
-              className="w-full h-auto max-h-96 object-cover border-2 border-[#808080] mb-6"
+              className="w-full max-w-2xl mx-auto h-auto max-h-96 object-cover border-2 border-[#808080] mb-6"
             />
           )}
 

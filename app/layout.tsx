@@ -3,6 +3,14 @@ import { Inter, JetBrains_Mono, VT323 } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import { Metadata, Viewport } from 'next'
 import SoundEffects from '@/components/SoundEffects'
+import '@fortawesome/fontawesome-svg-core/styles.css'
+import { config as fontAwesomeConfig } from '@fortawesome/fontawesome-svg-core'
+
+// Font Awesome's React component injects its own <style> tag on the fly
+// by default, which in an SSR framework like Next.js causes a flash of
+// giant unstyled icons before that JS runs. Importing the CSS file
+// directly above and disabling the auto-injection avoids it.
+fontAwesomeConfig.autoAddCss = false
 
 const inter = Inter({
   subsets: ['latin'],

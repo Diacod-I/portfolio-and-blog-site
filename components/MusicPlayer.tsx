@@ -20,6 +20,8 @@
 // Renders nothing if the post has no `song` at all.
 
 import { useEffect, useRef, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMusic, faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
 import type { YouTubeSongMeta } from '@/lib/notes'
 
 type MusicPlayerProps = {
@@ -123,14 +125,14 @@ function PlayerChrome({
           scrubber reads as leftover video controls for that image (as if
           the thumbnail were a paused video). A music note makes it clear
           this is a separate, audio-only "now playing" widget. */}
-      <span aria-hidden className="text-gray-500 shrink-0 text-sm leading-none">♫</span>
+      <FontAwesomeIcon icon={faMusic} className="text-gray-500 shrink-0 text-sm" aria-hidden />
       <button
         onClick={onToggle}
         disabled={disabled}
         aria-label={`${playing ? 'Pause' : 'Play'} ${label}`}
-        className="text-gray-400 hover:text-white transition-colors shrink-0 text-base leading-none disabled:opacity-40 disabled:hover:text-gray-400"
+        className="text-gray-400 hover:text-white transition-colors shrink-0 text-sm leading-none disabled:opacity-40 disabled:hover:text-gray-400"
       >
-        {playing ? '❚❚' : '▶'}
+        <FontAwesomeIcon icon={playing ? faPause : faPlay} fixedWidth />
       </button>
       <span className="text-gray-400 text-sm font-mono tabular-nums shrink-0 whitespace-nowrap">
         {formatTime(current)} / {formatTime(duration)}

@@ -21,7 +21,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMusic, faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
+import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
+import LiquidChromeBackground from '@/components/LiquidChromeBackground'
 import type { YouTubeSongMeta } from '@/lib/notes'
 
 type MusicPlayerProps = {
@@ -120,33 +121,36 @@ function PlayerChrome({
   }
 
   return (
-    <div className="bg-white/5 rounded-2xl px-4 py-3 mb-6 flex items-center gap-3 select-none">
-      {/* Sitting directly under the post thumbnail, a bare play icon +
-          scrubber reads as leftover video controls for that image (as if
-          the thumbnail were a paused video). A music note makes it clear
-          this is a separate, audio-only "now playing" widget. */}
-      <FontAwesomeIcon icon={faMusic} className="text-gray-500 shrink-0 text-sm" aria-hidden />
-      <button
-        onClick={onToggle}
-        disabled={disabled}
-        aria-label={`${playing ? 'Pause' : 'Play'} ${label}`}
-        className="text-gray-400 hover:text-white transition-colors shrink-0 text-sm leading-none disabled:opacity-40 disabled:hover:text-gray-400"
-      >
-        <FontAwesomeIcon icon={playing ? faPause : faPlay} fixedWidth />
-      </button>
-      <span className="text-gray-400 text-sm font-mono tabular-nums shrink-0 whitespace-nowrap">
-        {formatTime(current)} / {formatTime(duration)}
-      </span>
-      <div onClick={handleSeek} className="relative flex-1 h-4 cursor-pointer">
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-gray-600 rounded-full" />
-        <div
-          className="absolute top-1/2 -translate-y-1/2 h-[2px] bg-white rounded-full"
-          style={{ width: `${progress}%` }}
-        />
-        <div
-          className="absolute top-1/2 w-3 h-3 bg-white rounded-full"
-          style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
-        />
+    <div className="relative overflow-hidden rounded-2xl mb-6 select-none">
+      {/* Only mounted while actually playing — an idle WebGL context
+          sitting there doing nothing would just burn GPU/battery for a
+          paused widget nobody's looking at. */}
+      {playing && (
+        <LiquidChromeBackground baseColor={[0.02, 0.02, 0.1]} speed={0.15} amplitude={0.15} />
+      )}
+      <div className="relative z-10 bg-white/5 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={onToggle}
+          disabled={disabled}
+          aria-label={`${playing ? 'Pause' : 'Play'} ${label}`}
+          className="text-gray-400 hover:text-white transition-colors shrink-0 text-sm leading-none disabled:opacity-40 disabled:hover:text-gray-400"
+        >
+          <FontAwesomeIcon icon={playing ? faPause : faPlay} fixedWidth />
+        </button>
+        <span className="text-gray-400 text-sm font-mono tabular-nums shrink-0 whitespace-nowrap">
+          {formatTime(current)} / {formatTime(duration)}
+        </span>
+        <div onClick={handleSeek} className="relative flex-1 h-4 cursor-pointer">
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-gray-600 rounded-full" />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-[2px] bg-white rounded-full"
+            style={{ width: `${progress}%` }}
+          />
+          <div
+            className="absolute top-1/2 w-3 h-3 bg-white rounded-full"
+            style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
+          />
+        </div>
       </div>
     </div>
   )

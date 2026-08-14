@@ -56,6 +56,7 @@ const TAG_COLORS: Record<string, TagColor> = {
   'llvm-project': { bg: '#4B6F91', text: '#ffffff' },
   llvm: { bg: '#4B6F91', text: '#ffffff' },
   linux: { bg: '#333333', text: '#FFC800' },
+  'linux foundation': { bg: '#003778', text: '#ffffff' },
 }
 
 export function getTagColor(rawTag: string): TagColor {

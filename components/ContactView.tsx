@@ -27,7 +27,7 @@ export default function ContactView({ featured, revealed = true }: ContactViewPr
 
   return (
     <div className="max-w-3xl mx-auto text-white select-text">
-      <h2 className="text-3xl font-bold win98-terminal-pop" style={{ animationDelay: '0ms' }}>
+      <h2 className="text-2xl font-bold win98-terminal-pop" style={{ animationDelay: '0ms' }}>
         Get in Touch with me!
       </h2>
       <p className="mt-2 text-[#ccc] win98-terminal-pop" style={{ animationDelay: '70ms' }}>

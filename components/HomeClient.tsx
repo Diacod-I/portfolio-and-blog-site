@@ -110,22 +110,38 @@ const randomGlitchSpawnPos = () => ({
 // tab's content pops in line by line (see the win98-terminal-pop class in
 // globals.css and the .done-gated blocks in the JSX). The "$ >" prompt
 // itself is always shown, static — only the query text after it types.
-const HOME_QUERY_TEXT = 'select advith_krishnan;'
-const LOGS_QUERY_TEXT = 'select gh-activity-logs from advith_krishnan;'
+const HOME_QUERY_TEXT = 'select about from advith_krishnan;'
+const LOGS_QUERY_TEXT = 'select gh_logs from advith_krishnan;'
 const CONTACT_QUERY_TEXT = 'select contact_info from advith_krishnan;'
 const TYPED_QUERY_CHAR_MS = 40
 
+// Module-scope, not component state — same reasoning as the zustand window
+// store (see the big comment atop lib/store/windowStore.ts): HomeClient
+// unmounts on every route change (e.g. clicking into a blog post navigates
+// to /blogs/[slug], a different page.tsx), which resets all of its plain
+// useState/useRef. Without this, a query that had already finished typing
+// once would silently reset to blank on the next remount and (depending on
+// exactly when that remount's effect happens to run relative to whatever
+// the user does next) could sit stuck showing just the "$ >" prompt and a
+// cursor — a real regression that turned up after this route-navigation
+// path. Tracking "already finished" here instead means a remounted
+// instance seeds its very first render already-typed/already-revealed,
+// with no dependency on a background timer racing anything.
+const completedTypedQueries = new Set<string>()
+
 // Types `text` out character by character the first time `active` becomes
-// true, then never again (startedRef) — so switching tabs back and forth
-// after the intro has already played just shows the fully-typed, fully-
-// revealed state instantly instead of replaying the animation. `active`
-// should combine "advith.exe's window is actually open" (not page load,
-// before the window exists) with "this is the currently selected tab" —
-// see the three call sites in HomeClient below.
+// true, then never again this session (startedRef + completedTypedQueries
+// above) — so switching tabs back and forth, or a HomeClient remount from
+// a route change, just shows the fully-typed, fully-revealed state
+// instantly instead of replaying (or worse, getting stuck mid-reset)
+// the animation. `active` should combine "advith.exe's window is actually
+// open" (not page load, before the window exists) with "this is the
+// currently selected tab" — see the three call sites in HomeClient below.
 function useTypedQuery(text: string, active: boolean) {
-  const [typed, setTyped] = useState('')
-  const [done, setDone] = useState(false)
-  const startedRef = useRef(false)
+  const alreadyDone = completedTypedQueries.has(text)
+  const [typed, setTyped] = useState(alreadyDone ? text : '')
+  const [done, setDone] = useState(alreadyDone)
+  const startedRef = useRef(alreadyDone)
   useEffect(() => {
     if (!active || startedRef.current) return
     startedRef.current = true
@@ -136,6 +152,7 @@ function useTypedQuery(text: string, active: boolean) {
       if (i >= text.length) {
         clearInterval(interval)
         setDone(true)
+        completedTypedQueries.add(text)
       }
     }, TYPED_QUERY_CHAR_MS)
     return () => clearInterval(interval)
@@ -831,7 +848,7 @@ export default function HomeClient({
                       ContactView itself gates and staggers its own content
                       on the `revealed` prop — see ContactView.tsx. */}
                   <div className="max-w-3xl w-full mx-auto mb-4">
-                    <h1 className="text-white text-2xl font-bold text-left font-mono">
+                    <h1 className="text-white text-lg font-bold text-left font-mono">
                         $ &gt; {contactQueryTyped}
                         {!contactQueryDone && (
                           <span
@@ -872,7 +889,7 @@ export default function HomeClient({
                       here. The section below only mounts once logsQueryDone,
                       each piece popping in on its own stagger, same
                       win98-terminal-pop pattern as Home's profile row. */}
-                  <h1 className="text-white text-2xl font-bold text-left font-mono mb-4">
+                  <h1 className="text-white text-lg font-bold text-left font-mono mb-4">
                       $ &gt; {logsQueryTyped}
                       {!logsQueryDone && (
                         <span
@@ -883,7 +900,7 @@ export default function HomeClient({
                   </h1>
                   {logsQueryDone && (
                   <>
-                  <h2 className="text-white text-3xl font-bold mb-2 win98-terminal-pop" style={{ animationDelay: '0ms' }}>
+                  <h2 className="text-white text-2xl font-bold mb-2 win98-terminal-pop" style={{ animationDelay: '0ms' }}>
                       Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                   </h2>
                   <p className="text-gray-300 mb-4 win98-terminal-pop" style={{ animationDelay: '70ms' }}>
@@ -928,7 +945,7 @@ export default function HomeClient({
                         win98-terminal-pop class in globals.css — like a
                         shell printing a command's output line by line,
                         rather than the whole block fading in as one. */}
-                    <h1 className="text-white text-2xl font-bold text-left font-mono">
+                    <h1 className="text-white text-lg font-bold text-left font-mono">
                         $ &gt; {homeQueryTyped}
                         {!homeQueryDone && (
                           <span
@@ -967,7 +984,7 @@ export default function HomeClient({
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col gap-3">
-                        <p className="text-white text-lg win98-terminal-pop" style={{ animationDelay: '70ms' }}>
+                        <p className="text-white text-2xl font-bold win98-terminal-pop" style={{ animationDelay: '70ms' }}>
                           (#ID_6392) Advith Krishnan
                         </p>
                         {/* Bio copy: deliberately not a resume rehash — the goal is

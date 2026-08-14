@@ -10,11 +10,18 @@ import ResumeButton from './ResumeButton'
 // via a link, not one of the buttons below, so it's not in `tabs`.
 // Resume isn't a tab at all anymore: the navbar's Resume button (below)
 // just downloads the PDF directly instead of switching to a viewer tab.
+//
+// The 'about' id is kept as-is (renaming it would mean touching every
+// page.tsx that passes initialHomeTab="about" and every persisted-state
+// concern in windowStore.ts) but its content is now the contributor
+// activity feed, not the profile — see HomeClient's homeTab === 'about'
+// branch. Labeled "Logs" below to match: a hacker-terminal-appropriate
+// name for "here's the activity feed", while Home now shows the profile.
 export type HomeTab = 'home' | 'about' | 'contact' | 'report'
 
 const tabs: { id: 'home' | 'about' | 'contact'; label: string }[] = [
   { id: 'home', label: 'Home' },
-  { id: 'about', label: 'About' },
+  { id: 'about', label: 'Logs' },
   { id: 'contact', label: 'Contact' },
 ]
 

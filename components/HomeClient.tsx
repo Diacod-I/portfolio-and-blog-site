@@ -663,14 +663,20 @@ export default function HomeClient({
             )}
             <div className="relative z-10 flex-1 min-h-0 flex flex-col overflow-hidden">
             {homeTab === 'contact' ? (
-              // Centered as one block over the backdrop, same treatment as
-              // About/Home below — pb well past pt (not an even p-4) so the
-              // content's visual center sits a bit above the container's
-              // true mathematical center: with the navbar bar sitting above
-              // this whole area, true-center reads as too low relative to
-              // the *window*, not just this pane.
-              <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16 flex items-center justify-center">
-                <ContactView featured={featured} />
+              // overflow-y-auto on the OUTER div only — no flex/centering
+              // there. Centering instead lives on an INNER div sized
+              // min-h-full: that only pulls content to the middle when it's
+              // shorter than the viewport. When it's taller (small/restored
+              // window), min-h-full is just a floor, not a cap, so the box
+              // grows past it and renders top-anchored with normal scrolling
+              // instead of clipping its top edge unreachably. (Centering
+              // directly on a scrollable flex container clips/hides
+              // whatever's taller than the container and offset above the
+              // fold — that's not reachable by scrolling in any browser.)
+              <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16">
+                <div className="min-h-full flex flex-col items-center justify-center">
+                  <ContactView featured={featured} />
+                </div>
               </div>
             ) : homeTab === 'report' ? (
               reportView ? (
@@ -685,41 +691,40 @@ export default function HomeClient({
                 </div>
               )
             ) : homeTab === 'about' ? (
-            // No more scroll-and-read layout now that ExperienceSection is
-            // gone — About is short enough to just center as a block, both
-            // ways, over the faulty-terminal backdrop instead of pinning to
-            // the top. items-center/justify-center on the scroll container
-            // does that; it still falls back to normal top-anchored scrolling
-            // if a narrow/short window ever makes the content taller than
-            // the window itself. pb well past pt biases that centered block
-            // upward a bit — with the navbar sitting above this pane, true
-            // mathematical center (of just this pane) reads as too low
-            // relative to the *window* as a whole.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16 flex items-center justify-center">
-                <div className="max-w-2xl w-full flex flex-col items-center text-center gap-4">
-                  <h1 className="text-white text-4xl font-bold">
-                    Hi, I&apos;m Advith Krishnan!
+            // 'about' tab id kept as-is internally (see Navbar's HomeTab
+            // type) but relabeled "Logs" there — this now holds what used to
+            // be the Home tab's content: live GitHub activity feed + report
+            // archive. The profile/bio dossier moved to Home (see the
+            // default branch below) so a first-time visitor lands on
+            // Advith, not a commit graph. Same min-h-full scroll-fix pattern
+            // as Contact above.
+            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16">
+                <div className="min-h-full flex flex-col items-center justify-center">
+                  <div className="max-w-3xl w-full">
+                  <h1 className="text-white text-3xl font-bold mb-2">
+                      Contributor Activity - <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                   </h1>
+                  <p className="text-gray-400 mb-4">
+                      "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
+                  </p>
 
-                  {/* Tagline gets the card's full width (not squeezed into
-                      the narrower text column below, next to the photo) and
-                      whitespace-nowrap specifically so it always reads as
-                      one line. */}
-                  <span className="text-white text-md min-h-[28px] whitespace-nowrap">
-                    &gt; {" "} <span
-                      className="inline-block text-black bg-white px-2 font-bold transition-opacity duration-300"
-                      style={{ letterSpacing: '0.5px' }}
-                    >
-                      {displayText.trim()}
-                    </span>
-                    &nbsp;who works on cool stuff.
-                  </span>
-
-                  {/* Photo and bio side by side at the same level instead of
-                      the old float-and-wrap layout — stacks on narrow/mobile
-                      widths (sm:flex-row) since there isn't room for two
-                      columns there. */}
-                  <div className="flex flex-col sm:flex-row items-center gap-6 text-left">
+                  <div className="flex-1 min-w-0 flex flex-col gap-4">
+                    <GithubContributionGraph />
+                    <ContributorArchive notes={notes} />
+                  </div>
+                  </div>
+                </div>
+            </div>
+            ) : (
+            // Home (default): the profile/bio dossier, laid out "suspect
+            // file" style — photo alone in the left column, title + tagline
+            // + bio stacked together in the right column (sm:flex-row;
+            // stacks photo-above-text on narrow/mobile widths where there's
+            // no room for two columns). Same min-h-full scroll-fix pattern
+            // as Contact/Logs above.
+            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16">
+                <div className="min-h-full flex flex-col items-center justify-center">
+                  <div className="max-w-2xl w-full flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left">
                     <div className="shrink-0 w-40 sm:w-48">
                       <div className="relative aspect-square border-2 border-[#808080] overflow-hidden">
                         <Image
@@ -730,64 +735,60 @@ export default function HomeClient({
                           className="object-cover"
                         />
                       </div>
-                      <p className="text-center text-white text-xs italic mt-1">This is me :D</p>
                     </div>
-                    {/* Bio copy: deliberately not a resume rehash — the goal is
-                        personality and curiosity, since the credentials/timeline
-                        already live on LinkedIn and the downloadable resume
-                        (navbar's Resume button). text-justify for even edges,
-                        matching the blog/report reading columns elsewhere. */}
-                    <p className="text-white text-md leading-relaxed text-justify">
-                        &gt; I spend most of my time a few layers below the API everyone else stops
-                        at: kernels, compilers, the software beneath the software.
-                        <br/><br/>
-                        I contribute to open-source systems code, publish research on the side,
-                        and write up what I learn along the way.
-                        {/* Little hacker-flavored easter egg, fitting for a
-                            page with a faulty-terminal backdrop — visitorIp
-                            is fetched client-side from /api/ip (see that
-                            route and the useEffect above), null until it
-                            resolves or if it couldn't be determined (e.g.
-                            local dev), in which case this line just doesn't
-                            render. */}
-                        {visitorIp && (
-                          <>
-                            <br/><br/>
-                            &gt; btw, I know your IP address is{' '}
-                            <span
-                              className="inline-block text-black bg-white px-2 font-bold"
-                              style={{ letterSpacing: '0.5px' }}
-                            >
-                              {visitorIp}
-                            </span>{' '}
-                            👀
-                          </>
-                        )}
-                    </p>
+                    <div className="flex-1 min-w-0 flex flex-col gap-3">
+                      <h1 className="text-white text-2xl font-bold">
+                        Log entry #6392
+                        <br/>Name: Advith Krishnan
+                      </h1>
+
+                      {/* whitespace-nowrap so this always reads as one line
+                          even in the narrower right column. */}
+                      <span className="text-white text-md min-h-[28px] whitespace-nowrap">
+                        &gt; {" "} <span
+                          className="inline-block text-[#00FF00] bg-black px-2 font-bold transition-opacity duration-300"
+                          style={{ letterSpacing: '0.5px' }}
+                        >
+                          {displayText.trim()}
+                        </span>
+                        &nbsp;who works on cool stuff.
+                      </span>
+
+                      {/* Bio copy: deliberately not a resume rehash — the goal is
+                          personality and curiosity, since the credentials/timeline
+                          already live on LinkedIn and the downloadable resume
+                          (navbar's Resume button). text-justify for even edges,
+                          matching the blog/report reading columns elsewhere. */}
+                      <p className="text-white text-md leading-relaxed text-justify">
+                          &gt; Spends most of my time a few layers below the API everyone                         else often uses. Kernels, compilers, <span
+                                className="text-[#00FF00] bg-black px-2 font-bold"
+                                style={{ letterSpacing: '0.5px' }}
+                              > software beneath the software.</span>
+                          <br/><br/>
+                          &gt; Contributes to open-source systems code, publish research on the side,
+                          and writes about his learnings.
+                          {/* Little hacker-flavored easter egg, fitting for a
+                              page with a faulty-terminal backdrop — visitorIp
+                              is fetched client-side from /api/ip (see that
+                              route and the useEffect above), null until it
+                              resolves or if it couldn't be determined (e.g.
+                              local dev), in which case this line just doesn't
+                              render. */}
+                          {visitorIp && (
+                            <>
+                              <br/><br/>
+                              &gt; Knows your IP address is{' '}
+                              <span
+                                className="inline-block text-[#00FF00] bg-black px-2 font-bold"
+                                style={{ letterSpacing: '0.5px' }}
+                              >
+                                {visitorIp}
+                              </span>{' '}
+                            </>
+                          )}
+                      </p>
+                    </div>
                   </div>
-                </div>
-            </div>
-            ) : (
-            // Same centered-block treatment as Contact/About — see the
-            // comment on the About tab's wrapper for the pt/pb reasoning.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16 flex items-center justify-center">
-                <div className="max-w-3xl w-full">
-                {/* Home dashboard: live GitHub activity feed + latest monthly
-                    report widget. The bio/photo content that used to live
-                    here now lives under the About tab (see above) — this tab
-                    is Advith's "what I'm up to right now" surface instead. */}
-
-                 <h1 className="text-white text-3xl font-bold mb-2">
-                    Contributor Activity - <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
-                 </h1>
-                 <p className="text-gray-400 mb-4">
-                    "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
-                 </p>
-
-                <div className="flex-1 min-w-0 flex flex-col gap-4">
-                  <GithubContributionGraph />
-                  <ContributorArchive notes={notes} />
-                </div>
                 </div>
             </div>
             )}

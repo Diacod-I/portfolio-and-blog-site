@@ -32,7 +32,7 @@ The context-based approach is not new, in fact several popular command line them
 
 The layout I made is as follows:
 
-- The directory row shows the repo-relative path when I'm inside a git repo (Example: <repo-name>/path/to/dir) and the path from ~ when I'm loose in my filesystem. I never see a wall of absolute path I have to parse mentally everytime I navigate across directories with this setup.
+- The directory row shows the repo-relative path when I'm inside a git repo (Example: \<repo-name\>/path/to/dir) and the path from ~ when I'm loose in my filesystem. I never see a wall of absolute path I have to parse mentally everytime I navigate across directories with this setup.
 - The branch row only exists when inside a repo. And the moment I'm not on main or master, it grows a white-on-red `⚠ OFF-MAIN` flag. This has genuinely preventing me from committing to the wrong branch more than once, or wasting my time verifying my current branch with `git branch --show-current`. The moment I have uncommited changes, I get a yellow ` ● UNCOMMITTED` flag. 
 I don't have to use `git status` everytime I want to find unstaged changes. I have also added a delta tracker and a "commits-ahead" tracker to make sure I know my local state compared to the remote repo, since I can see how many commits ahead/behind I am from remote, and if there is an artifact I missed putting in `.gitignore` that adds thousands of redundant lines of code/text.
 - The commit row shows the current commit HEAD is on. It shows the shortened commit hash and the one-line commit message. This helps quick eye-balling across tmux panes. 
@@ -113,7 +113,7 @@ Two more traps I hit: the git_rebase parser and the gitrebase filetype have diff
 None of these are novel, but together, they made the difference between friction and flow for my work setup:
 
 - `atuin` — Ctrl-R history that's actually searchable, with timing and context. I stopped memorizing commands and started just... finding them.
-- `zoxide` — z <part-of-directory-name> jumps to a frecent directory that starts with the name part. With thirty projects, this beats any listing. Example: z ra will lead me to the random-project directory if I frequent it a lot.
+- `zoxide` — z \<part-of-directory-name\> jumps to a frecent directory that starts with the name part. With thirty projects, this beats any listing. Example: z ra will lead me to the random-project directory if I frequent it a lot.
 - `fzf` — fuzzy everything.
 - `zsh-syntax-highlighting` — colors my input as I type (dim args, green commands, cyan paths, red typos), so the command line reads differently from program output.
 - `yazi` - goated interactive file manager, shows images, PDFs etc. in terminal and a breeze to navigate

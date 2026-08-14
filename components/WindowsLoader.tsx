@@ -44,15 +44,20 @@ type WindowsLoaderProps = {
 export default function WindowsLoader({ title, icon, message, glitch = false, left = 50, top = 50 }: WindowsLoaderProps) {
   return (
     <div
-      className={`win98-window fixed -translate-x-1/2 -translate-y-1/2 w-72 ${
+      className={`win98-window fixed -translate-x-1/2 -translate-y-1/2 w-80 ${
         glitch ? 'win98-loader-glitch' : 'win98-loader-pop'
       }`}
       style={{ zIndex: 20000, left: `${left}%`, top: `${top}%` }}
     >
+      {/* min-w-0 on the flex row + truncate on the title: the card is wide
+          enough (w-80) that every current title fits without truncating,
+          but a longer one (e.g. a future app's full name) ellipsizes
+          instead of wrapping to a second line — titlebars are always
+          single-line. */}
       <div className="win98-titlebar">
-        <div className="flex items-center gap-2">
-          <Image src={icon} alt="" width={16} height={16} className="w-4 h-4 object-contain" />
-          <span className={glitch ? 'win98-glitch-text' : undefined}>{title}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <Image src={icon} alt="" width={16} height={16} className="w-4 h-4 object-contain shrink-0" />
+          <span className={`truncate ${glitch ? 'win98-glitch-text' : ''}`}>{title}</span>
         </div>
       </div>
       <div className="p-4 bg-[#c0c0c0] flex flex-col gap-4">

@@ -16,26 +16,32 @@ type ContactViewProps = {
 export default function ContactView({ featured }: ContactViewProps) {
   return (
     <div className="max-w-3xl mx-auto text-white select-text">
-      <h1 className="text-3xl font-bold">Get in Touch with me!</h1><br/>
+      <h1 className="text-3xl font-bold">Get in Touch with me!</h1>
       <p>
-        Have a question or want to work together?
+        Have a question or want to work together?<br/>
         Kindly email me at{' '}
         <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-300 hover:underline">
           {CONTACT_EMAIL}
         </a>{' '}
-        or check out my Internet Shortcuts below.<br/><br/>I&apos;ll respond as soon as possible.
+        or check out my Internet Shortcuts below. I&apos;ll respond as soon as possible.
       </p>
       {/* Internet Shortcuts — moved here from the Home tab, which was
           getting cluttered with the photo, bio copy, and this all at once. */}
-      <div className="win98-window flex flex-col mt-8">
+      <div className="win98-window flex flex-col mt-4">
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
             <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />
             <span>Internet Shortcuts</span>
           </div>
         </div>
-        <div className="bg-[#f0f0f0] border-2 p-2">
-          <p className="font-bold mb-1 text-sm text-black">
+        {/* Dark panel (bg-[#2b2b2b], white label) matching
+            ContributorArchive's Contribution Archive panel — same content-
+            panel treatment site-wide instead of this one being the lone
+            light-colored holdout. FeaturedLinks' own win98-button chips
+            stay their normal light win98 gray on top of it, same as
+            ContributorArchive's report rows on its dark panel. */}
+        <div className="bg-[#2b2b2b] border-2 p-2">
+          <p className="font-bold mb-1 text-sm text-white">
             &gt; My online presence! (Still not famous tho)
           </p>
           {/* No ScrollPanel here (unlike ContributorArchive's own list) —

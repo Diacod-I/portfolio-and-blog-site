@@ -306,8 +306,16 @@ export default function HomeClient({
   // again from ContributorArchive would be a no-op.
   const backToLogsFromReport = useCallback(() => {
     setHomeTab('about')
+    // Push to '/about' specifically, not '/' — navigating between two
+    // different page.tsx routes remounts HomeClient (App Router doesn't
+    // preserve client state across a page-segment swap the way it does
+    // within a single page), which would blow away the setHomeTab('about')
+    // above and reseed from initialHomeTab instead. '/' seeds 'home';
+    // '/about' seeds 'about' (see app/about/page.tsx) — matching where
+    // this button is actually supposed to land, whether or not a remount
+    // happens.
     if (pathname?.startsWith('/reports')) {
-      router.push('/')
+      router.push('/about')
     }
   }, [pathname, router])
 
@@ -791,7 +799,7 @@ export default function HomeClient({
                       a unit, not each child inside it individually). */}
                   <div className="max-w-2xl w-full flex flex-col gap-4">
                     <h1 className="text-white text-2xl font-bold text-left">
-                        Database Query
+                        $ &gt; query advith_krishnan
                     </h1>
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left">
                       <div className="shrink-0 w-40 sm:w-48">
@@ -813,7 +821,7 @@ export default function HomeClient({
                         {/* whitespace-nowrap so this always reads as one line
                             even in the narrower right column. */}
                         <span className="text-[#ccc] text-md min-h-[28px] whitespace-nowrap">
-                          &gt; {" "} <span
+                          • {" "} <span
                             className="inline-block text-[#00FF00] bg-black px-2 font-bold transition-opacity duration-300"
                             style={{ letterSpacing: '0.5px' }}
                           >
@@ -825,36 +833,42 @@ export default function HomeClient({
                         {/* Bio copy: deliberately not a resume rehash — the goal is
                             personality and curiosity, since the credentials/timeline
                             already live on LinkedIn and the downloadable resume
-                            (navbar's Resume button). text-justify for even edges,
+                            (navbar's Resume button). An actual <ul>/<li> list now
+                            (was a <p> with manual "•" characters + <br/><br/>
+                            between them) — semantically correct, and the ::marker
+                            bullet is themed to match the green accent used
+                            throughout this dossier. text-justify for even edges,
                             matching the blog/report reading columns elsewhere. */}
-                        <p className="text-[#ccc] text-md leading-relaxed text-justify">
-                            &gt; Spends most of my time a few layers below the API everyone                         else often uses. Kernels, compilers, <span
+                        <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-[#00FF00] flex flex-col gap-3">
+                          <li>
+                            Works on kernels, compilers, ML backends, <span
                                   className="text-[#00FF00] bg-black px-2 font-bold"
                                   style={{ letterSpacing: '0.5px' }}
                                 > software beneath the software.</span>
-                            <br/><br/>
-                            &gt; Contributes to open-source systems code, publish research on the side,
+                          </li>
+                          <li>
+                            Contributes to PyTorch and Rust, publishes research on the side,
                             and writes about his learnings.
-                            {/* Little hacker-flavored easter egg, fitting for a
-                                page with a faulty-terminal backdrop — visitorIp
-                                is fetched client-side from /api/ip (see that
-                                route and the useEffect above), null until it
-                                resolves or if it couldn't be determined (e.g.
-                                local dev), in which case this line just doesn't
-                                render. */}
-                            {visitorIp && (
-                              <>
-                                <br/><br/>
-                                &gt; Knows your IP address is{' '}
-                                <span
-                                  className="inline-block text-[#00FF00] bg-black px-2 font-bold"
-                                  style={{ letterSpacing: '0.5px' }}
-                                >
-                                  {visitorIp}
-                                </span>{' '}
-                              </>
-                            )}
-                        </p>
+                          </li>
+                          {/* Little hacker-flavored easter egg, fitting for a
+                              page with a faulty-terminal backdrop — visitorIp
+                              is fetched client-side from /api/ip (see that
+                              route and the useEffect above), null until it
+                              resolves or if it couldn't be determined (e.g.
+                              local dev), in which case this line just doesn't
+                              render. */}
+                          {visitorIp && (
+                            <li>
+                              Knows your IP address is{' '}
+                              <span
+                                className="inline-block text-[#00FF00] bg-black px-2 font-bold"
+                                style={{ letterSpacing: '0.5px' }}
+                              >
+                                {visitorIp}
+                              </span>
+                            </li>
+                          )}
+                        </ul>
                       </div>
                     </div>
                   </div>

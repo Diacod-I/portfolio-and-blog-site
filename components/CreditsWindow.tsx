@@ -207,10 +207,10 @@ export default function CreditsWindow() {
         </li>
         <li>
           Minesweeper and Solitaire (Klondike) are original recreations,
-          written from scratch for this site in React — no third-party game
-          code or assets. Their gameplay and visual style pay homage to the
-          classic games included with Microsoft Windows; Minesweeper and
-          Solitaire in that form are the work of Microsoft Corporation
+          written from scratch for this site in Next.js and no third-party game
+          code or assets were used in their making. Their gameplay and visual 
+          style pay homage to the classic games included with Microsoft Windows; 
+          Minesweeper and Solitaire in that form are the work of Microsoft Corporation
           (see the trademark note under Design &amp; Inspiration). Card
           faces, court-card artwork, and the card back are original CSS/SVG
           drawn for this project.

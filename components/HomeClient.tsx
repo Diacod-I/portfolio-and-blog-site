@@ -661,26 +661,17 @@ export default function HomeClient({
             // does that; it still falls back to normal top-anchored scrolling
             // if a narrow/short window ever makes the content taller than
             // the window itself.
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 flex items-center justify-center">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 mb-2 flex items-center justify-center">
                 <div className="max-w-2xl w-full flex flex-col items-center text-center gap-4">
-                  <h1 className="text-white text-3xl font-bold">
-                    👋 Hi, I&apos;m Advith Krishnan!
+                  <h1 className="text-white text-4xl font-bold">
+                    Hi, I&apos;m Advith Krishnan!
                   </h1>
-                  <span className="text-white text-md min-h-[28px]">
-                    &gt; {" "} <span
-                      className="inline-block text-black bg-white px-2 font-bold transition-opacity duration-300"
-                      style={{ letterSpacing: '0.5px' }}
-                    >
-                      {displayText.trim()}
-                    </span>
-                    &nbsp;who works on cool stuff.
-                  </span>
 
                   {/* Photo and bio side by side at the same level instead of
                       the old float-and-wrap layout — stacks on narrow/mobile
                       widths (sm:flex-row) since there isn't room for two
                       columns there. */}
-                  <div className="flex flex-col sm:flex-row items-center gap-6 mt-2 text-left">
+                  <div className="flex flex-col sm:flex-row items-center gap-6 text-left">
                     <div className="shrink-0 w-40 sm:w-48">
                       <div className="relative aspect-square border-2 border-[#808080] overflow-hidden">
                         <Image
@@ -697,11 +688,20 @@ export default function HomeClient({
                         personality and curiosity, since the credentials/timeline
                         already live on LinkedIn and the downloadable resume
                         (navbar's Resume button). */}
-                    <p className="text-white text-sm leading-relaxed">
-                        I spend most of my time a few layers below the API everyone else stops
+                    <p className="text-white text-md leading-relaxed">
+                    <span className="text-white text-md min-h-[28px]">
+                    &gt; {" "} <span
+                      className="inline-block text-black bg-white px-2 font-bold transition-opacity duration-300"
+                      style={{ letterSpacing: '0.5px' }}
+                    >
+                      {displayText.trim()}
+                    </span>
+                    &nbsp;who works on cool stuff.
+                  </span> <br/> <br/>
+                        &gt; I spend most of my time a few layers below the API everyone else stops
                         at: kernels, compilers, the software beneath the software.
                         <br/><br/>
-                        I try contribute to open-source systems code, publish research on the side,
+                        I contribute to open-source systems code, publish research on the side,
                         and write up what I learn along the way.
                     </p>
                   </div>

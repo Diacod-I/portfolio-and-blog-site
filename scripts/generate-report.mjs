@@ -256,7 +256,7 @@ async function main() {
     searchCommitCount(`author:${USERNAME} author-date:${since}..${until}`),
   ])
 
-  const title = `${monthName} ${year} Contributor Report`
+  const title = `Contributor Report - ${monthName} ${year}`
   const slug = `${year}-${monthName.toLowerCase()}-report`
   const filePath = path.join(NOTES_DIR, `${slug}.mdx`)
 

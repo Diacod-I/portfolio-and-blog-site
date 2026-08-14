@@ -881,7 +881,20 @@ export default function HomeClient({
                         homeQueryDone ? 'opacity-100' : 'opacity-0 pointer-events-none'
                       }`}
                     >
-                      <div className="shrink-0 w-40 sm:w-48">
+                      {/* sm:sticky so the photo travels with the scroll up to
+                          this offset, then stays pinned near the top of the
+                          scroll container while the much taller text column
+                          (bio + Experience section) keeps scrolling past it
+                          — same "sticky sidebar" pattern as a long-form
+                          article's author photo. Sticky's containing block
+                          is the row below (bounded by items-start, not
+                          stretched to the row's full height), so it can
+                          never travel past this column's own bottom edge.
+                          Mobile stays plain in-flow (stacked layout, sticky
+                          would just pin it awkwardly above a full-width
+                          column) — only enabled at sm: and up, matching the
+                          row/column breakpoint above. */}
+                      <div className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-4">
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
                           <Image
                             src="/Advith_Krishnan.webp"

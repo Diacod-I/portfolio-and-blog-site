@@ -40,7 +40,6 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import ScrollPanel from '@/components/ScrollPanel'
 import TagChip from '@/components/TagChip'
 import { getTagColor } from '@/lib/tagColors'
 import type { Note } from '@/lib/notes'
@@ -163,7 +162,6 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
             )}
           </div>
         )}
-        <ScrollPanel maxHeight={256} nudgeId="contributor-archive">
           {filteredEntries.length === 0 ? (
             <p className="text-xs italic p-2 text-white">
               {entries.length === 0 ? 'Nothing to report yet.' : 'No reports match the selected tags.'}
@@ -181,7 +179,10 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                           href={`/reports/${entry.note.slug}`}
                           className="win98-button p-2 flex flex-col min-w-0 no-underline"
                         >
+                          <span className="flex items-center gap-1.5 min-w-0">
+                            <img src="/win98/notes.webp" alt="" className="w-3.5 h-3.5 shrink-0" />
                           <span className="block text-sm font-bold truncate min-w-0">{entry.note.title}</span>
+                          </span>
                           <span className="flex items-start justify-between gap-2 min-w-0 flex-wrap">
                             <span className="text-[10px] text-[#444] font-bold truncate">
                               {format(new Date(entry.note.date), 'MMM dd, yyyy')}
@@ -233,7 +234,6 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
               ))}
             </div>
           )}
-        </ScrollPanel>
       </div>
     </div>
   )

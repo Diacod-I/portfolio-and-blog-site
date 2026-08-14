@@ -952,9 +952,9 @@ export default function HomeClient({
                   <h2 className="text-white text-2xl font-bold mb-2 win98-terminal-pop" style={{ animationDelay: '0ms' }}>
                       Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                   </h2>
-                  <p className="text-gray-300 mb-4 win98-terminal-pop" style={{ animationDelay: '70ms' }}>
-                      "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
-                  </p>
+                  <div className="text-gray-300 mb-4 win98-terminal-pop" style={{ animationDelay: '70ms' }}>
+                      "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion."<p className="text-end mb-2">— American Psycho prolly</p>
+                  </div>
 
                   <div className="flex-1 min-w-0 flex flex-col gap-4">
                     <div className="win98-terminal-pop" style={{ animationDelay: '140ms' }}>

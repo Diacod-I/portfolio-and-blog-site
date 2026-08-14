@@ -33,7 +33,7 @@ export const EXTERNAL_REPORTS: ExternalReport[] = [
   },
   {
     slug: 'lfx-mentorship-final-2025',
-    title: 'LFX Mentorship (Final) — Summer 2025',
+    title: 'LFX Mentorship (Final) — RAG to Riches: Using Your Legacy Data',
     date: '2025-09-09',
     url: 'https://openmainframeproject.org/blog/summer-mentorship-2025-advith-krishnan/',
     tags: ['linux foundation'],

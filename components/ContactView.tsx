@@ -17,13 +17,13 @@ export default function ContactView({ featured }: ContactViewProps) {
   return (
     <div className="max-w-3xl mx-auto text-white select-text">
       <h1 className="text-3xl font-bold">Get in Touch with me!</h1>
-      <p>
+      <p className="mt-2 text-[#ccc]">
         Have a question or want to work together?<br/>
         Kindly email me at{' '}
         <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-300 hover:underline">
           {CONTACT_EMAIL}
-        </a>{' '}
-        or check out my Internet Shortcuts below. I&apos;ll respond as soon as possible.
+        </a>
+        . I&apos;ll respond as soon as possible.
       </p>
       {/* Internet Shortcuts — moved here from the Home tab, which was
           getting cluttered with the photo, bio copy, and this all at once. */}
@@ -41,7 +41,7 @@ export default function ContactView({ featured }: ContactViewProps) {
             stay their normal light win98 gray on top of it, same as
             ContributorArchive's report rows on its dark panel. */}
         <div className="bg-[#2b2b2b] border-2 p-2">
-          <p className="font-bold mb-1 text-sm text-white">
+          <p className="mb-2 text-sm text-white">
             &gt; My online presence! (Still not famous tho)
           </p>
           {/* No ScrollPanel here (unlike ContributorArchive's own list) —
@@ -50,7 +50,7 @@ export default function ContactView({ featured }: ContactViewProps) {
               full shortcut list just renders in place; the outer tab
               wrapper (see HomeClient's min-h-full scroll-fix pattern)
               handles overflow if the window is short. */}
-          <div className="border-2">
+          <div className="border-2 gap-2">
             <FeaturedLinks links={featured} />
           </div>
         </div>

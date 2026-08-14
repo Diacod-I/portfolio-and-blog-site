@@ -19,6 +19,7 @@ import MinesweeperWindow from '@/components/MinesweeperWindow'
 import SolitaireWindow from '@/components/SolitaireWindow'
 import ProjectsWindow from '@/components/ProjectsWindow'
 import ContributorArchive from '@/components/ContributorArchive'
+import ExperienceSection from '@/components/ExperienceSection'
 import GithubContributionGraph from '@/components/GithubContributionGraph'
 import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
@@ -102,6 +103,14 @@ const randomGlitchSpawnPos = () => ({
   left: 12 + Math.random() * 66,
   top: 12 + Math.random() * 56,
 })
+
+// Home tab's "$ >" terminal query — typed out character by character once
+// advith.exe first opens (see the typedQuery effect below), then the
+// profile row (photo, name, bio, experience) fades in as if it's the
+// query's result set. The "$ >" prompt itself is always shown, static —
+// only the query text after it types.
+const HOME_QUERY_TEXT = 'select advith_krishnan;'
+const HOME_QUERY_CHAR_MS = 40
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
 // but 'credits' never gets a <DesktopIcon /> rendered — see the JSX below.
@@ -214,6 +223,47 @@ export default function HomeClient({
   const setRect = useWindowStore(s => s.setRect)
   const toggleMaximize = useWindowStore(s => s.toggleMaximize)
   const setTaskOrder = useWindowStore(s => s.setTaskOrder)
+
+  // Home tab's typed "$ > select advith_krishnan;" query (see
+  // HOME_QUERY_TEXT above) and the fade-in it gates — see the JSX below.
+  // Kept at this top level (not scoped inside the 'home' tab's own branch)
+  // and triggered off wins.advith.status rather than on mount, so it plays
+  // exactly once, right when advith.exe's window actually opens — not on
+  // page load (before the window is even visible) and not replayed every
+  // time you switch back to the Home tab.
+  const [homeQueryTyped, setHomeQueryTyped] = useState('')
+  const [homeQueryDone, setHomeQueryDone] = useState(false)
+  const homeQueryStartedRef = useRef(false)
+  const advithStatus = wins.advith.status
+  useEffect(() => {
+    if (advithStatus === 'closed' || homeQueryStartedRef.current) return
+    homeQueryStartedRef.current = true
+    let i = 0
+    const interval = setInterval(() => {
+      i++
+      setHomeQueryTyped(HOME_QUERY_TEXT.slice(0, i))
+      if (i >= HOME_QUERY_TEXT.length) {
+        clearInterval(interval)
+        setHomeQueryDone(true)
+      }
+    }, HOME_QUERY_CHAR_MS)
+    return () => clearInterval(interval)
+  }, [advithStatus])
+
+  // Scroll-linked parallax for the faulty-terminal backdrop (see the
+  // background layer in the JSX below): each tab's own overflow-y-auto
+  // scroll container reports its scrollTop here via onScroll, and the
+  // backdrop shifts by a fraction of it — up while scrolling down, back
+  // down while scrolling up, per tab request. Reset on every tab switch so
+  // a leftover offset from the previous tab's scroll position doesn't
+  // carry over and jump the backdrop.
+  const [bgScrollTop, setBgScrollTop] = useState(0)
+  const handleTabScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setBgScrollTop(e.currentTarget.scrollTop)
+  }, [])
+  useEffect(() => {
+    setBgScrollTop(0)
+  }, [homeTab])
 
   // Minesweeper isn't resizable at all (see resizable={false} below) — like
   // the real game, its window always fits the current difficulty's board
@@ -487,10 +537,10 @@ export default function HomeClient({
 
   // Morphing animation for roles with cryptic letters
   const roles = [
-    "An AI Engineer",
-    "An AI Researcher",
-    "A Software Developer",
-    "A Full Stack Engineer"
+    "AI engineer",
+    "AI researcher",
+    "Software dev",
+    "Full stack dev"
   ];
   const [roleIndex, setRoleIndex] = useState(0);
   const [displayText, setDisplayText] = useState(roles[0]);
@@ -722,9 +772,22 @@ export default function HomeClient({
                 meant to be read cleanly, same reasoning as blog posts never
                 getting a decorative backdrop either. Dimmed well below the
                 component's own default brightness (0.6) so it stays a quiet
-                backdrop instead of competing with the foreground text. */}
+                backdrop instead of competing with the foreground text.
+                Oversized (top/bottom pushed 100px past the pane's own edges)
+                and shifted by a fraction of whichever tab's scroll position
+                (see bgScrollTop/handleTabScroll above) — up while scrolling
+                down, back down while scrolling up. The parent pane below is
+                overflow-hidden, so panning this never reveals the oversized
+                edges, just more of the shader moving with the scroll. */}
             {homeTab !== 'report' && (
-              <div className="absolute inset-0 bg-black">
+              <div
+                className="absolute left-0 right-0 bg-black"
+                style={{
+                  top: -100,
+                  bottom: -100,
+                  transform: `translateY(${-bgScrollTop * 0.12}px)`,
+                }}
+              >
                 <FaultyTerminalBackground brightness={0.3} />
               </div>
             )}
@@ -740,7 +803,7 @@ export default function HomeClient({
               // directly on a scrollable flex container clips/hides
               // whatever's taller than the container and offset above the
               // fold — that's not reachable by scrolling in any browser.)
-              <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16">
+              <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   <ContactView featured={featured} />
                 </div>
@@ -765,13 +828,13 @@ export default function HomeClient({
             // default branch below) so a first-time visitor lands on
             // Advith, not a commit graph. Same min-h-full scroll-fix pattern
             // as Contact above.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16">
+            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   <div className="max-w-3xl w-full">
                   <h1 className="text-white text-3xl font-bold mb-2">
                       Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                   </h1>
-                  <p className="text-gray-400 mb-4">
+                  <p className="text-gray-300 mb-4">
                       "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
                   </p>
 
@@ -789,7 +852,7 @@ export default function HomeClient({
             // stacks photo-above-text on narrow/mobile widths where there's
             // no room for two columns). Same min-h-full scroll-fix pattern
             // as Contact/Logs above.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16">
+            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   {/* Both the heading and the photo+bio row share this same
                       max-w-2xl w-full column so "Database Query" lines up
@@ -798,10 +861,26 @@ export default function HomeClient({
                       (items-center above only centers this shared column as
                       a unit, not each child inside it individually). */}
                   <div className="max-w-2xl w-full flex flex-col gap-4">
-                    <h1 className="text-white text-2xl font-bold text-left">
-                        $ &gt; query advith_krishnan
+                    {/* "$ >" prompt is always there, static — only the query
+                        after it types out (see homeQueryTyped/homeQueryDone
+                        above), with a blinking block cursor while it's still
+                        typing. The whole result row below waits for it to
+                        finish before fading in, like a terminal printing a
+                        query's result set once it resolves. */}
+                    <h1 className="text-white text-2xl font-bold text-left font-mono">
+                        $ &gt; {homeQueryTyped}
+                        {!homeQueryDone && (
+                          <span
+                            className="inline-block w-2 h-5 bg-[#00FF00] ml-0.5 align-middle animate-pulse"
+                            aria-hidden="true"
+                          />
+                        )}
                     </h1>
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left">
+                    <div
+                      className={`flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left transition-opacity duration-700 ${
+                        homeQueryDone ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                      }`}
+                    >
                       <div className="shrink-0 w-40 sm:w-48">
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
                           <Image
@@ -817,19 +896,6 @@ export default function HomeClient({
                         <p className="text-white text-lg">
                           (#ID_6392) Advith Krishnan
                         </p>
-
-                        {/* whitespace-nowrap so this always reads as one line
-                            even in the narrower right column. */}
-                        <span className="text-[#ccc] text-md min-h-[28px] whitespace-nowrap">
-                          • {" "} <span
-                            className="inline-block text-[#00FF00] bg-black px-2 font-bold transition-opacity duration-300"
-                            style={{ letterSpacing: '0.5px' }}
-                          >
-                            {displayText.trim()}
-                          </span>
-                          &nbsp;who works on cool stuff.
-                        </span>
-
                         {/* Bio copy: deliberately not a resume rehash — the goal is
                             personality and curiosity, since the credentials/timeline
                             already live on LinkedIn and the downloadable resume
@@ -839,16 +905,24 @@ export default function HomeClient({
                             bullet is themed to match the green accent used
                             throughout this dossier. text-justify for even edges,
                             matching the blog/report reading columns elsewhere. */}
-                        <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-[#00FF00] flex flex-col gap-3">
+                        <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col gap-3">
                           <li>
-                            Works on kernels, compilers, ML backends, <span
+                            <span
+                            className="inline-block text-[#00FF00] bg-black font-bold transition-opacity duration-300"
+                            style={{ letterSpacing: '0.5px' }}
+                          >
+                            {displayText.trim()}
+                          </span>
+                          &nbsp;who works on cool stuff.
+                          </li>
+                          <li> Works on kernels, compilers, ML backends, i.e. the <span
                                   className="text-[#00FF00] bg-black px-2 font-bold"
                                   style={{ letterSpacing: '0.5px' }}
-                                > software beneath the software.</span>
+                                >software beneath the software.</span>
                           </li>
                           <li>
-                            Contributes to PyTorch and Rust, publishes research on the side,
-                            and writes about his learnings.
+                            Contributes to PyTorch and Rust, publishes research papers,
+                            and writes tech blogs.
                           </li>
                           {/* Little hacker-flavored easter egg, fitting for a
                               page with a faulty-terminal backdrop — visitorIp
@@ -869,6 +943,12 @@ export default function HomeClient({
                             </li>
                           )}
                         </ul>
+                        {/* Compact work-history timeline, below the bio list
+                            per this content column — see
+                            components/ExperienceSection.tsx and
+                            data/experience.ts for the actual entries. Waits
+                            on the same fade-in as the rest of this row. */}
+                        <ExperienceSection />
                       </div>
                     </div>
                   </div>

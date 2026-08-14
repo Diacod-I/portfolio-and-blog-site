@@ -30,7 +30,7 @@ export default function FeaturedLinks({ links }: FeaturedLinksProps) {
               className="w-8 h-8 mr-2"
             />
             <div>
-              <div className="font-bold">{link.title}</div>
+              <div className="font-bold text-sm">{link.title}</div>
               {link.description && (
                 <div className="text-xs text-[#444] font-bold">{link.description}</div>
               )}

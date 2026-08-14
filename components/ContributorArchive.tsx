@@ -140,7 +140,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
               {years.map((year) => (
                 <div key={year}>
                   <p className="text-xs font-bold text-white mb-1 px-1">Year {year}</p>
-                  <div className="grid gap-1">
+                  <div className="grid">
                     {reportsByYear.get(year)!.map((note) => (
                       <Link
                         key={note.slug}

@@ -35,8 +35,7 @@ export default function ContactView({ featured, revealed = true }: ContactViewPr
         Kindly email me at{' '}
         <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-300 hover:underline">
           {CONTACT_EMAIL}
-        </a>
-        . I&apos;ll respond as soon as possible.
+        </a> or reach out to my X account <a href="https://x.com/advith_krishnan" className="text-sky-300 hover:underline">advith_krishnan</a>. I&apos;ll respond as soon as possible.
       </p>
       {/* Internet Shortcuts — moved here from the Home tab, which was
           getting cluttered with the photo, bio copy, and this all at once. */}

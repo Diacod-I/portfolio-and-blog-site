@@ -27,18 +27,5 @@
         "url": "https://nexttechlab.in",
         "icon_path": "/internet_shortcuts/ntl_logo.webp",
         "description": "Student community that shaped me into a better developer and human being."
-    },
-    {
-        "title": "LFX Mentorship @ Open Mainframe Project - Final Blog",
-        "url": "https://openmainframeproject.org/blog/summer-mentorship-2025-advith-krishnan/",
-        "icon_path": "/internet_shortcuts/open-mainframe-project.webp",
-        "description": "Final Blog about my project RAG to Riches at the Linux Foundation Mentorship under the Open Mainframe Project"
-    },
-    {
-        "title": "LFX Mentorship @ Open Mainframe Project - Midterm Blog",
-        "url": "https://openmainframeproject.org/blog/mentorship-series-rag-to-riches-using-your-legacy-data-by-advith-krishnan/",
-        "icon_path": "/internet_shortcuts/open-mainframe-project.webp",
-        "description": "Mid-Term Blog about my project RAG to Riches at the Linux Foundation Mentorship under the Open Mainframe Project"
     }
-
 ]

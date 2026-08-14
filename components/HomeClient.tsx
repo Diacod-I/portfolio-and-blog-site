@@ -80,12 +80,28 @@ const LOADING_MESSAGES: Record<AppId, string> = {
   projects: 'Unpacking project files...',
 }
 
-// How long each splash stays up. advith.exe does the most on first paint
-// (nav chrome, GitHub activity fetch) so it gets a beat longer; everything
-// else is quick enough that the default reads as a deliberate flourish
-// rather than the app actually being slow.
-const LOADING_DURATIONS: Partial<Record<AppId, number>> = { advith: 900 }
+// How long each splash stays up. Every app besides advith.exe just uses
+// this default — advith.exe doesn't go through this path at all anymore,
+// see GLITCH_SPAWN_COUNT/GLITCH_SPAWN_DURATION below and the 'advith'
+// branch in openApp.
+const LOADING_DURATIONS: Partial<Record<AppId, number>> = {}
 const DEFAULT_LOADING_DURATION = 650
+
+// advith.exe's "hacker disruption" open sequence (see openApp below):
+// instead of one calm centered splash, several glitch splashes flash
+// across the screen in quick succession — like a system throwing up
+// alerts mid-breach — before the real window opens. Count × duration
+// (4 × 350ms = 1.4s) intentionally reads as a beat longer than a normal
+// app open: this is the one desktop icon meant to feel like an event.
+const GLITCH_SPAWN_COUNT = 4
+const GLITCH_SPAWN_DURATION = 350
+// Kept away from the edges (the loader card is ~288px wide) so it never
+// clips off the visible desktop, and out of the very bottom to clear the
+// taskbar.
+const randomGlitchSpawnPos = () => ({
+  left: 12 + Math.random() * 66,
+  top: 12 + Math.random() * 56,
+})
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
 // but 'credits' never gets a <DesktopIcon /> rendered — see the JSX below.
@@ -134,6 +150,32 @@ export default function HomeClient({
   // Which app (if any) is showing its loading splash right now — see
   // WindowsLoader and the LOADING_MESSAGES/LOADING_DURATIONS registry above.
   const [loadingApp, setLoadingApp] = useState<AppId | null>(null)
+  // advith.exe's multi-spawn glitch splash (see GLITCH_SPAWN_COUNT above) —
+  // separate from loadingApp/single-splash path above since several of
+  // these flash across the screen in sequence rather than one dialog
+  // sitting centered. Null when no spawn is currently showing.
+  const [glitchSpawn, setGlitchSpawn] = useState<{ left: number; top: number } | null>(null)
+  // Small rotating pool of the same error chime ErrorWindow's 404 dialog
+  // uses (see components/ErrorWindow.tsx) — one per glitch spawn, so
+  // overlapping plays (a new spawn firing before the previous chime
+  // finishes) don't cut each other off. Created once on mount, same
+  // pattern as SoundEffects.tsx's click-sound pool.
+  const glitchAudioPoolRef = useRef<HTMLAudioElement[]>([])
+  const glitchAudioIndexRef = useRef(0)
+  useEffect(() => {
+    glitchAudioPoolRef.current = Array.from(
+      { length: GLITCH_SPAWN_COUNT },
+      () => new Audio('/win98/windows_error_sound.mp3')
+    )
+  }, [])
+  const playGlitchSound = useCallback(() => {
+    const pool = glitchAudioPoolRef.current
+    if (pool.length === 0) return
+    const audio = pool[glitchAudioIndexRef.current]
+    glitchAudioIndexRef.current = (glitchAudioIndexRef.current + 1) % pool.length
+    audio.currentTime = 0
+    audio.play().catch(() => { /* blocked until a real gesture — opening an app already is one */ })
+  }, [])
   // Best-effort visitor IP for the About tab's little "I know your IP"
   // easter egg — fetched client-side from /api/ip (see that route) rather
   // than read server-side in every page.tsx that renders this component,
@@ -215,12 +257,26 @@ export default function HomeClient({
     // identity stable across the frequent window-store updates (drag/resize)
     // that don't actually need to retrigger it.
     if (useWindowStore.getState().wins[id].status === 'closed') {
-      setLoadingApp(id)
-      await new Promise(resolve => setTimeout(resolve, LOADING_DURATIONS[id] ?? DEFAULT_LOADING_DURATION))
-      setLoadingApp(null)
+      if (id === 'advith') {
+        // advith.exe gets the multi-spawn "hacker disruption" open instead
+        // of the single centered splash every other app uses — see
+        // GLITCH_SPAWN_COUNT above and WindowsLoader's glitch/left/top
+        // props. Only once every spawn has flashed does the real window
+        // open (focusApp below).
+        for (let i = 0; i < GLITCH_SPAWN_COUNT; i++) {
+          setGlitchSpawn(randomGlitchSpawnPos())
+          playGlitchSound()
+          await new Promise(resolve => setTimeout(resolve, GLITCH_SPAWN_DURATION))
+        }
+        setGlitchSpawn(null)
+      } else {
+        setLoadingApp(id)
+        await new Promise(resolve => setTimeout(resolve, LOADING_DURATIONS[id] ?? DEFAULT_LOADING_DURATION))
+        setLoadingApp(null)
+      }
     }
     focusApp(id)
-  }, [focusApp, registerApp])
+  }, [focusApp, registerApp, playGlitchSound])
 
   const minimizeApp = storeMinimizeApp
   const closeApp = storeCloseApp
@@ -239,14 +295,17 @@ export default function HomeClient({
     }
   }, [closeApp, pathname, router])
 
-  // Report tab's "Back to Home" button (see ReportViewer.tsx) — reports
+  // Report tab's "Back to Logs" button (see ReportViewer.tsx) — reports
   // aren't their own window/app anymore (see homeTab === 'report' below),
-  // so there's no window to close, just the tab to switch back and, if we
-  // arrived via a real /reports/[slug] URL, the same URL-reset closeBlogsApp
-  // above needs: otherwise the URL stays put and clicking the same report
-  // link again from ContributorArchive would be a no-op.
-  const backToHomeFromReport = useCallback(() => {
-    setHomeTab('home')
+  // so there's no window to close, just the tab to switch back to. Goes to
+  // 'about' (relabeled "Logs" in the navbar — see Navbar.tsx), not 'home':
+  // that's where ContributorArchive and the report link itself live, so
+  // that's the natural place to land back on. If we arrived via a real
+  // /reports/[slug] URL, also needs the same URL-reset closeBlogsApp above
+  // does: otherwise the URL stays put and clicking the same report link
+  // again from ContributorArchive would be a no-op.
+  const backToLogsFromReport = useCallback(() => {
+    setHomeTab('about')
     if (pathname?.startsWith('/reports')) {
       router.push('/')
     }
@@ -683,7 +742,7 @@ export default function HomeClient({
                 <ReportViewer
                   note={reportView.note}
                   content={reportView.content}
-                  onBackToHome={backToHomeFromReport}
+                  onBackToLogs={backToLogsFromReport}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center p-4">
@@ -702,7 +761,7 @@ export default function HomeClient({
                 <div className="min-h-full flex flex-col items-center justify-center">
                   <div className="max-w-3xl w-full">
                   <h1 className="text-white text-3xl font-bold mb-2">
-                      Contributor Activity - <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
+                      Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                   </h1>
                   <p className="text-gray-400 mb-4">
                       "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
@@ -724,69 +783,79 @@ export default function HomeClient({
             // as Contact/Logs above.
             <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16">
                 <div className="min-h-full flex flex-col items-center justify-center">
-                  <div className="max-w-2xl w-full flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left">
-                    <div className="shrink-0 w-40 sm:w-48">
-                      <div className="relative aspect-square border-2 border-[#808080] overflow-hidden">
-                        <Image
-                          src="/Advith_Krishnan.webp"
-                          alt="Advith Krishnan"
-                          fill
-                          sizes="(max-width: 640px) 160px, 192px"
-                          className="object-cover"
-                        />
+                  {/* Both the heading and the photo+bio row share this same
+                      max-w-2xl w-full column so "Database Query" lines up
+                      flush with the left edge of the dossier block below it,
+                      instead of being centered against the whole pane
+                      (items-center above only centers this shared column as
+                      a unit, not each child inside it individually). */}
+                  <div className="max-w-2xl w-full flex flex-col gap-4">
+                    <h1 className="text-white text-2xl font-bold text-left">
+                        Database Query
+                    </h1>
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left">
+                      <div className="shrink-0 w-40 sm:w-48">
+                        <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
+                          <Image
+                            src="/Advith_Krishnan.webp"
+                            alt="Advith Krishnan"
+                            fill
+                            sizes="(max-width: 640px) 190px, 222px"
+                            className="object-cover"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-1 min-w-0 flex flex-col gap-3">
-                      <h1 className="text-white text-2xl font-bold">
-                        Log entry #6392
-                        <br/>Name: Advith Krishnan
-                      </h1>
+                      <div className="flex-1 min-w-0 flex flex-col gap-3">
+                        <p className="text-white text-lg">
+                          (#ID_6392) Advith Krishnan
+                        </p>
 
-                      {/* whitespace-nowrap so this always reads as one line
-                          even in the narrower right column. */}
-                      <span className="text-white text-md min-h-[28px] whitespace-nowrap">
-                        &gt; {" "} <span
-                          className="inline-block text-[#00FF00] bg-black px-2 font-bold transition-opacity duration-300"
-                          style={{ letterSpacing: '0.5px' }}
-                        >
-                          {displayText.trim()}
+                        {/* whitespace-nowrap so this always reads as one line
+                            even in the narrower right column. */}
+                        <span className="text-[#ccc] text-md min-h-[28px] whitespace-nowrap">
+                          &gt; {" "} <span
+                            className="inline-block text-[#00FF00] bg-black px-2 font-bold transition-opacity duration-300"
+                            style={{ letterSpacing: '0.5px' }}
+                          >
+                            {displayText.trim()}
+                          </span>
+                          &nbsp;who works on cool stuff.
                         </span>
-                        &nbsp;who works on cool stuff.
-                      </span>
 
-                      {/* Bio copy: deliberately not a resume rehash — the goal is
-                          personality and curiosity, since the credentials/timeline
-                          already live on LinkedIn and the downloadable resume
-                          (navbar's Resume button). text-justify for even edges,
-                          matching the blog/report reading columns elsewhere. */}
-                      <p className="text-white text-md leading-relaxed text-justify">
-                          &gt; Spends most of my time a few layers below the API everyone                         else often uses. Kernels, compilers, <span
-                                className="text-[#00FF00] bg-black px-2 font-bold"
-                                style={{ letterSpacing: '0.5px' }}
-                              > software beneath the software.</span>
-                          <br/><br/>
-                          &gt; Contributes to open-source systems code, publish research on the side,
-                          and writes about his learnings.
-                          {/* Little hacker-flavored easter egg, fitting for a
-                              page with a faulty-terminal backdrop — visitorIp
-                              is fetched client-side from /api/ip (see that
-                              route and the useEffect above), null until it
-                              resolves or if it couldn't be determined (e.g.
-                              local dev), in which case this line just doesn't
-                              render. */}
-                          {visitorIp && (
-                            <>
-                              <br/><br/>
-                              &gt; Knows your IP address is{' '}
-                              <span
-                                className="inline-block text-[#00FF00] bg-black px-2 font-bold"
-                                style={{ letterSpacing: '0.5px' }}
-                              >
-                                {visitorIp}
-                              </span>{' '}
-                            </>
-                          )}
-                      </p>
+                        {/* Bio copy: deliberately not a resume rehash — the goal is
+                            personality and curiosity, since the credentials/timeline
+                            already live on LinkedIn and the downloadable resume
+                            (navbar's Resume button). text-justify for even edges,
+                            matching the blog/report reading columns elsewhere. */}
+                        <p className="text-[#ccc] text-md leading-relaxed text-justify">
+                            &gt; Spends most of my time a few layers below the API everyone                         else often uses. Kernels, compilers, <span
+                                  className="text-[#00FF00] bg-black px-2 font-bold"
+                                  style={{ letterSpacing: '0.5px' }}
+                                > software beneath the software.</span>
+                            <br/><br/>
+                            &gt; Contributes to open-source systems code, publish research on the side,
+                            and writes about his learnings.
+                            {/* Little hacker-flavored easter egg, fitting for a
+                                page with a faulty-terminal backdrop — visitorIp
+                                is fetched client-side from /api/ip (see that
+                                route and the useEffect above), null until it
+                                resolves or if it couldn't be determined (e.g.
+                                local dev), in which case this line just doesn't
+                                render. */}
+                            {visitorIp && (
+                              <>
+                                <br/><br/>
+                                &gt; Knows your IP address is{' '}
+                                <span
+                                  className="inline-block text-[#00FF00] bg-black px-2 font-bold"
+                                  style={{ letterSpacing: '0.5px' }}
+                                >
+                                  {visitorIp}
+                                </span>{' '}
+                              </>
+                            )}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1020,7 +1089,16 @@ export default function HomeClient({
           title={`Loading ${APPS[loadingApp].name}...`}
           icon={APPS[loadingApp].icon}
           message={LOADING_MESSAGES[loadingApp]}
-          glitch={loadingApp === 'advith'}
+        />
+      )}
+      {glitchSpawn && (
+        <WindowsLoader
+          title={`Loading ${APPS.advith.name}...`}
+          icon={APPS.advith.icon}
+          message={LOADING_MESSAGES.advith}
+          glitch
+          left={glitchSpawn.left}
+          top={glitchSpawn.top}
         />
       )}
     </div>

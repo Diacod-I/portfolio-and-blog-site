@@ -16,6 +16,11 @@
 // (rather than smooth) marquee tinted to match the faulty-terminal
 // backdrop's teal — reads as "hacker disruption" instead of a normal app
 // opening, fitting for the one app with that backdrop.
+//
+// `left`/`top` (percent of viewport, defaults to dead-center) let a caller
+// scatter several of these across the screen instead of stacking them all
+// in the same spot — see advith.exe's multi-spawn glitch open sequence in
+// HomeClient's openApp.
 
 import Image from 'next/image'
 
@@ -29,15 +34,20 @@ type WindowsLoaderProps = {
   /** Distorted "hacker disruption" styling instead of the normal calm
    *  pop-in. Defaults to false — every app besides advith.exe. */
   glitch?: boolean
+  /** Position as % of viewport width/height — the card is still centered
+   *  on that point via the translate transform below. Defaults to 50/50
+   *  (dead-center), same as every non-advith app's splash. */
+  left?: number
+  top?: number
 }
 
-export default function WindowsLoader({ title, icon, message, glitch = false }: WindowsLoaderProps) {
+export default function WindowsLoader({ title, icon, message, glitch = false, left = 50, top = 50 }: WindowsLoaderProps) {
   return (
     <div
-      className={`win98-window fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 ${
+      className={`win98-window fixed -translate-x-1/2 -translate-y-1/2 w-72 ${
         glitch ? 'win98-loader-glitch' : 'win98-loader-pop'
       }`}
-      style={{ zIndex: 20000 }}
+      style={{ zIndex: 20000, left: `${left}%`, top: `${top}%` }}
     >
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">

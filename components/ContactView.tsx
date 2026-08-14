@@ -5,7 +5,6 @@
 // from the Home tab, which was getting cluttered).
 
 import FeaturedLinks from '@/components/FeaturedLinks'
-import ScrollPanel from '@/components/ScrollPanel'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 
 const CONTACT_EMAIL = 'advithkrishnan@gmail.com'
@@ -17,16 +16,14 @@ type ContactViewProps = {
 export default function ContactView({ featured }: ContactViewProps) {
   return (
     <div className="max-w-3xl mx-auto text-white select-text">
-      <h1 className="text-2xl font-bold mb-6 text-center">Get in Touch with me!</h1>
+      <h1 className="text-3xl font-bold">Get in Touch with me!</h1><br/>
       <p>
         Have a question or want to work together?
-        <br />
-        <br />
         Kindly email me at{' '}
         <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-300 hover:underline">
           {CONTACT_EMAIL}
         </a>{' '}
-        or check out my Internet Shortcuts below. I&apos;ll respond as soon as possible.
+        or check out my Internet Shortcuts below.<br/><br/>I&apos;ll respond as soon as possible.
       </p>
       {/* Internet Shortcuts — moved here from the Home tab, which was
           getting cluttered with the photo, bio copy, and this all at once. */}
@@ -41,9 +38,15 @@ export default function ContactView({ featured }: ContactViewProps) {
           <p className="font-bold mb-1 text-sm text-black">
             &gt; My online presence! (Still not famous tho)
           </p>
-          <ScrollPanel maxHeight={280} className="border-2" nudgeId="featured-links">
+          {/* No ScrollPanel here (unlike ContributorArchive's own list) —
+              a nested scroll region inside an already-scrollable Contact
+              tab reads as confusing ("which one am I scrolling?"). The
+              full shortcut list just renders in place; the outer tab
+              wrapper (see HomeClient's min-h-full scroll-fix pattern)
+              handles overflow if the window is short. */}
+          <div className="border-2">
             <FeaturedLinks links={featured} />
-          </ScrollPanel>
+          </div>
         </div>
       </div>
     </div>

@@ -864,9 +864,12 @@ export default function HomeClient({
                     {/* "$ >" prompt is always there, static — only the query
                         after it types out (see homeQueryTyped/homeQueryDone
                         above), with a blinking block cursor while it's still
-                        typing. The whole result row below waits for it to
-                        finish before fading in, like a terminal printing a
-                        query's result set once it resolves. */}
+                        typing. The result row below only mounts once it's
+                        done (see the homeQueryDone && below), each line
+                        popping in on its own stagger — see the
+                        win98-terminal-pop class in globals.css — like a
+                        shell printing a command's output line by line,
+                        rather than the whole block fading in as one. */}
                     <h1 className="text-white text-2xl font-bold text-left font-mono">
                         $ &gt; {homeQueryTyped}
                         {!homeQueryDone && (
@@ -876,11 +879,8 @@ export default function HomeClient({
                           />
                         )}
                     </h1>
-                    <div
-                      className={`flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left transition-opacity duration-700 ${
-                        homeQueryDone ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                      }`}
-                    >
+                    {homeQueryDone && (
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
                           scroll container while the much taller text column
@@ -894,7 +894,10 @@ export default function HomeClient({
                           would just pin it awkwardly above a full-width
                           column) — only enabled at sm: and up, matching the
                           row/column breakpoint above. */}
-                      <div className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-4">
+                      <div
+                        className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-4 win98-terminal-pop"
+                        style={{ animationDelay: '0ms' }}
+                      >
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
                           <Image
                             src="/Advith_Krishnan.webp"
@@ -906,7 +909,7 @@ export default function HomeClient({
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col gap-3">
-                        <p className="text-white text-lg">
+                        <p className="text-white text-lg win98-terminal-pop" style={{ animationDelay: '70ms' }}>
                           (#ID_6392) Advith Krishnan
                         </p>
                         {/* Bio copy: deliberately not a resume rehash — the goal is
@@ -919,7 +922,7 @@ export default function HomeClient({
                             throughout this dossier. text-justify for even edges,
                             matching the blog/report reading columns elsewhere. */}
                         <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col gap-3">
-                          <li>
+                          <li className="win98-terminal-pop" style={{ animationDelay: '140ms' }}>
                             <span
                             className="inline-block text-[#00FF00] bg-black font-bold transition-opacity duration-300"
                             style={{ letterSpacing: '0.5px' }}
@@ -928,12 +931,12 @@ export default function HomeClient({
                           </span>
                           &nbsp;who works on cool stuff.
                           </li>
-                          <li> Works on kernels, compilers, ML backends, i.e. the <span
+                          <li className="win98-terminal-pop" style={{ animationDelay: '210ms' }}> Works on kernels, compilers, ML backends, i.e. the <span
                                   className="text-[#00FF00] bg-black px-2 font-bold"
                                   style={{ letterSpacing: '0.5px' }}
                                 >software beneath the software.</span>
                           </li>
-                          <li>
+                          <li className="win98-terminal-pop" style={{ animationDelay: '280ms' }}>
                             Contributes to PyTorch and Rust, publishes research papers,
                             and writes tech blogs.
                           </li>
@@ -945,7 +948,7 @@ export default function HomeClient({
                               local dev), in which case this line just doesn't
                               render. */}
                           {visitorIp && (
-                            <li>
+                            <li className="win98-terminal-pop" style={{ animationDelay: '350ms' }}>
                               Knows your IP address is{' '}
                               <span
                                 className="inline-block text-[#00FF00] bg-black px-2 font-bold"
@@ -959,11 +962,16 @@ export default function HomeClient({
                         {/* Compact work-history timeline, below the bio list
                             per this content column — see
                             components/ExperienceSection.tsx and
-                            data/experience.ts for the actual entries. Waits
-                            on the same fade-in as the rest of this row. */}
-                        <ExperienceSection />
+                            data/experience.ts for the actual entries. Last
+                            in the stagger sequence, delayed a bit further
+                            when the IP line is also showing so it doesn't
+                            overlap that line's own pop-in. */}
+                        <div className="win98-terminal-pop" style={{ animationDelay: visitorIp ? '420ms' : '350ms' }}>
+                          <ExperienceSection />
+                        </div>
                       </div>
                     </div>
+                    )}
                   </div>
                 </div>
             </div>

@@ -198,6 +198,15 @@
   .win98-loader-glitch {
     animation: none !important;
   }
+  /* Unlike the two rules above, .win98-terminal-pop's *base* state (not
+     just its keyframe) is opacity: 0 — it relies on the animation's
+     forwards fill to ever become visible. Disabling the animation without
+     also forcing it visible here would leave it permanently hidden. */
+  .win98-terminal-pop {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @keyframes gradientFlow {
@@ -295,4 +304,23 @@
 }
 .win98-loader-marquee-glitch {
   animation: win98LoaderMarquee 0.5s steps(6, end) infinite;
+}
+
+/* Home tab's "terminal output" reveal (see HomeClient.tsx): once the "$ >"
+   query finishes typing, the profile row's lines snap in one after another
+   (via increasing animation-delay per element) instead of the whole block
+   fading in together — reads like a shell printing a command's output line
+   by line. steps(2, end) instead of a smooth easing curve keeps each pop
+   crisp/instant rather than a soft fade; the slight overshoot at 60% (scale
+   1.01) is what gives it a "pop" rather than a plain cut-in. forwards fill
+   mode locks in the visible end state once each line's animation finishes,
+   since the base state below is opacity: 0. */
+@keyframes win98TerminalPopIn {
+  0% { opacity: 0; transform: translateY(4px) scale(0.98); }
+  60% { opacity: 1; transform: translateY(0) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.win98-terminal-pop {
+  opacity: 0;
+  animation: win98TerminalPopIn 180ms steps(2, end) forwards;
 }

@@ -41,10 +41,13 @@ I don't have to use `git status` everytime I want to find unstaged changes. I ha
 
 The logic of this layout, inevitably, is "if a row is on screen, it's supposed to tell me something about where I am".
 
-<div className="flex flex-col items-center justify-center text-center my-6">
-  ![Alt text](/post-images/i-built-a-terminal-that-tells-you-where-you-are/screenshot_1.png)
-  <div className="mt-2">Image 1: Layout in action.</div>
-</div>
+<figure className="flex flex-col items-center justify-center text-center my-6">
+  <img
+    src="/post-images/i-built-a-terminal-that-tells-you-where-you-are/screenshot_1.png"
+    alt="Layout in action"
+  />
+  <figcaption className="mt-2">Image 1: Layout in action.</figcaption>
+</figure>
 
 This is built with custom starship modules that shell out to git and check the environment per prompt. The off-main-branch flag, for instance, is just:
 
@@ -108,7 +111,7 @@ require("nvim-treesitter").install({ "lua", "python", "rust", ... })
 
 ...plus a `FileType` autocmd that calls vim.treesitter.start() per buffer, because highlighting isn't auto-enabled anymore. 
 
-Two more traps I hit: the git_rebase parser and the gitrebase filetype have different names and you have to register the mapping yourself (vim.treesitter.language.register("git_rebase", "gitrebase")), and Telescope's previewer will crash with a languagetree error unless you disable treesitter in the preview. If you've been fighting any of these, that's the fix.
+Two more traps I hit: the `git_rebase` parser and the `gitrebase` filetype have different names and you have to register the mapping yourself with `(vim.treesitter.language.register("git_rebase", "gitrebase"))`, and Telescope's previewer will crash with a languagetree error unless you disable treesitter in the preview. If you've been fighting any of these, that's the fix.
 
 ## The small tools that compounded immensely
 

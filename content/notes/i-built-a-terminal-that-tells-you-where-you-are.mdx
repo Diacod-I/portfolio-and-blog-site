@@ -41,12 +41,10 @@ I don't have to use `git status` everytime I want to find unstaged changes. I ha
 
 The logic of this layout, inevitably, is "if a row is on screen, it's supposed to tell me something about where I am".
 
-<div style="text-align: center;">
-<img src="/post-images/i-built-a-terminal-that-tells-you-where-you-are/screenshot_1.png" alt="Description" width="600" height="400" />
+<div className="flex flex-col items-center justify-center text-center my-6">
+  ![Alt text](/post-images/i-built-a-terminal-that-tells-you-where-you-are/screenshot_1.png)
+  <p className="mt-2">Image 1: Layout in action.</p>
 </div>
-<p style="text-align: center;">
-    Image 1: Layout in action
-</p>
 
 This is built with custom starship modules that shell out to git and check the environment per prompt. The off-main-branch flag, for instance, is just:
 

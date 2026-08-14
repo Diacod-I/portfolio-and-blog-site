@@ -6,7 +6,6 @@ import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
 import ContactView from '@/components/ContactView'
 import FaultyTerminalBackground from '@/components/FaultyTerminalBackground'
-import ExperienceSection from '@/components/ExperienceSection'
 import CreditsWindow from '@/components/CreditsWindow'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
@@ -612,10 +611,11 @@ export default function HomeClient({
           maximized={wins.advith.maximized}
           defaultInset={{ top: 5, right: 5, bottom: 43, left: 5 }}
           defaultSize={{ w: 860, h: 580 }}
-          // The About tab's bio is short and fixed-height — stretched much
-          // past this, the tab was just empty space below the text (see
-          // ExperienceSection above, added to fill some of that room; this
-          // caps how far the void can grow regardless).
+          // The About tab's bio+photo block is short and centers itself
+          // (see homeTab === 'about' below) rather than stretching to fill
+          // the window, so a very large window just means more faulty-
+          // terminal backdrop showing around it — still, this caps how
+          // large that gets.
           maxSize={{ w: 1100, h: 760 }}
           cardOffset={{ x: 0, y: -10 }}
           rect={wins.advith.rect}
@@ -654,15 +654,15 @@ export default function HomeClient({
                 </div>
               )
             ) : homeTab === 'about' ? (
-            <div className="flex-1 min-h-0 overflow-y-auto p-4">
-                {/* Same Medium-style capped column as Contact (max-w-3xl,
-                    centered) instead of stretching to the full window width
-                    — and a little top padding so the title settles in
-                    around eye level instead of sitting flush against the
-                    top edge. */}
-                <div className="max-w-3xl mx-auto w-full pt-4">
-                {/* About/bio */}
-                <div className="flex-1 min-w-0 flex flex-col gap-3">
+            // No more scroll-and-read layout now that ExperienceSection is
+            // gone — About is short enough to just center as a block, both
+            // ways, over the faulty-terminal backdrop instead of pinning to
+            // the top. items-center/justify-center on the scroll container
+            // does that; it still falls back to normal top-anchored scrolling
+            // if a narrow/short window ever makes the content taller than
+            // the window itself.
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 flex items-center justify-center">
+                <div className="max-w-2xl w-full flex flex-col items-center text-center gap-4">
                   <h1 className="text-white text-3xl font-bold">
                     👋 Hi, I&apos;m Advith Krishnan!
                   </h1>
@@ -676,37 +676,35 @@ export default function HomeClient({
                     &nbsp;who works on cool stuff.
                   </span>
 
-                  {/* Bio copy: deliberately not a resume rehash — the goal is
-                      personality and curiosity, since the credentials/timeline
-                      already live on LinkedIn and the downloadable resume
-                      (navbar's Resume button). */}
-                  <div className="text-white text-sm leading-relaxed">
-                    <div className="float-right ml-4 mt-4 w-40 sm:w-56">
+                  {/* Photo and bio side by side at the same level instead of
+                      the old float-and-wrap layout — stacks on narrow/mobile
+                      widths (sm:flex-row) since there isn't room for two
+                      columns there. */}
+                  <div className="flex flex-col sm:flex-row items-center gap-6 mt-2 text-left">
+                    <div className="shrink-0 w-40 sm:w-48">
                       <div className="relative aspect-square border-2 border-[#808080] overflow-hidden">
                         <Image
                           src="/Advith_Krishnan.webp"
                           alt="Advith Krishnan"
                           fill
-                          sizes="(max-width: 640px) 160px, 224px"
+                          sizes="(max-width: 640px) 160px, 192px"
                           className="object-cover"
                         />
                       </div>
                       <p className="text-center text-white text-xs italic mt-1">This is me :D</p>
                     </div>
-                    <p className="text-justify mb-3">
+                    {/* Bio copy: deliberately not a resume rehash — the goal is
+                        personality and curiosity, since the credentials/timeline
+                        already live on LinkedIn and the downloadable resume
+                        (navbar's Resume button). */}
+                    <p className="text-white text-sm leading-relaxed">
                         I spend most of my time a few layers below the API everyone else stops
-                        at: kernels, compilers, the software beneath the software.<br/>
-                        
+                        at: kernels, compilers, the software beneath the software.
+                        <br/><br/>
                         I try contribute to open-source systems code, publish research on the side,
                         and write up what I learn along the way.
                     </p>
-
-                    {/* Work history */}
-                    {// <ExperienceSection />
-                    }
-                    <div className="clear-both" />
                   </div>
-                </div>
                 </div>
             </div>
             ) : (

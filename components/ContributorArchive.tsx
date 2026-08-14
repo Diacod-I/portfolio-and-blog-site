@@ -8,11 +8,12 @@
 // section. This widget is the one place reports show up on the site.
 //
 // Report rows link to /reports/[slug] to actually read the full report —
-// that route forces open a standalone Report window (see that route's
-// forceOpenApp="report" and components/ReportViewer.tsx), decoupled from
-// the Blogs window that every other blog reference on the site opens
-// (ExplorerBlogList, etc.). Reports are still stored/compiled as ordinary
-// Notes (lib/notes.ts) — only the window/app identity is separate.
+// that route forces open advith.exe on its Report tab (see that route's
+// forceOpenApp="advith"/initialHomeTab="report" and
+// components/ReportViewer.tsx), decoupled from the Blogs window that every
+// other blog reference on the site opens (ExplorerBlogList, etc.). Reports
+// are still stored/compiled as ordinary Notes (lib/notes.ts) — only the
+// presentation is separate.
 //
 // .win98-window chrome + ScrollPanel + win98-button rows, same structure as
 // ContactView's Internet Shortcuts panel — but with the dark content panel

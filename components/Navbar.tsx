@@ -2,11 +2,15 @@
 
 import ResumeButton from './ResumeButton'
 
-// Home / Contact / Resume are tabs *within* the already-open advith.exe
+// Home / About / Contact are tabs *within* the already-open advith.exe
 // window (see HomeClient's homeTab state) — not separate page navigations.
 // That's the whole point: switching tabs should feel like using an app, not
-// like leaving the desktop for a new page.
-export type HomeTab = 'home' | 'about' | 'contact' | 'resume'
+// like leaving the desktop for a new page. 'report' is the same idea for a
+// single contributor report (see ContributorArchive/ReportViewer) — reached
+// via a link, not one of the buttons below, so it's not in `tabs`.
+// Resume isn't a tab at all anymore: the navbar's Resume button (below)
+// just downloads the PDF directly instead of switching to a viewer tab.
+export type HomeTab = 'home' | 'about' | 'contact' | 'report'
 
 const tabs: { id: 'home' | 'about' | 'contact'; label: string }[] = [
   { id: 'home', label: 'Home' },
@@ -48,7 +52,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
 				</div>
               )
             })}
-            <ResumeButton isActive={activeTab === 'resume'} onClick={() => onTabChange('resume')} />
+            <ResumeButton />
             <div className='gap-0 flex flex-shrink-0'>
             <div className="border-l-2 border-[#808080] h-7"></div>
             <div className="border-l-2 border-[#ffffff] h-7"></div>

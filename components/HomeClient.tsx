@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
 import ContactView from '@/components/ContactView'
-import ResumeView from '@/components/ResumeView'
+import FaultyTerminalBackground from '@/components/FaultyTerminalBackground'
 import ExperienceSection from '@/components/ExperienceSection'
 import CreditsWindow from '@/components/CreditsWindow'
 import WindowsLoader from '@/components/WindowsLoader'
@@ -36,10 +36,10 @@ export type BlogsView =
   | { mode: 'list' }
   | { mode: 'post'; note: Note; seeAlso: Note[]; content: React.ReactNode }
 
-// What the standalone Report window shows — only populated when landing on
+// What advith.exe's Report tab shows — only populated when landing on
 // /reports/[slug] (see that route). Unlike BlogsView there's no 'list' mode:
-// the report list itself lives in ContributorArchive on advith.exe, not in
-// this window — this window only ever shows a single report.
+// the report list itself lives in ContributorArchive on advith.exe's Home
+// tab, not here — this only ever shows a single report at a time.
 export type ReportView = { note: Note; content: React.ReactNode }
 
 type HomeClientProps = {
@@ -63,9 +63,6 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   minesweeper: { name: 'Minesweeper', icon: '/win98/minesweeper.svg' },
   solitaire: { name: 'Solitaire', icon: '/win98/solitaire.png' },
   projects: { name: 'Projects', icon: '/win98/folder.webp' },
-  // Distinct icon from Blogs' notepad.webp — this is its own app, launched
-  // contextually from a report link, never pinned to the desktop.
-  report: { name: 'Report Viewer', icon: '/win98/notes.webp' },
 }
 
 // Flavor text for each app's splash (see WindowsLoader) — shown only the
@@ -82,7 +79,6 @@ const LOADING_MESSAGES: Record<AppId, string> = {
   minesweeper: 'Planting mines...',
   solitaire: 'Shuffling the deck...',
   projects: 'Unpacking project files...',
-  report: 'Opening report...',
 }
 
 // How long each splash stays up. advith.exe does the most on first paint
@@ -109,9 +105,6 @@ const DEFAULT_ICON_CELLS: Record<AppId, GridCell> = {
   minesweeper: { col: 1, row: 0 },
   solitaire: { col: 1, row: 1 },
   projects: { col: 1, row: 2 },
-  // Never rendered as a <DesktopIcon /> (see NO_DESKTOP_ICON) — needs a
-  // cell only because Record<AppId, ...> requires one.
-  report: { col: 1, row: 3 },
 }
 
 // Bumped to v2: moved minesweeper/solitaire from column 0 rows 6-7 to
@@ -129,7 +122,7 @@ const ICON_POS_KEY = 'desktop-icon-cells-v2'
 // that cell must not count as "occupied" in moveIcon's collision check
 // below. Otherwise it's an invisible dead cell nothing can ever be dropped
 // on or swapped with — which is exactly the "glitched cell" bug this fixes.
-const NO_DESKTOP_ICON: AppId[] = ['credits', 'popReadme', 'report']
+const NO_DESKTOP_ICON: AppId[] = ['credits', 'popReadme']
 
 export default function HomeClient({
   notes,
@@ -142,7 +135,7 @@ export default function HomeClient({
   // Which app (if any) is showing its loading splash right now — see
   // WindowsLoader and the LOADING_MESSAGES/LOADING_DURATIONS registry above.
   const [loadingApp, setLoadingApp] = useState<AppId | null>(null)
-  // advith.exe's Home/Contact/Resume tabs — local state, no navigation
+  // advith.exe's Home/About/Contact/Report tabs — local state, no navigation
   // involved (see Navbar). Seeded once from whichever route we landed on.
   const [homeTab, setHomeTab] = useState<HomeTab>(initialHomeTab)
   const router = useRouter()
@@ -228,13 +221,18 @@ export default function HomeClient({
     }
   }, [closeApp, pathname, router])
 
-  // Same URL-reset need as closeBlogsApp above, for /reports/[slug].
-  const closeReportApp = useCallback(() => {
-    closeApp('report')
+  // Report tab's "Back to Home" button (see ReportViewer.tsx) — reports
+  // aren't their own window/app anymore (see homeTab === 'report' below),
+  // so there's no window to close, just the tab to switch back and, if we
+  // arrived via a real /reports/[slug] URL, the same URL-reset closeBlogsApp
+  // above needs: otherwise the URL stays put and clicking the same report
+  // link again from ContributorArchive would be a no-op.
+  const backToHomeFromReport = useCallback(() => {
+    setHomeTab('home')
     if (pathname?.startsWith('/reports')) {
       router.push('/')
     }
-  }, [closeApp, pathname, router])
+  }, [pathname, router])
 
   // Taskbar click: minimize when focused, restore + focus otherwise (win98 rule)
   const handleTaskbarClick = (id: string) => {
@@ -353,8 +351,7 @@ export default function HomeClient({
     wins.popReadme.status !== 'closed' ||
     wins.minesweeper.status !== 'closed' ||
     wins.solitaire.status !== 'closed' ||
-    wins.projects.status !== 'closed' ||
-    wins.report.status !== 'closed'
+    wins.projects.status !== 'closed'
   useEffect(() => {
     if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
     const timer = setTimeout(() => {
@@ -378,8 +375,8 @@ export default function HomeClient({
   // blogs window. Any other page (e.g. ErrorWindow, or old bookmarked links)
   // that still routes in with these query strings keeps working — but once
   // consumed, drop the query so the URL settles back to plain "/", same as
-  // clicking an icon. (Contact/Resume/Credits route in via forceOpenApp +
-  // initialHomeTab instead — see app/contact, app/resume, app/credits.)
+  // clicking an icon. (Contact/Credits/Reports route in via forceOpenApp +
+  // initialHomeTab instead — see app/contact, app/credits, app/reports.)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
     const app = searchParams.get('app')
@@ -629,13 +626,33 @@ export default function HomeClient({
           onClose={() => closeApp('advith')}
         >
             <Navbar activeTab={homeTab} onTabChange={setHomeTab} />
-          <div className="flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
+          <div className="relative flex-1 win98-window-content flex flex-col bg-[#222222] overflow-hidden">
+            {/* Faulty-terminal shader backdrop (see FaultyTerminalBackground.tsx)
+                — Home/About/Contact only, not the Report tab: a report is
+                meant to be read cleanly, same reasoning as blog posts never
+                getting a decorative backdrop either. */}
+            {homeTab !== 'report' && (
+              <div className="absolute inset-0 bg-black">
+                <FaultyTerminalBackground />
+              </div>
+            )}
+            <div className="relative z-10 flex-1 min-h-0 flex flex-col overflow-hidden">
             {homeTab === 'contact' ? (
               <div className="flex-1 min-h-0 overflow-y-auto p-4">
                 <ContactView featured={featured} />
               </div>
-            ) : homeTab === 'resume' ? (
-              <ResumeView />
+            ) : homeTab === 'report' ? (
+              reportView ? (
+                <ReportViewer
+                  note={reportView.note}
+                  content={reportView.content}
+                  onBackToHome={backToHomeFromReport}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center p-4">
+                  <p className="text-white text-sm italic">No report loaded.</p>
+                </div>
+              )
             ) : homeTab === 'about' ? (
             <div className="flex-1 min-h-0 overflow-y-auto p-4">
                 {/* Same Medium-style capped column as Contact (max-w-3xl,
@@ -661,7 +678,8 @@ export default function HomeClient({
 
                   {/* Bio copy: deliberately not a resume rehash — the goal is
                       personality and curiosity, since the credentials/timeline
-                      already live on LinkedIn and the Resume tab. */}
+                      already live on LinkedIn and the downloadable resume
+                      (navbar's Resume button). */}
                   <div className="text-white text-sm leading-relaxed">
                     <div className="float-right ml-4 mt-4 w-40 sm:w-56">
                       <div className="relative aspect-square border-2 border-[#808080] overflow-hidden">
@@ -684,7 +702,8 @@ export default function HomeClient({
                     </p>
 
                     {/* Work history */}
-                    <ExperienceSection />
+                    {// <ExperienceSection />
+                    }
                     <div className="clear-both" />
                   </div>
                 </div>
@@ -714,6 +733,7 @@ export default function HomeClient({
                 </div>
             </div>
             )}
+            </div>
           </div>
         </Win98Window>
       )}
@@ -794,39 +814,6 @@ export default function HomeClient({
               <BlogPostView note={blogsView.note} seeAlso={blogsView.seeAlso} content={blogsView.content} />
             ) : (
               <ExplorerBlogList notes={notes} />
-            )}
-          </div>
-        </Win98Window>
-      )}
-
-      {/* ---- Report window: a single contributor report, standalone from
-           Blogs — landed here via /reports/[slug] (see that route). Never
-           shows a list; ContributorArchive on advith.exe is the index. ---- */}
-      {wins.report.status !== 'closed' && (
-        <Win98Window
-          title="Report Viewer"
-          icon={APPS.report.icon}
-          zIndex={40 + wins.report.z}
-          minimized={wins.report.status === 'minimized'}
-          isFocused={focusedId === 'report'}
-          maximized={wins.report.maximized}
-          defaultInset={{ top: 24, right: 24, bottom: 43, left: 24 }}
-          defaultSize={{ w: 680, h: 500 }}
-          cardOffset={{ x: 90, y: -10 }}
-          rect={wins.report.rect}
-          onRectChange={(r) => setRect('report', r)}
-          onFocus={() => focusApp('report')}
-          onMinimize={() => minimizeApp('report')}
-          onToggleMaximize={() => toggleMaximize('report')}
-          onClose={closeReportApp}
-        >
-          <div className="win98-window-content bg-[#A6A6A6] flex-1 min-h-0 flex flex-col overflow-hidden">
-            {reportView ? (
-              <ReportViewer note={reportView.note} content={reportView.content} />
-            ) : (
-              <div className="flex-1 flex items-center justify-center p-4">
-                <p className="text-black text-sm italic">No report loaded.</p>
-              </div>
             )}
           </div>
         </Win98Window>

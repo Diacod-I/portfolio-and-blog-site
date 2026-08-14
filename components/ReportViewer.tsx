@@ -1,12 +1,12 @@
 'use client'
 
-// Renders a single contributor report inside its own "report" window — a
-// standalone app, not the Blogs window. Reports are still stored and
-// compiled as ordinary Notes (see lib/notes.ts, note.tag === 'Reports'),
-// same MDX pipeline as blog posts — only the *presentation* is decoupled,
-// so opening a report from advith.exe/ContributorArchive no longer borrows
-// "Advith's Blogs" (see app/reports/[slug]/page.tsx for the route that
-// compiles the MDX server-side and hands the rendered element down here).
+// Renders a single contributor report inside advith.exe's Report tab (see
+// HomeClient's homeTab state) — not a separate window. Reports are still
+// stored and compiled as ordinary Notes (see lib/notes.ts, note.tag ===
+// 'Reports'), same MDX pipeline as blog posts — only the *presentation* is
+// decoupled from the Blogs window (see app/reports/[slug]/page.tsx for the
+// route that compiles the MDX server-side and hands the rendered element
+// down here, and ContributorArchive.tsx for the report list that links here).
 
 import Image from 'next/image'
 import type { Note } from '@/lib/notes'
@@ -15,9 +15,13 @@ import TagChip from '@/components/TagChip'
 type ReportViewerProps = {
   note: Note
   content: React.ReactNode
+  /** Switches advith.exe back to the Home tab (and resets the URL if we
+   *  arrived via a real /reports/[slug] link) — see backToHomeFromReport
+   *  in HomeClient.tsx. */
+  onBackToHome: () => void
 }
 
-export default function ReportViewer({ note, content }: ReportViewerProps) {
+export default function ReportViewer({ note, content, onBackToHome }: ReportViewerProps) {
   const postedDate = new Date(note.date).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -26,6 +30,14 @@ export default function ReportViewer({ note, content }: ReportViewerProps) {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-[#222222]">
+      <div className="flex-shrink-0 flex items-center gap-2 bg-[#c0c0c0] border-b-2 border-[#808080] px-2 py-1.5">
+        <button
+          onClick={onBackToHome}
+          className="win98-button px-3 py-1 font-bold text-black text-sm flex items-center gap-1"
+        >
+          ← Back to Home
+        </button>
+      </div>
       <div className="flex-1 min-h-0 overflow-y-auto p-4 text-white select-text">
         <div className="max-w-2xl mx-auto w-full">
           <h1 className="text-3xl font-bold mb-3">{note.title}</h1>

@@ -1,24 +1,18 @@
 'use client'
 
-// Resume is now a tab within advith.exe (see HomeClient's homeTab state),
-// not a separate page — clicking it just switches what the window shows.
+// Resume button in advith.exe's navbar — a direct PDF download, not a tab.
+// There's no more in-app resume viewer (see the removed ResumeView.tsx and
+// app/resume route): same visual slot as the Home/About/Contact buttons
+// next to it, just an <a download> instead of a tab switch.
 
-type ResumeButtonProps = {
-  isActive: boolean
-  onClick: () => void
-}
-
-export default function ResumeButton({ isActive, onClick }: ResumeButtonProps) {
+export default function ResumeButton() {
   return (
-    <button
-      onClick={onClick}
-      className={`win98-resume-button font-bold ${
-        isActive
-          ? 'bg-[#92dcd7] border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white'
-          : ''
-      }`}
+    <a
+      href="/Advith_Krishnan_Resume.pdf"
+      download
+      className="win98-resume-button font-bold"
     >
       Resume
-    </button>
+    </a>
   )
 }

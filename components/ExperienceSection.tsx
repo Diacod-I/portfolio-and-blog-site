@@ -5,8 +5,9 @@
 // card, so About gets a second self-contained content block instead of
 // ending abruptly after the bio (that abrupt ending is what left a big
 // empty void once the window was stretched taller than the bio text).
-// Data lives in data/experience.ts; the Resume tab's PDF still has the
-// full detail (bullet points per role) — this is a scannable summary.
+// Data lives in data/experience.ts; the downloadable resume PDF (navbar's
+// Resume button) still has the full detail (bullet points per role) —
+// this is a scannable summary.
 
 import experience from '@/data/experience'
 

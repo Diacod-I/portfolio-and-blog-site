@@ -2,9 +2,10 @@
 // Professional experience, shown as a compact timeline on advith.exe's
 // About tab (see components/ExperienceSection.tsx). Mirrors the
 // "Professional Experience" section of Advith's resume/LinkedIn (see
-// public/Advith_Krishnan_Resume.pdf for the full detail, including bullet
-// points — that stays on the Resume tab; this is a scannable summary, not
-// a duplicate) — newest first, same order as the resume.
+// public/Advith_Krishnan_Resume.pdf, downloadable from the navbar's Resume
+// button, for the full detail including bullet points — this is a
+// scannable summary, not a duplicate) — newest first, same order as the
+// resume.
 
 export interface ExperienceEntry {
   id: string

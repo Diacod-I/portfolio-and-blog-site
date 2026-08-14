@@ -12,7 +12,7 @@ A nostalgic Windows 98-inspired portfolio and blog website built with Next.js an
 ## Features
 
 - 🖥️ Authentic Windows 98 desktop: draggable/resizable windows, a real taskbar with Start menu, minimize/maximize/close, and drag-to-reorder taskbar buttons.
-- 🪟 advith.exe:  Home, About, Contact, and Resume tabs in one window.
+- 🪟 advith.exe: Home, About, and Contact tabs in one window (plus a Report tab for reading a single Contributor Report — see below), with a one-click downloadable resume in the navbar and an animated CRT/terminal-glitch shader background behind Home/About/Contact.
 - 📈 Contribution Graph: A GitHub-style 365-day contribution heatmap on the Home tab, fetched live from GitHub's GraphQL API.
 - 🗃️ Contribution Archive: Monthly Contributor Reports grouped into a year-by-year timeline, each tagged with `#repo` hashtags for what was worked on.
 - 🤖 Automated monthly reports: A scheduled GitHub Action scaffolds each month's Contributor Report from the GitHub Search API (commits, PRs, issues, reviews) with a narrative paragraph drafted by GitHub Models, then opens it as a PR for review before it goes live (see `scripts/generate-report.mjs` and `.github/workflows/monthly-report.yml`).

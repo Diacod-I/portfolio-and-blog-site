@@ -24,11 +24,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
       changeFrequency: 'yearly',
     },
-    {
-      url: `${SITE_URL}/resume`,
-      priority: 0.5,
-      changeFrequency: 'monthly',
-    },
     ...notes.map((note) => ({
       url: `${SITE_URL}/blogs/${note.slug}`,
       lastModified: new Date(note.date),

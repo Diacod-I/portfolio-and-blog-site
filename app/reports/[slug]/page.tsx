@@ -48,9 +48,9 @@ export async function generateMetadata({ params }: ReportPageProps): Promise<Met
 }
 
 // Renders the same desktop as "/" (icons, taskbar, other windows persist via
-// the zustand store), with a standalone Report window forced open — this is
-// the fix for reports having previously borrowed "Advith's Blogs" (see
-// ContributorArchive.tsx and components/ReportViewer.tsx). The MDX is still
+// the zustand store), with advith.exe forced open on its Report tab (see
+// ContributorArchive.tsx and components/ReportViewer.tsx — reports render
+// inside advith.exe itself, not a separate window/app). The MDX is still
 // compiled server-side here, same as app/blogs/[slug]/page.tsx.
 export default async function ReportPage({ params }: ReportPageProps) {
   const { slug } = await params
@@ -88,7 +88,8 @@ export default async function ReportPage({ params }: ReportPageProps) {
       <HomeClient
         notes={notes}
         featured={featured}
-        forceOpenApp="report"
+        forceOpenApp="advith"
+        initialHomeTab="report"
         reportView={{
           note,
           content: <MDXContent />,

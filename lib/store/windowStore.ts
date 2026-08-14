@@ -4,7 +4,7 @@
 //
 // This lives outside React's component tree on purpose: HomeClient (the "/"
 // desktop) unmounts whenever the user navigates to a different route (e.g.
-// /blogs, /resume). A plain useState in HomeClient would reset every window's
+// /blogs, /reports/[slug]). A plain useState in HomeClient would reset every window's
 // position, size, open/minimized status and z-order on that unmount. Because
 // a zustand store is just a module-scoped singleton, it keeps living across
 // client-side navigations, so the desktop looks exactly as it was left when
@@ -17,7 +17,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme' | 'minesweeper' | 'solitaire' | 'projects' | 'report'
+export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme' | 'minesweeper' | 'solitaire' | 'projects'
 export type WinStatus = 'closed' | 'open' | 'minimized'
 export type Rect = { x: number; y: number; w: number; h: number }
 export type WinState = {
@@ -50,9 +50,6 @@ const initialWins: Record<AppId, WinState> = {
   minesweeper: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   solitaire: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
   projects: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
-  // Standalone contributor-report viewer — its own window/app instead of
-  // borrowing the Blogs window (see ReportViewer.tsx / app/reports/[slug]).
-  report: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
 }
 
 type WindowStore = {
@@ -141,10 +138,12 @@ export const useWindowStore = create<WindowStore>()(
       setTaskOrder: (ids) => set({ taskOrder: ids }),
     }),
     {
-      // Bumped to v10: added 'report'. Older persisted state wouldn't have
-      // this key, which would crash on read — bumping the key just starts
-      // fresh instead of trying to migrate.
-      name: 'win98-window-state-v10',
+      // Bumped to v11: removed 'report' — it's now a tab inside advith.exe
+      // (see ReportViewer.tsx/HomeClient.tsx) rather than its own window/app.
+      // Old persisted state could still have a 'report' key open, which
+      // nothing reads anymore but would otherwise sit around as a phantom
+      // taskbar entry — bumping the key just starts fresh instead.
+      name: 'win98-window-state-v11',
       storage: createJSONStorage(() => sessionStorage),
       skipHydration: true,
     }

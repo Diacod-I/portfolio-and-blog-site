@@ -106,42 +106,90 @@ const randomGlitchSpawnPos = () => ({
 
 // Each of advith.exe's three content tabs (Home/Logs/Contact) opens with
 // its own "$ >" terminal query, typed out character by character the first
-// time that tab becomes active (see useTypedQuery below), after which that
-// tab's content pops in line by line (see the win98-terminal-pop class in
-// globals.css and the .done-gated blocks in the JSX). The "$ >" prompt
-// itself is always shown, static — only the query text after it types.
-const HOME_QUERY_TEXT = 'select about from advith_krishnan;'
-const LOGS_QUERY_TEXT = 'select gh_logs from advith_krishnan;'
-const CONTACT_QUERY_TEXT = 'select contact_info from advith_krishnan;'
+// time advith.exe's window opens (see useTypedQuery below — all three type
+// concurrently in the background the moment the window opens, not gated on
+// which tab happens to be selected; see that function's comment for why),
+// after which that tab's content pops in line by line (see the
+// win98-terminal-pop class in globals.css and the .done-gated blocks in
+// the JSX). The "$ >" prompt itself is always shown, static — only the
+// query text after it types.
+const HOME_QUERY_TEXT = 'select about from devs where name=\'Advith Krishnan\';'
+const LOGS_QUERY_TEXT = 'select gh_logs from devs where name=\'Advith Krishnan\';'
+const CONTACT_QUERY_TEXT = 'select contact_info from devs where name=\'Advith Krishnan\';'
 const TYPED_QUERY_CHAR_MS = 40
 
-// Module-scope, not component state — same reasoning as the zustand window
-// store (see the big comment atop lib/store/windowStore.ts): HomeClient
-// unmounts on every route change (e.g. clicking into a blog post navigates
-// to /blogs/[slug], a different page.tsx), which resets all of its plain
-// useState/useRef. Without this, a query that had already finished typing
-// once would silently reset to blank on the next remount and (depending on
-// exactly when that remount's effect happens to run relative to whatever
-// the user does next) could sit stuck showing just the "$ >" prompt and a
-// cursor — a real regression that turned up after this route-navigation
-// path. Tracking "already finished" here instead means a remounted
-// instance seeds its very first render already-typed/already-revealed,
-// with no dependency on a background timer racing anything.
+// "Already finished typing this session" is tracked in two layers, neither
+// of them component state:
+//  1. completedTypedQueries — an in-memory Set, module-scope. Survives a
+//     HomeClient remount within the same page load (e.g. clicking into a
+//     blog post navigates to /blogs/[slug], a different page.tsx, which
+//     remounts HomeClient and resets all of its plain useState/useRef —
+//     see the big comment atop lib/store/windowStore.ts for the same
+//     reasoning re: window position/size).
+//  2. sessionStorage (COMPLETED_QUERIES_STORAGE_KEY below) — a fallback
+//     for whatever this in-memory Set alone didn't actually cover in
+//     practice (a first attempt at just the Set above didn't fully fix the
+//     "stuck on the cursor" report — sessionStorage is the same mechanism
+//     the window-position store already relies on for surviving harder
+//     resets, so mirroring it here closes that remaining gap regardless of
+//     the exact mechanism).
+// Without either, a query that had already finished typing once would
+// reset to blank on the next remount and could end up stuck showing just
+// the "$ >" prompt and a cursor, never catching back up.
 const completedTypedQueries = new Set<string>()
+const COMPLETED_QUERIES_STORAGE_KEY = 'win98-typed-queries-done-v1'
 
-// Types `text` out character by character the first time `active` becomes
-// true, then never again this session (startedRef + completedTypedQueries
-// above) — so switching tabs back and forth, or a HomeClient remount from
-// a route change, just shows the fully-typed, fully-revealed state
-// instantly instead of replaying (or worse, getting stuck mid-reset)
-// the animation. `active` should combine "advith.exe's window is actually
-// open" (not page load, before the window exists) with "this is the
-// currently selected tab" — see the three call sites in HomeClient below.
+function readPersistedCompletedQueries(): string[] {
+  try {
+    const raw = sessionStorage.getItem(COMPLETED_QUERIES_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch {
+    return []
+  }
+}
+
+function persistCompletedQuery(text: string) {
+  completedTypedQueries.add(text)
+  try {
+    const current = new Set(readPersistedCompletedQueries())
+    current.add(text)
+    sessionStorage.setItem(COMPLETED_QUERIES_STORAGE_KEY, JSON.stringify([...current]))
+  } catch { /* private browsing etc. — animation just replays, not worth surfacing an error for */ }
+}
+
+// Types `text` out character by character once `active` becomes true, then
+// never again this session (see the two-layer "already done" tracking
+// above). `active` is just "advith.exe's window is open" (see the call
+// sites in HomeClient below) — deliberately NOT also gated on "this is the
+// currently selected tab": all three tabs' queries start typing together,
+// in the background, the moment the window opens, regardless of which tab
+// is actually showing. That keeps this hook's trigger condition simple
+// (one dependency, not a tab-match races against local tab-switch state)
+// and means switching to a tab you haven't looked at yet still shows its
+// intro finishing naturally rather than depending on exactly when you
+// happened to switch to it.
 function useTypedQuery(text: string, active: boolean) {
   const alreadyDone = completedTypedQueries.has(text)
   const [typed, setTyped] = useState(alreadyDone ? text : '')
   const [done, setDone] = useState(alreadyDone)
   const startedRef = useRef(alreadyDone)
+
+  // Client-only fallback check (sessionStorage isn't touched during the
+  // very first render/SSR pass — see the FaultyTerminalBackground.tsx
+  // header comment for why touching window-only APIs outside an effect
+  // crashes there) for whatever the in-memory Set above didn't already
+  // catch on this particular remount.
+  useEffect(() => {
+    if (startedRef.current) return
+    if (readPersistedCompletedQueries().includes(text)) {
+      startedRef.current = true
+      completedTypedQueries.add(text)
+      setTyped(text)
+      setDone(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text])
+
   useEffect(() => {
     if (!active || startedRef.current) return
     startedRef.current = true
@@ -152,11 +200,12 @@ function useTypedQuery(text: string, active: boolean) {
       if (i >= text.length) {
         clearInterval(interval)
         setDone(true)
-        completedTypedQueries.add(text)
+        persistCompletedQuery(text)
       }
     }, TYPED_QUERY_CHAR_MS)
     return () => clearInterval(interval)
   }, [active, text])
+
   return { typed, done }
 }
 
@@ -275,16 +324,16 @@ export default function HomeClient({
   // Each tab's typed "$ >" query + the content reveal it gates — see
   // useTypedQuery above. Kept at this top level (not scoped inside each
   // tab's own JSX branch, which unmounts/remounts on every tab switch) so
-  // each intro plays exactly once per session: advithOpen combines with
-  // each tab's own `homeTab === '...'` check so a given tab's typing only
-  // starts once advith.exe's window is actually open (not on page load,
-  // before the window is even visible) AND that specific tab is the one
-  // currently selected — not all three racing to type in the background
-  // the moment the window opens, regardless of which tab is showing.
+  // each intro plays exactly once per session. Deliberately gated on just
+  // advithOpen — NOT also `homeTab === '...'` — so all three tabs' queries
+  // start typing together in the background the instant advith.exe's
+  // window is open, regardless of which tab happens to be selected at
+  // that moment. Whichever tab you're looking at (or switch to) just shows
+  // whatever that query's progress already is.
   const advithOpen = wins.advith.status !== 'closed'
-  const { typed: homeQueryTyped, done: homeQueryDone } = useTypedQuery(HOME_QUERY_TEXT, advithOpen && homeTab === 'home')
-  const { typed: logsQueryTyped, done: logsQueryDone } = useTypedQuery(LOGS_QUERY_TEXT, advithOpen && homeTab === 'about')
-  const { typed: contactQueryTyped, done: contactQueryDone } = useTypedQuery(CONTACT_QUERY_TEXT, advithOpen && homeTab === 'contact')
+  const { typed: homeQueryTyped, done: homeQueryDone } = useTypedQuery(HOME_QUERY_TEXT, advithOpen)
+  const { typed: logsQueryTyped, done: logsQueryDone } = useTypedQuery(LOGS_QUERY_TEXT, advithOpen)
+  const { typed: contactQueryTyped, done: contactQueryDone } = useTypedQuery(CONTACT_QUERY_TEXT, advithOpen)
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
   // background layer in the JSX below): each tab's own overflow-y-auto
@@ -949,7 +998,7 @@ export default function HomeClient({
                         $ &gt; {homeQueryTyped}
                         {!homeQueryDone && (
                           <span
-                            className="inline-block w-2 h-5 bg-[#00FF00] ml-0.5 align-middle animate-pulse"
+                            className="inline-block w-2 h-5 bg-[#00FF00] align-middle animate-pulse"
                             aria-hidden="true"
                           />
                         )}

@@ -29,14 +29,19 @@ export type WinState = {
   preMaximizeRect: Rect | null
 }
 
-// Apps whose window is content-driven and never meant to be maximized —
-// see resizable={false}/maximizable={false} on Minesweeper's Win98Window
-// in HomeClient.tsx: like the real game, its window always fits the
-// current difficulty's board exactly. Excluded from the "opens maximized
-// by default" behavior below — forcing maximized would fill the screen
-// with frame while the actual board stays a small fixed square floating
-// inside it.
-const NOT_MAXIMIZABLE: AppId[] = ['minesweeper']
+// Apps excluded from the "opens maximized by default" behavior below, for
+// two different reasons:
+//  - 'minesweeper': its window is content-driven and never meant to be
+//    maximized at all — see resizable={false}/maximizable={false} on its
+//    Win98Window in HomeClient.tsx. Like the real game, its window always
+//    fits the current difficulty's board exactly; forcing maximized would
+//    fill the screen with frame while the board stays a small fixed
+//    square floating inside it.
+//  - 'advith': the opposite reason — it's still fully maximizable (the
+//    user can click the button same as any other window), it just has a
+//    deliberate default position (center-right, see its cardOffset below)
+//    that a forced-maximize-on-first-open would skip straight past.
+const SKIP_AUTO_MAXIMIZE: AppId[] = ['minesweeper', 'advith']
 
 const initialWins: Record<AppId, WinState> = {
   advith: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },
@@ -100,7 +105,7 @@ export const useWindowStore = create<WindowStore>()(
                 ...w,
                 status: 'open',
                 z,
-                maximized: openingFresh && !NOT_MAXIMIZABLE.includes(id) ? true : w.maximized,
+                maximized: openingFresh && !SKIP_AUTO_MAXIMIZE.includes(id) ? true : w.maximized,
               },
             },
           }

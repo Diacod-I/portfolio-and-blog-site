@@ -10,6 +10,12 @@
 // back and forth, rather than a spinning circle — win98 "please wait"
 // dialogs (installers, app splashes) used exactly this marquee-style bar,
 // a spinning circle is more a 2000s-and-on web convention than a win98 one.
+//
+// `glitch` (advith.exe only — see HomeClient.tsx) swaps the calm pop-in for
+// a continuous jittery shake + RGB-split text flicker + a faster, steppy
+// (rather than smooth) marquee tinted to match the faulty-terminal
+// backdrop's teal — reads as "hacker disruption" instead of a normal app
+// opening, fitting for the one app with that backdrop.
 
 import Image from 'next/image'
 
@@ -20,18 +26,23 @@ type WindowsLoaderProps = {
   icon: string
   /** Per-app flavor text, e.g. "Sweeping for mines..." */
   message: string
+  /** Distorted "hacker disruption" styling instead of the normal calm
+   *  pop-in. Defaults to false — every app besides advith.exe. */
+  glitch?: boolean
 }
 
-export default function WindowsLoader({ title, icon, message }: WindowsLoaderProps) {
+export default function WindowsLoader({ title, icon, message, glitch = false }: WindowsLoaderProps) {
   return (
     <div
-      className="win98-window win98-loader-pop fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72"
+      className={`win98-window fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 ${
+        glitch ? 'win98-loader-glitch' : 'win98-loader-pop'
+      }`}
       style={{ zIndex: 20000 }}
     >
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
           <Image src={icon} alt="" width={16} height={16} className="w-4 h-4 object-contain" />
-          <span>{title}</span>
+          <span className={glitch ? 'win98-glitch-text' : undefined}>{title}</span>
         </div>
       </div>
       <div className="p-4 bg-[#c0c0c0] flex flex-col gap-4">
@@ -46,12 +57,16 @@ export default function WindowsLoader({ title, icon, message }: WindowsLoaderPro
           {/* min-w-0 lets this wrap instead of squeezing the icon into an
               oval — same reasoning as the old single-app version of this
               component. */}
-          <span className="min-w-0 text-sm leading-snug">{message}</span>
+          <span className={`min-w-0 text-sm leading-snug ${glitch ? 'win98-glitch-text' : ''}`}>
+            {message}
+          </span>
         </div>
         {/* Sunken track (dark top/left, light bottom/right — the inverse of
             a raised win98-button) with a marquee block sweeping across it. */}
         <div className="h-4 bg-white border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white overflow-hidden">
-          <div className="h-full w-1/3 bg-[#000080] win98-loader-marquee" />
+          <div
+            className={`h-full w-1/3 ${glitch ? 'bg-[#2baca4] win98-loader-marquee-glitch' : 'bg-[#000080] win98-loader-marquee'}`}
+          />
         </div>
       </div>
     </div>

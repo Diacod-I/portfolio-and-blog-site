@@ -134,6 +134,25 @@ export default function HomeClient({
   // Which app (if any) is showing its loading splash right now — see
   // WindowsLoader and the LOADING_MESSAGES/LOADING_DURATIONS registry above.
   const [loadingApp, setLoadingApp] = useState<AppId | null>(null)
+  // Best-effort visitor IP for the About tab's little "I know your IP"
+  // easter egg — fetched client-side from /api/ip (see that route) rather
+  // than read server-side in every page.tsx that renders this component,
+  // which would force all of them off static generation just for this one
+  // decorative line. Stays null (line doesn't render) until/unless this
+  // resolves — never blocks anything else on the page.
+  const [visitorIp, setVisitorIp] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/ip')
+      .then((res) => res.json())
+      .then((data: { ip: string | null }) => {
+        if (!cancelled) setVisitorIp(data.ip)
+      })
+      .catch(() => { /* easter egg, not worth surfacing an error for */ })
+    return () => {
+      cancelled = true
+    }
+  }, [])
   // advith.exe's Home/About/Contact/Report tabs — local state, no navigation
   // involved (see Navbar). Seeded once from whichever route we landed on.
   const [homeTab, setHomeTab] = useState<HomeTab>(initialHomeTab)
@@ -617,7 +636,11 @@ export default function HomeClient({
           // terminal backdrop showing around it — still, this caps how
           // large that gets.
           maxSize={{ w: 1100, h: 760 }}
-          cardOffset={{ x: 0, y: -10 }}
+          // Deliberately not dead-center on first open — sits center-right
+          // (see SKIP_AUTO_MAXIMIZE in windowStore.ts, which keeps this
+          // window from immediately jumping to maximized and skipping past
+          // this position entirely).
+          cardOffset={{ x: 220, y: -10 }}
           rect={wins.advith.rect}
           onRectChange={(r) => setRect('advith', r)}
           onFocus={() => focusApp('advith')}
@@ -630,15 +653,23 @@ export default function HomeClient({
             {/* Faulty-terminal shader backdrop (see FaultyTerminalBackground.tsx)
                 — Home/About/Contact only, not the Report tab: a report is
                 meant to be read cleanly, same reasoning as blog posts never
-                getting a decorative backdrop either. */}
+                getting a decorative backdrop either. Dimmed well below the
+                component's own default brightness (0.6) so it stays a quiet
+                backdrop instead of competing with the foreground text. */}
             {homeTab !== 'report' && (
               <div className="absolute inset-0 bg-black">
-                <FaultyTerminalBackground />
+                <FaultyTerminalBackground brightness={0.3} />
               </div>
             )}
             <div className="relative z-10 flex-1 min-h-0 flex flex-col overflow-hidden">
             {homeTab === 'contact' ? (
-              <div className="flex-1 min-h-0 overflow-y-auto p-4">
+              // Centered as one block over the backdrop, same treatment as
+              // About/Home below — pb well past pt (not an even p-4) so the
+              // content's visual center sits a bit above the container's
+              // true mathematical center: with the navbar bar sitting above
+              // this whole area, true-center reads as too low relative to
+              // the *window*, not just this pane.
+              <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16 flex items-center justify-center">
                 <ContactView featured={featured} />
               </div>
             ) : homeTab === 'report' ? (
@@ -660,12 +691,29 @@ export default function HomeClient({
             // the top. items-center/justify-center on the scroll container
             // does that; it still falls back to normal top-anchored scrolling
             // if a narrow/short window ever makes the content taller than
-            // the window itself.
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 mb-2 flex items-center justify-center">
+            // the window itself. pb well past pt biases that centered block
+            // upward a bit — with the navbar sitting above this pane, true
+            // mathematical center (of just this pane) reads as too low
+            // relative to the *window* as a whole.
+            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16 flex items-center justify-center">
                 <div className="max-w-2xl w-full flex flex-col items-center text-center gap-4">
                   <h1 className="text-white text-4xl font-bold">
                     Hi, I&apos;m Advith Krishnan!
                   </h1>
+
+                  {/* Tagline gets the card's full width (not squeezed into
+                      the narrower text column below, next to the photo) and
+                      whitespace-nowrap specifically so it always reads as
+                      one line. */}
+                  <span className="text-white text-md min-h-[28px] whitespace-nowrap">
+                    &gt; {" "} <span
+                      className="inline-block text-black bg-white px-2 font-bold transition-opacity duration-300"
+                      style={{ letterSpacing: '0.5px' }}
+                    >
+                      {displayText.trim()}
+                    </span>
+                    &nbsp;who works on cool stuff.
+                  </span>
 
                   {/* Photo and bio side by side at the same level instead of
                       the old float-and-wrap layout — stacks on narrow/mobile
@@ -687,31 +735,43 @@ export default function HomeClient({
                     {/* Bio copy: deliberately not a resume rehash — the goal is
                         personality and curiosity, since the credentials/timeline
                         already live on LinkedIn and the downloadable resume
-                        (navbar's Resume button). */}
-                    <p className="text-white text-md leading-relaxed">
-                    <span className="text-white text-md min-h-[28px]">
-                    &gt; {" "} <span
-                      className="inline-block text-black bg-white px-2 font-bold transition-opacity duration-300"
-                      style={{ letterSpacing: '0.5px' }}
-                    >
-                      {displayText.trim()}
-                    </span>
-                    &nbsp;who works on cool stuff.
-                  </span> <br/> <br/>
+                        (navbar's Resume button). text-justify for even edges,
+                        matching the blog/report reading columns elsewhere. */}
+                    <p className="text-white text-md leading-relaxed text-justify">
                         &gt; I spend most of my time a few layers below the API everyone else stops
                         at: kernels, compilers, the software beneath the software.
                         <br/><br/>
                         I contribute to open-source systems code, publish research on the side,
                         and write up what I learn along the way.
+                        {/* Little hacker-flavored easter egg, fitting for a
+                            page with a faulty-terminal backdrop — visitorIp
+                            is fetched client-side from /api/ip (see that
+                            route and the useEffect above), null until it
+                            resolves or if it couldn't be determined (e.g.
+                            local dev), in which case this line just doesn't
+                            render. */}
+                        {visitorIp && (
+                          <>
+                            <br/><br/>
+                            &gt; btw, I know your IP address is{' '}
+                            <span
+                              className="inline-block text-black bg-white px-2 font-bold"
+                              style={{ letterSpacing: '0.5px' }}
+                            >
+                              {visitorIp}
+                            </span>{' '}
+                            👀
+                          </>
+                        )}
                     </p>
                   </div>
                 </div>
             </div>
             ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto p-4">
-                {/* Same Medium-style capped column as Contact/About — see
-                    the comment above the About tab's wrapper. */}
-                <div className="max-w-3xl mx-auto w-full pt-4">
+            // Same centered-block treatment as Contact/About — see the
+            // comment on the About tab's wrapper for the pt/pb reasoning.
+            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16 flex items-center justify-center">
+                <div className="max-w-3xl w-full">
                 {/* Home dashboard: live GitHub activity feed + latest monthly
                     report widget. The bio/photo content that used to live
                     here now lives under the About tab (see above) — this tab
@@ -959,6 +1019,7 @@ export default function HomeClient({
           title={`Loading ${APPS[loadingApp].name}...`}
           icon={APPS[loadingApp].icon}
           message={LOADING_MESSAGES[loadingApp]}
+          glitch={loadingApp === 'advith'}
         />
       )}
     </div>

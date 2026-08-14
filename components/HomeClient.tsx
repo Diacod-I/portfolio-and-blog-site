@@ -104,13 +104,44 @@ const randomGlitchSpawnPos = () => ({
   top: 12 + Math.random() * 56,
 })
 
-// Home tab's "$ >" terminal query — typed out character by character once
-// advith.exe first opens (see the typedQuery effect below), then the
-// profile row (photo, name, bio, experience) fades in as if it's the
-// query's result set. The "$ >" prompt itself is always shown, static —
-// only the query text after it types.
+// Each of advith.exe's three content tabs (Home/Logs/Contact) opens with
+// its own "$ >" terminal query, typed out character by character the first
+// time that tab becomes active (see useTypedQuery below), after which that
+// tab's content pops in line by line (see the win98-terminal-pop class in
+// globals.css and the .done-gated blocks in the JSX). The "$ >" prompt
+// itself is always shown, static — only the query text after it types.
 const HOME_QUERY_TEXT = 'select advith_krishnan;'
-const HOME_QUERY_CHAR_MS = 40
+const LOGS_QUERY_TEXT = 'select gh-activity-logs from advith_krishnan;'
+const CONTACT_QUERY_TEXT = 'select contact_info from advith_krishnan;'
+const TYPED_QUERY_CHAR_MS = 40
+
+// Types `text` out character by character the first time `active` becomes
+// true, then never again (startedRef) — so switching tabs back and forth
+// after the intro has already played just shows the fully-typed, fully-
+// revealed state instantly instead of replaying the animation. `active`
+// should combine "advith.exe's window is actually open" (not page load,
+// before the window exists) with "this is the currently selected tab" —
+// see the three call sites in HomeClient below.
+function useTypedQuery(text: string, active: boolean) {
+  const [typed, setTyped] = useState('')
+  const [done, setDone] = useState(false)
+  const startedRef = useRef(false)
+  useEffect(() => {
+    if (!active || startedRef.current) return
+    startedRef.current = true
+    let i = 0
+    const interval = setInterval(() => {
+      i++
+      setTyped(text.slice(0, i))
+      if (i >= text.length) {
+        clearInterval(interval)
+        setDone(true)
+      }
+    }, TYPED_QUERY_CHAR_MS)
+    return () => clearInterval(interval)
+  }, [active, text])
+  return { typed, done }
+}
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
 // but 'credits' never gets a <DesktopIcon /> rendered — see the JSX below.
@@ -224,31 +255,19 @@ export default function HomeClient({
   const toggleMaximize = useWindowStore(s => s.toggleMaximize)
   const setTaskOrder = useWindowStore(s => s.setTaskOrder)
 
-  // Home tab's typed "$ > select advith_krishnan;" query (see
-  // HOME_QUERY_TEXT above) and the fade-in it gates — see the JSX below.
-  // Kept at this top level (not scoped inside the 'home' tab's own branch)
-  // and triggered off wins.advith.status rather than on mount, so it plays
-  // exactly once, right when advith.exe's window actually opens — not on
-  // page load (before the window is even visible) and not replayed every
-  // time you switch back to the Home tab.
-  const [homeQueryTyped, setHomeQueryTyped] = useState('')
-  const [homeQueryDone, setHomeQueryDone] = useState(false)
-  const homeQueryStartedRef = useRef(false)
-  const advithStatus = wins.advith.status
-  useEffect(() => {
-    if (advithStatus === 'closed' || homeQueryStartedRef.current) return
-    homeQueryStartedRef.current = true
-    let i = 0
-    const interval = setInterval(() => {
-      i++
-      setHomeQueryTyped(HOME_QUERY_TEXT.slice(0, i))
-      if (i >= HOME_QUERY_TEXT.length) {
-        clearInterval(interval)
-        setHomeQueryDone(true)
-      }
-    }, HOME_QUERY_CHAR_MS)
-    return () => clearInterval(interval)
-  }, [advithStatus])
+  // Each tab's typed "$ >" query + the content reveal it gates — see
+  // useTypedQuery above. Kept at this top level (not scoped inside each
+  // tab's own JSX branch, which unmounts/remounts on every tab switch) so
+  // each intro plays exactly once per session: advithOpen combines with
+  // each tab's own `homeTab === '...'` check so a given tab's typing only
+  // starts once advith.exe's window is actually open (not on page load,
+  // before the window is even visible) AND that specific tab is the one
+  // currently selected — not all three racing to type in the background
+  // the moment the window opens, regardless of which tab is showing.
+  const advithOpen = wins.advith.status !== 'closed'
+  const { typed: homeQueryTyped, done: homeQueryDone } = useTypedQuery(HOME_QUERY_TEXT, advithOpen && homeTab === 'home')
+  const { typed: logsQueryTyped, done: logsQueryDone } = useTypedQuery(LOGS_QUERY_TEXT, advithOpen && homeTab === 'about')
+  const { typed: contactQueryTyped, done: contactQueryDone } = useTypedQuery(CONTACT_QUERY_TEXT, advithOpen && homeTab === 'contact')
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
   // background layer in the JSX below): each tab's own overflow-y-auto
@@ -805,7 +824,24 @@ export default function HomeClient({
               // fold — that's not reachable by scrolling in any browser.)
               <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
-                  <ContactView featured={featured} />
+                  {/* Same typed "$ >" terminal-query intro as Home/Logs (see
+                      useTypedQuery above) — CONTACT_QUERY_TEXT here. Shares
+                      ContactView's own max-w-3xl mx-auto width via its own
+                      identical wrapper below, so their left edges line up.
+                      ContactView itself gates and staggers its own content
+                      on the `revealed` prop — see ContactView.tsx. */}
+                  <div className="max-w-3xl w-full mx-auto mb-4">
+                    <h1 className="text-white text-2xl font-bold text-left font-mono">
+                        $ &gt; {contactQueryTyped}
+                        {!contactQueryDone && (
+                          <span
+                            className="inline-block w-2 h-5 bg-[#00FF00] ml-0.5 align-middle animate-pulse"
+                            aria-hidden="true"
+                          />
+                        )}
+                    </h1>
+                  </div>
+                  <ContactView featured={featured} revealed={contactQueryDone} />
                 </div>
               </div>
             ) : homeTab === 'report' ? (
@@ -831,17 +867,39 @@ export default function HomeClient({
             <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   <div className="max-w-3xl w-full">
-                  <h1 className="text-white text-3xl font-bold mb-2">
-                      Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
+                  {/* Same typed "$ >" terminal-query intro as Home (see
+                      useTypedQuery above) — the query text is LOGS_QUERY_TEXT
+                      here. The section below only mounts once logsQueryDone,
+                      each piece popping in on its own stagger, same
+                      win98-terminal-pop pattern as Home's profile row. */}
+                  <h1 className="text-white text-2xl font-bold text-left font-mono mb-4">
+                      $ &gt; {logsQueryTyped}
+                      {!logsQueryDone && (
+                        <span
+                          className="inline-block w-2 h-5 bg-[#00FF00] ml-0.5 align-middle animate-pulse"
+                          aria-hidden="true"
+                        />
+                      )}
                   </h1>
-                  <p className="text-gray-300 mb-4">
+                  {logsQueryDone && (
+                  <>
+                  <h2 className="text-white text-3xl font-bold mb-2 win98-terminal-pop" style={{ animationDelay: '0ms' }}>
+                      Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
+                  </h2>
+                  <p className="text-gray-300 mb-4 win98-terminal-pop" style={{ animationDelay: '70ms' }}>
                       "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion." — American Psycho prolly
                   </p>
 
                   <div className="flex-1 min-w-0 flex flex-col gap-4">
-                    <GithubContributionGraph />
-                    <ContributorArchive notes={notes} />
+                    <div className="win98-terminal-pop" style={{ animationDelay: '140ms' }}>
+                      <GithubContributionGraph />
+                    </div>
+                    <div className="win98-terminal-pop" style={{ animationDelay: '210ms' }}>
+                      <ContributorArchive notes={notes} />
+                    </div>
                   </div>
+                  </>
+                  )}
                   </div>
                 </div>
             </div>

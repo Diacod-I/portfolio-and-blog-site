@@ -3,6 +3,14 @@
 // Mostly presentational (mailto link + social links); the Internet
 // Shortcuts card needs `featured`, passed down from HomeClient (moved here
 // from the Home tab, which was getting cluttered).
+//
+// `revealed` mirrors Home/Logs's own content gate (see HomeClient's
+// contactQueryDone / useTypedQuery): stays false while the "$ >" terminal
+// query above this component is still typing, so nothing here renders
+// until that finishes — then each piece pops in on its own stagger (see
+// the win98-terminal-pop class in globals.css), same "terminal printing
+// its output" reveal as the other two tabs. Defaults to true so this
+// component still works standalone if ever rendered without that gate.
 
 import FeaturedLinks from '@/components/FeaturedLinks'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
@@ -11,13 +19,18 @@ const CONTACT_EMAIL = 'advithkrishnan@gmail.com'
 
 type ContactViewProps = {
   featured: FeaturedLink[]
+  revealed?: boolean
 }
 
-export default function ContactView({ featured }: ContactViewProps) {
+export default function ContactView({ featured, revealed = true }: ContactViewProps) {
+  if (!revealed) return null
+
   return (
     <div className="max-w-3xl mx-auto text-white select-text">
-      <h1 className="text-3xl font-bold">Get in Touch with me!</h1>
-      <p className="mt-2 text-[#ccc]">
+      <h2 className="text-3xl font-bold win98-terminal-pop" style={{ animationDelay: '0ms' }}>
+        Get in Touch with me!
+      </h2>
+      <p className="mt-2 text-[#ccc] win98-terminal-pop" style={{ animationDelay: '70ms' }}>
         Have a question or want to work together?<br/>
         Kindly email me at{' '}
         <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-300 hover:underline">
@@ -27,7 +40,7 @@ export default function ContactView({ featured }: ContactViewProps) {
       </p>
       {/* Internet Shortcuts — moved here from the Home tab, which was
           getting cluttered with the photo, bio copy, and this all at once. */}
-      <div className="win98-window flex flex-col mt-4">
+      <div className="win98-window flex flex-col mt-4 win98-terminal-pop" style={{ animationDelay: '140ms' }}>
         <div className="win98-titlebar">
           <div className="flex items-center gap-2">
             <img src="/win98/internet.webp" alt="Internet" className="w-4 h-4" />

@@ -22,7 +22,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
-import LiquidChromeBackground from '@/components/LiquidChromeBackground'
+import DitherBackground from '@/components/DitherBackground'
 import type { YouTubeSongMeta } from '@/lib/notes'
 
 type MusicPlayerProps = {
@@ -40,6 +40,8 @@ type MusicPlayerProps = {
 type YTPlayer = {
   playVideo: () => void
   pauseVideo: () => void
+  mute: () => void
+  unMute: () => void
   seekTo: (seconds: number, allowSeekAhead: boolean) => void
   getCurrentTime: () => number
   getDuration: () => number
@@ -114,34 +116,26 @@ function PlayerChrome({
 }) {
   const progress = duration ? (current / duration) * 100 : 0
 
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const bar = e.currentTarget
-    const ratio = (e.clientX - bar.getBoundingClientRect().left) / bar.offsetWidth
-    onSeek(Math.min(1, Math.max(0, ratio)))
-  }
-
   return (
     <div className="relative overflow-hidden rounded-2xl mb-6 select-none">
       {/* Only mounted while actually playing — an idle WebGL context
           sitting there doing nothing would just burn GPU/battery for a
           paused widget nobody's looking at. */}
-      {playing && (
-        <LiquidChromeBackground baseColor={[0.02, 0.02, 0.1]} speed={0.15} amplitude={0.15} />
-      )}
-      <div className="relative z-10 bg-white/5 px-4 py-3 flex items-center gap-3">
+      {playing && <DitherBackground />}
+      <div className="relative z-10 bg-black/35 px-4 py-3 flex items-center gap-3">
         <button
           onClick={onToggle}
           disabled={disabled}
           aria-label={`${playing ? 'Pause' : 'Play'} ${label}`}
-          className="text-gray-400 hover:text-white transition-colors shrink-0 text-sm leading-none disabled:opacity-40 disabled:hover:text-gray-400"
+          className="text-white hover:text-white transition-colors shrink-0 text-sm leading-none disabled:opacity-40 disabled:hover:text-white"
         >
           <FontAwesomeIcon icon={playing ? faPause : faPlay} fixedWidth />
         </button>
-        <span className="text-gray-400 text-sm font-mono tabular-nums shrink-0 whitespace-nowrap">
+        <span className="text-white text-sm font-mono tabular-nums shrink-0 whitespace-nowrap">
           {formatTime(current)} / {formatTime(duration)}
         </span>
-        <div onClick={handleSeek} className="relative flex-1 h-4 cursor-pointer">
-          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-gray-600 rounded-full" />
+        <div className="relative flex-1 h-4">
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-white/35 rounded-full" />
           <div
             className="absolute top-1/2 -translate-y-1/2 h-[2px] bg-white rounded-full"
             style={{ width: `${progress}%` }}
@@ -149,6 +143,17 @@ function PlayerChrome({
           <div
             className="absolute top-1/2 w-3 h-3 bg-white rounded-full"
             style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
+          />
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="0.1"
+            value={progress}
+            disabled={disabled || !duration}
+            aria-label={`Seek ${label}`}
+            onChange={(event) => onSeek(Number(event.currentTarget.value) / 100)}
+            className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0 disabled:cursor-not-allowed"
           />
         </div>
       </div>
@@ -168,6 +173,9 @@ export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: Mu
   const ytMountRef = useRef<HTMLDivElement | null>(null) // plain node handed to YT.Player, which replaces it with an <iframe>
   const ytPlayerRef = useRef<YTPlayer | null>(null)
   const ytPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // YouTube does not honor HTML audio's preload attribute. Start one muted
+  // playback cycle instead, then immediately pause it to warm the stream.
+  const ytWarmingRef = useRef(true)
   const [ytReady, setYtReady] = useState(false)
   const [ytPlaying, setYtPlaying] = useState(false)
   const [ytCurrent, setYtCurrent] = useState(0)
@@ -184,6 +192,7 @@ export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: Mu
   useEffect(() => {
     if (!songMeta) return
     let cancelled = false
+    ytWarmingRef.current = true
 
     loadYouTubeApi().then(() => {
       if (cancelled || !ytHostRef.current || !window.YT) return
@@ -200,10 +209,20 @@ export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: Mu
 
       ytPlayerRef.current = new window.YT.Player(mount, {
         videoId: songMeta.id,
-        playerVars: { playsinline: 1 },
+        // Muted autoplay is allowed by modern browsers; it lets YouTube
+        // initialize and buffer before the visitor presses Play.
+        playerVars: { playsinline: 1, autoplay: 1, mute: 1 },
         events: {
           onReady: () => setYtReady(true),
-          onStateChange: (e) => setYtPlaying(e.data === 1 /* YT.PlayerState.PLAYING */),
+          onStateChange: (e) => {
+            if (e.data === 1 && ytWarmingRef.current) {
+              ytWarmingRef.current = false
+              ytPlayerRef.current?.pauseVideo()
+              ytPlayerRef.current?.unMute()
+              return
+            }
+            setYtPlaying(e.data === 1 /* YT.PlayerState.PLAYING */)
+          },
         },
       })
     })
@@ -297,6 +316,10 @@ export default function MusicPlayer({ song, songTitle, songMeta, postTitle }: Mu
       <audio
         ref={audioRef}
         src={song}
+        // Ask the browser to buffer the track as soon as this post renders,
+        // reducing the delay on the first user-initiated play. Browsers may
+        // still limit this on data-saver or constrained-network connections.
+        preload="auto"
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
         onEnded={() => setPlaying(false)}

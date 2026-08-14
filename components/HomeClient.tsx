@@ -77,7 +77,7 @@ const LOADING_MESSAGES: Record<AppId, string> = {
   blogs: 'Indexing blog posts...',
   gallery: 'Loading photo gallery...',
   credits: 'Rolling the credits...',
-  pop: 'Loading Prince of Persia...',
+  pop: 'Building environment...',
   popReadme: 'Opening the manual...',
   minesweeper: 'Planting mines...',
   solitaire: 'Shuffling the deck...',

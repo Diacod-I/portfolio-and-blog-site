@@ -12,21 +12,39 @@ I spent a while rebuilding my terminal recently. Not re-theming it. Rebuilding i
 
 ## The Core Idea
 
-### The best tools disappear.
+> Even if a tool is impressive, it needs to be accessible to be considered useful.
 
 A prompt you have to read carefully is a prompt that's failing at its job. So the design goal was simple: surface what's unusual, hide what's normal, and never make me squint.
-So the real work was pinning down what actually feels unusual and identifying the habits a dev runs on autopilot and only notice when something's off.
+So the real work was pinning down what actually feels unusual and identifying the habits a dev runs on autopilot and only notice when something's off. A few unusual things I found by talking to other devs (some of which I have experienced a lot) were as follows:
 
-### The prompt reacts to context.
+1) "Most command outputs feel like a wall of text visually."
+2) "I have to use certain git commands unnecessarily just to understand where I am. If I don't, I might end up merging or pushing to the wrong branch."
+3) "I get hit with version-number related issues a lot when working with different projects."
+4) "Navigation on a terminal takes up a lot of time to get used to. VS Code feels more comfortable in that sense."
 
-Most prompts dump everything onto one line: path, branch, git status, versions, all crammed together, in the same color, whether or not any of it matters right now. I went the other way. I tried a column format where each piece of information gets its own row, and rows appear only when they're relevant, that way it becomes more of a top-to-bottom reading (quick for surface level eyeball comparisons). The layout is as follows:
+### Prompt reacts to context, but presents it better.
 
-- The directory row shows the repo-relative path when I'm inside a git repo (warthog/src/backend) and the path from ~ when I'm loose in the filesystem. I never see a wall of absolute path I have to parse.
-- The branch row only exists inside a repo. And the moment I'm not on main or master, it grows a white-on-red `⚠ OFF-MAIN` flag. This has genuinely stopped me from committing to the wrong branch more than once — the whole point is that it's impossible to not notice.
+I noticed most command prompts and configs dump everything onto one line/row: path, branch, git status, versions, all crammed together, in the same color, whether or not any of it matters right now. It becomes irritating when you have to read left-to-right everytime you want to find a certain detail. 
+
+Realising this, I decided to experiment a "column" format over a row format where each piece of information gets its own row, and rows appear only when they're relevant i.e. when the context is appropriate. That way it becomes more of a top-to-bottom reading (quick for surface level eyeball comparisons, especially when working with tmux panes). 
+
+The context-based approach is not new, in fact several popular command line themes use this approach (namely [Oh my ZSH](https://ohmyz.sh/), [powerlevel10k](https://github.com/romkatv/powerlevel10k) and [Starship](https://starship.rs/), the one we are using). It's just the way we are presenting the context should be accessible from a DX perspective.
+
+The layout I made is as follows:
+
+- The directory row shows the repo-relative path when I'm inside a git repo (Example: <repo-name>/path/to/dir) and the path from ~ when I'm loose in my filesystem. I never see a wall of absolute path I have to parse mentally everytime I navigate across directories with this setup.
+- The branch row only exists when inside a repo. And the moment I'm not on main or master, it grows a white-on-red `⚠ OFF-MAIN` flag. This has genuinely preventing me from committing to the wrong branch more than once, or wasting my time verifying my current branch with `git branch --show-current`. The moment I have uncommited changes, I get a yellow ` ● UNCOMMITTED` flag. 
+I don't have to use `git status` everytime I want to find unstaged changes. I have also added a delta tracker and a "commits-ahead" tracker to make sure I know my local state compared to the remote repo, since I can see how many commits ahead/behind I am from remote, and if there is an artifact I missed putting in `.gitignore` that adds thousands of redundant lines of code/text.
+- The commit row shows the current commit HEAD is on. It shows the shortened commit hash and the one-line commit message. This helps quick eye-balling across tmux panes. 
 - The venv row shows only when a `virtualenv` is active. The language rows (`rust`, `py`) auto-hide outside the relevant project.
-- The rule is: if a row is on screen, it's telling me something. Nothing decorative, nothing always-on.
+- Apart from these, there are seperate rows to display version numbers for Python, Rust, Docker etc. on demand based on context. 
 
-This is built with custom starship modules that shell out to git and check the environment per prompt. The branch flag, for instance, is just:
+The logic of this layout, inevitably, is "if a row is on screen, it's supposed to tell me something about where I am".
+
+{/* TODO: add screenshot */}
+
+
+This is built with custom starship modules that shell out to git and check the environment per prompt. The off-main-branch flag, for instance, is just:
 
 ```bash
 b=$(git branch --show-current)
@@ -40,19 +58,27 @@ fi
 
 ### A rule that brackets every command.
 
-Above each prompt is a full-width horizontal rule. It sounds trivial, but it solves a real annoyance for me: scrolling up through a session and not being able to tell where one command's output ends and the next begins. With a rule bracketing every command, that ambiguity disappears. The fiddly part was making it resize-safe inside tmux. $COLUMNS doesn't propagate into starship's subshell, and tput cols reports the wrong width inside a tmux pane. The fix was to ask tmux directly:
+By rule, I dont mean "law" rule. I mean "line" rule. A big line. Above each prompt, a full-width horizontal line. It sounds trivial, but it solves a real annoyance I found for command-line only users: scrolling up through a session and not being able to tell where one command's output ends and the next begins. With a rule bracketing every command, that ambiguity disappears. 
+
+The fiddly part was making it resize-safe inside tmux. $COLUMNS doesn't propagate into starship's subshell, and tput cols reports the wrong width inside a tmux pane. The fix was to ask tmux directly:
 
 ```bash
 w=$(tmux display -p "#{pane_width}" 2>/dev/null || tput cols)
 ```
 
-tmux always knows its own pane width and updates it live on resize, with tput cols as the fallback for a bare terminal. The rule also carries a per-command counter (#7) that resets with cls — a small thing, but it makes "how much have I done in this session" answerable at a glance.
+tmux always knows its own pane width and updates it live on resize, with tput cols as the fallback for a bare terminal. The rule also carries a per-command counter (#7) that resets with cls. It's a small thing, but it makes "how much have I done in this session" answerable at a glance.
 
-### Listings you can actually scan.
+### Listings you can actually scan with a glance.
 
-I have about thirty project folders. A plain `ls` of that is a wall. So `ls`/`ll`/`lf`/`lt` are functions wrapping `eza`, indented for readability, and `lf` does something specific: it's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down. A few developers I've talked to hit the same lag just parsing a big ls dump.
+I have about thirty project folders. A plain `ls` of that is a text wall and a nightmare to mentally parse. A few developers I've talked to hit the same lag just parsing a big ls dump.
 
-Getting that right taught me a lesson I'll keep: don't parse ANSI escape codes with a regex. My first several attempts tried to strip `eza`'s color codes to re-style the first letter, and each one leaked a different fragment `(36m, 1;4m)` as literal text, because eza emits color and bold and underline codes and hand-parsing all of them is a losing game. The version that finally worked never strips anything, and instead reads through escape codes and inserts styling around just the first letter:
+So I made custom `ls`/`ll`/`lf`/`lt` commands wrapping `eza`, indented for readability, and an `lf` command, which does something specific. It's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down.
+
+Getting this right taught me a lesson. 
+
+> Don't parse ANSI escape codes with regex
+
+My first several attempts tried to strip `eza`'s color codes to re-style the first letter, and each one leaked a different fragment `(36m, 1;4m)` as literal text, because eza emits color and bold and underline codes and hand-parsing all of them was a losing game. The version that finally worked never strips anything, and instead reads through escape codes and inserts styling around just the first letter:
 
 ```perl
 perl -pe 's/(\e\[[0-9;]*m)+\K([[:alnum:]])/\e[1;4m$2\e[22;24m/'
@@ -60,7 +86,7 @@ perl -pe 's/(\e\[[0-9;]*m)+\K([[:alnum:]])/\e[1;4m$2\e[22;24m/'
 
 `\K` tells perl to keep the matched color codes untouched and only wrap the first letter; `22;24` resets bold and underline without killing eza's color.
 
-### Git you can read.
+### Git you can read faster.
 
 Interactive rebase is where a lot of people (including me) get lost. The `pick`/`reword`/`squash`/`drop` list is powerful and completely undifferentiated by default, since every command has the same color. So I color-coded them by meaning: green `pick` (keep), red `drop` (delete), purple `squash` (fold up), and so on. It's a gitrebase `FileType` autocmd in Neovim that matches each command word and paints it at a priority high enough to beat treesitter's:
 
@@ -70,7 +96,7 @@ vim.fn.matchadd("RebaseDrop", "\\v^(d|drop)>", 200)  -- red
 
 Suddenly the plan reads like a plan instead of a wall of identical verbs. Merge conflicts get the same treatment via `git-conflict.nvim`, which shades the two sides and lets me resolve with a keystroke instead of hand-matching `<<<<<<<` markers.
 
-## The Neovim 0.12 gotcha
+## A "gotcha" from Neovim 0.12
 
 If you're on Neovim 0.12 and your treesitter setup is crashing or your parsers silently aren't installing, here's the thing that cost me an evening: `nvim-treesitter`'s main branch is now required, and it has a completely different API. Don't do `ensure_installed` in a setup() call. Instead:
 
@@ -78,25 +104,28 @@ If you're on Neovim 0.12 and your treesitter setup is crashing or your parsers s
 require("nvim-treesitter").install({ "lua", "python", "rust", ... })
 ```
 
-...plus a `FileType` autocmd that calls vim.treesitter.start() per buffer, because highlighting isn't auto-enabled anymore. Two more traps I hit: the git_rebase parser and the gitrebase filetype have different names and you have to register the mapping yourself (vim.treesitter.language.register("git_rebase", "gitrebase")), and Telescope's previewer will crash with a languagetree error unless you disable treesitter in the preview. If you've been fighting any of these, that's the fix.
+...plus a `FileType` autocmd that calls vim.treesitter.start() per buffer, because highlighting isn't auto-enabled anymore. 
 
-## The small tools that compound
+Two more traps I hit: the git_rebase parser and the gitrebase filetype have different names and you have to register the mapping yourself (vim.treesitter.language.register("git_rebase", "gitrebase")), and Telescope's previewer will crash with a languagetree error unless you disable treesitter in the preview. If you've been fighting any of these, that's the fix.
 
-None of these are novel, but together they're the difference between friction and flow:
+## The small tools that compounded immensely
+
+None of these are novel, but together, they made the difference between friction and flow for my work setup:
 
 - `atuin` — Ctrl-R history that's actually searchable, with timing and context. I stopped memorizing commands and started just... finding them.
 - `zoxide` — z warthog jumps to a frecent directory. With thirty projects, this beats any listing.
 - `fzf` — fuzzy everything.
-- `zsh-syntax-highlighting` — colors my input as I type (dim args, green commands, cyan paths, red typos), so the command line reads differently from program output. The single biggest legibility win, and it was already installed — I just hadn't styled it.
+- `zsh-syntax-highlighting` — colors my input as I type (dim args, green commands, cyan paths, red typos), so the command line reads differently from program output.
+- `yazi` - goated interactive file manager, shows images, PDFs etc. in terminal and a breeze to navigate
 
 ## What I actually took from this
 
 Two things.
 
-First, most of my time went into fighting layers that emit their own formatting. The fixes that worked all shared a shape: stop wrestling the layer, look up directly what you need, or insert around its output instead of tearing through it. That's a debugging instinct I shall carry forward.
+First, most of my time went into fighting layers that emit their own formatting. The fixes that worked all shared a shape: stop wrestling the layer, look up directly what you need, or insert around its output instead of tearing through it. Lowkey an insane debugging instinct I shall carry forward.
 
-Second, a terminal is craft, not a destination. The next thing I ship will run through exactly the same path, and it'll be the work I actually care about: making things run faster.
-
-For now, though, I can build better. That was the point. Until next time, take care. 
+Second, a terminal is a tool, it needs to work like a usable one. I must be able to use it to make building/shipping projects faster and not the other way around. Everything that makes it slower is a problem that needs to be fixed about the tool.
 
 Configs, README, and install steps: [github.com/Diacod-I/dot-files](https://github.com/Diacod-I/dot-files/tree/main).
+
+Until next time, take care.

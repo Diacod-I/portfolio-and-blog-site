@@ -191,7 +191,8 @@
   .animate-pulse-spiky,
   .win98-loader-marquee,
   .win98-loader-marquee-glitch,
-  .win98-glitch-text {
+  .win98-glitch-text,
+  .win98-new-tag-pulse {
     animation: none !important;
   }
   .win98-loader-pop,
@@ -323,4 +324,18 @@
 .win98-terminal-pop {
   opacity: 0;
   animation: win98TerminalPopIn 180ms steps(2, end) forwards;
+}
+
+/* "NEW" badge on recent blog posts (see ExplorerBlogList.tsx's isNew()) —
+   a slow glow+scale pulse so it actually draws the eye instead of sitting
+   there as a static label, the one tag on the page meant to feel "live".
+   Kept slow (2.2s) and modest (1.06x, not pulseExpand's 1.18x) since this
+   sits inline in a tightly-packed row of small badges — anything faster or
+   bigger would read as a loading spinner instead of a status flag. */
+@keyframes win98NewTagPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(253, 224, 71, 0); }
+  50% { transform: scale(1.06); box-shadow: 0 0 6px 2px rgba(253, 224, 71, 0.75); }
+}
+.win98-new-tag-pulse {
+  animation: win98NewTagPulse 2.2s ease-in-out infinite;
 }

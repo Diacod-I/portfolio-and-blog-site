@@ -76,7 +76,12 @@ function BlogRow({ note, compact }: { note: Note; compact: boolean }) {
             <span className="flex items-center flex-wrap gap-2 mt-1">
               <TagBadge tag={note.tag} />
               {isNew(note.date) && (
-                <span className="bg-yellow-300 border border-black px-1 text-[10px] font-extrabold rounded text-black shrink-0">
+                // Same px-1.5/py-0.5/text-[10px] sizing as TagBadge and the
+                // tag filter chips (see globals.css win98-new-tag-pulse and
+                // reduced-motion guard) so this reads as "one of the tag
+                // chips" rather than a differently-sized label — the pulse
+                // is the only thing that sets it apart.
+                <span className="win98-new-tag-pulse bg-yellow-300 border border-black px-1.5 py-0.5 text-[10px] font-extrabold rounded text-black shrink-0">
                   NEW
                 </span>
               )}

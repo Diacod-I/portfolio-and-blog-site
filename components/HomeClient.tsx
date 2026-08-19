@@ -26,6 +26,7 @@ import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
 import highlights from '@/data/highlights'
 import projects from '@/data/projects'
+import { STORY_CHAPTERS } from '@/data/storyChapters'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 
@@ -1086,6 +1087,73 @@ export default function HomeClient({
                         </div>
                       </div>
                     </div>
+                    )}
+                    {/* "Story" section — a handful of scrollytelling chapters
+                        continuing straight on from the dossier row above,
+                        same max-w-2xl column so everything stays lined up.
+                        See data/storyChapters.ts for the (currently
+                        placeholder/lorem-ipsum) content and the reasoning
+                        behind each chapter's own sticky image. Gated on
+                        homeQueryDone same as the row above — nothing below
+                        the "$ >" prompt shows until that's finished typing. */}
+                    {homeQueryDone && (
+                      <div className="flex flex-col gap-16 mt-4">
+                        {STORY_CHAPTERS.map((chapter) => (
+                          <div
+                            key={chapter.id}
+                            className={`flex flex-col items-center gap-6 text-left sm:items-start ${
+                              chapter.side === 'right' ? 'sm:flex-row-reverse' : 'sm:flex-row'
+                            }`}
+                          >
+                            {/* Same sm:sticky sm:top-4 trick the profile
+                                photo above uses: this row is exactly as
+                                tall as its (much taller) text column, so
+                                the image pins near the top of the scroll
+                                container for as long as that text is
+                                scrolling past, then releases right as this
+                                row's bottom edge — and the next chapter's
+                                own sticky image — comes into view. That's
+                                the whole "chapters" effect, no scroll-snap
+                                or JS scroll-position math needed. */}
+                            <div className="shrink-0 w-full sm:w-56 sm:sticky sm:top-4 win98-terminal-pop">
+                              {chapter.image ? (
+                                <div className="relative aspect-[4/3] border-2 border-white overflow-hidden">
+                                  <Image
+                                    src={chapter.image}
+                                    alt=""
+                                    fill
+                                    sizes="(max-width: 640px) 100vw, 224px"
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                // Placeholder until a real image is dropped
+                                // in — see StoryChapter['image'] in
+                                // data/storyChapters.ts.
+                                <div className="aspect-[4/3] border-2 border-white flex items-center justify-center">
+                                  <span className="text-white/40 text-[10px] font-mono text-center px-2">
+                                    Image placeholder
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0 flex flex-col gap-3">
+                              <h2 className="text-white text-2xl font-bold win98-terminal-pop" style={{ animationDelay: '70ms' }}>
+                                {chapter.title}
+                              </h2>
+                              {chapter.paragraphs.map((paragraph, i) => (
+                                <p
+                                  key={i}
+                                  className="text-[#ccc] text-md leading-relaxed text-justify win98-terminal-pop"
+                                  style={{ animationDelay: `${140 + i * 70}ms` }}
+                                >
+                                  {paragraph}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

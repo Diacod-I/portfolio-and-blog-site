@@ -763,6 +763,7 @@ export default function HomeClient({
         cell={iconCells.minesweeper}
         isActive={wins.minesweeper.status !== 'closed'}
         disabled={isMobile}
+        priority
         onOpen={() => handleGameOpen('minesweeper')}
         onMove={moveIcon}
       />
@@ -1027,6 +1028,7 @@ export default function HomeClient({
                             src="/Advith_Krishnan.webp"
                             alt="Advith Krishnan"
                             fill
+                            priority
                             sizes="(max-width: 640px) 190px, 222px"
                             className="object-cover"
                           />
@@ -1060,17 +1062,6 @@ export default function HomeClient({
                                   style={{ letterSpacing: '0.5px' }}
                                 >software beneath the software.</span>
                           </li>
-                          <li className="win98-terminal-pop" style={{ animationDelay: '280ms' }}>
-                            Contributes to PyTorch and Rust, publishes research papers,
-                            and writes tech blogs.
-                          </li>
-                          {/* Little hacker-flavored easter egg, fitting for a
-                              page with a faulty-terminal backdrop — visitorIp
-                              is fetched client-side from /api/ip (see that
-                              route and the useEffect above), null until it
-                              resolves or if it couldn't be determined (e.g.
-                              local dev), in which case this line just doesn't
-                              render. */}
                           {visitorIp && (
                             <li className="win98-terminal-pop" style={{ animationDelay: '350ms' }}>
                               Knows your IP address is{' '}

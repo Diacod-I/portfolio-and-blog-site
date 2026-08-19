@@ -1057,7 +1057,7 @@ export default function HomeClient({
                           </span>
                           &nbsp;who works on cool stuff.
                           </li>
-                          <li className="win98-terminal-pop" style={{ animationDelay: '210ms' }}> Works on kernels, compilers, ML backends, i.e. the <span
+                          <li className="win98-terminal-pop" style={{ animationDelay: '210ms' }}> Delves into kernels, compilers, ML backends, i.e. the <span
                                   className="text-[#00FF00] bg-black px-2 font-bold"
                                   style={{ letterSpacing: '0.5px' }}
                                 >software beneath the software.</span>

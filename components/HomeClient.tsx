@@ -1053,7 +1053,7 @@ export default function HomeClient({
                             className="inline-block text-[#00FF00] bg-black font-bold transition-opacity duration-300"
                             style={{ letterSpacing: '0.5px' }}
                           >
-                            {displayText.trim()}
+                            &nbsp;{displayText.trim()}&nbsp;
                           </span>
                           &nbsp;who works on cool stuff.
                           </li>

@@ -12,10 +12,11 @@ I spent a while rebuilding my terminal recently. Not re-theming it. Rebuilding i
 
 ## The Core Idea
 
-> Even if a tool is impressive, it needs to be accessible to be considered useful.
+> Even if a tool looks impressive, it needs to be usable to be considered useful.
 
-A prompt you have to read carefully is a prompt that's failing at its job. So the design goal was simple: surface what's unusual, hide what's normal, and never make me squint.
-So the real work was pinning down what actually feels unusual and identifying the habits a dev runs on autopilot and only notice when something's off. A few unusual things I found by talking to other devs (some of which I have experienced a lot) were as follows:
+A terminal prompt you have to read carefully is a prompt that's failing at its job, and that unfortunately is the case of many terminal themes. So my design goal was simple: surface what's unusual, hide what's normal, and never make me squint my eyes.
+
+This meant pinning down what actually feels unusual and identifying the habits a dev runs on autopilot and only notice when something's off. A few unusual things I found by talking to other devs (some of which I have experienced a lot) were as follows:
 
 1) "Most command outputs feel like a wall of text visually."
 2) "I have to use certain git commands unnecessarily just to understand where I am. If I don't, I might end up merging or pushing to the wrong branch."
@@ -26,17 +27,16 @@ So the real work was pinning down what actually feels unusual and identifying th
 
 I noticed most command prompts and configs dump everything onto one line/row: path, branch, git status, versions, all crammed together, in the same color, whether or not any of it matters right now. It becomes irritating when you have to read left-to-right everytime you want to find a certain detail. 
 
-Realising this, I decided to experiment a "column" format over a row format where each piece of information gets its own row, and rows appear only when they're relevant i.e. when the context is appropriate. That way it becomes more of a top-to-bottom reading (quick for surface level eyeball comparisons, especially when working with tmux panes). 
+Realising this, I decided to experiment a "column" format over a row format where each piece of information gets its own row, and rows appear only when they're relevant i.e. when the context is appropriate (Example: There won't be a blank row titled "venv: " when no venv is active at the present). That way it becomes more of a top-to-bottom reading (quick for surface level eyeball comparisons, especially when working with tmux panes). Also, just by adding the respective icons for each detail, all a user needs to do is to search for the icon which contains the detail they want. 
 
-The context-based approach is not new, in fact several popular command line themes use this approach (namely [Oh my ZSH](https://ohmyz.sh/), [powerlevel10k](https://github.com/romkatv/powerlevel10k) and [Starship](https://starship.rs/), the one we are using). It's just the way we are presenting the context should be accessible from a DX perspective.
+By the way, this "context-based" approach is not new, in fact several popular command line themes use this approach (namely [Oh my ZSH](https://ohmyz.sh/), [powerlevel10k](https://github.com/romkatv/powerlevel10k) and [Starship](https://starship.rs/), the one we are using). It's just that the way we are presenting said context should be accessible much better and quicker from a DX perspective, and a column+icon format that "shows" you what your current scenario is and hence satisfies the conditions for accessibility mentioned before.
 
 The layout I made is as follows:
 
-- The directory row shows the repo-relative path when I'm inside a git repo (Example: \<repo-name\>/path/to/dir) and the path from ~ when I'm loose in my filesystem. I never see a wall of absolute path I have to parse mentally everytime I navigate across directories with this setup.
-- The branch row only exists when inside a repo. And the moment I'm not on main or master, it grows a white-on-red `⚠ OFF-MAIN` flag. This has genuinely preventing me from committing to the wrong branch more than once, or wasting my time verifying my current branch with `git branch --show-current`. The moment I have uncommited changes, I get a yellow ` ● UNCOMMITTED` flag. 
-I don't have to use `git status` everytime I want to find unstaged changes. I have also added a delta tracker and a "commits-ahead" tracker to make sure I know my local state compared to the remote repo, since I can see how many commits ahead/behind I am from remote, and if there is an artifact I missed putting in `.gitignore` that adds thousands of redundant lines of code/text.
-- The commit row shows the current commit HEAD is on. It shows the shortened commit hash and the one-line commit message. This helps quick eye-balling across tmux panes. 
-- The venv row shows only when a `virtualenv` is active. The language rows (`rust`, `py`) auto-hide outside the relevant project.
+- The directory row shows the repo-relative path when a user is inside a git repo (Example: \<repo-name\>/path/to/dir) and the path from ~ when they are loose in my filesystem. You never see a wall of absolute path you need to parse mentally everytime you navigate across directories.
+- The branch row is a big one. It only appears when inside a repo, and the moment the user is not on main or master, it shows a white-on-red `⚠ OFF-MAIN` flag. This prevents a user from committing to the wrong branch more than once, or wasting my time verifying the current branch with `git branch --show-current` before every commit. The moment a user has uncommited changes, it shows a yellow ` ● UNCOMMITTED` flag to eliminate having to compulsively use `git status` everytime to simply check the presence of unstaged changes. I have also added a delta tracker and a "commits-ahead" tracker to make sure a user knows the local state compared to the remote repo, see how many commits ahead/behind I am from remote, and if there is an artifact not in `.gitignore` that adds thousands of redundant lines of code/text. You know where you are at all times, which dir, repo, branch etc. and every change you make, you just know it.
+- The commit row shows the current commit HEAD is on. It shows the shortened commit hash and the one-line commit message. This helps quick eye-balling across tmux panes having different branches, allowing for working on multiple features side-by-side.
+- The venv row (as mentioned before) shows only when a `virtualenv` is active. The language rows (`rust`, `py`) auto-hide outside the relevant project.
 - Apart from these, there are seperate rows to display version numbers for Python, Rust, Docker etc. on demand based on context. 
 
 The logic of this layout, inevitably, is "if a row is on screen, it's supposed to tell me something about where I am".
@@ -63,7 +63,7 @@ fi
 
 ### A rule that brackets every command.
 
-By rule, I dont mean "law" rule. I mean "line" rule. A big line. Above each prompt, a full-width horizontal line. It sounds trivial, but it solves a real annoyance I found for command-line only users: scrolling up through a session and not being able to tell where one command's output ends and the next begins. With a rule bracketing every command, that ambiguity disappears. 
+By rule, I dont mean "the law" kinda rule. I mean "a line" kinda rule. A big line. Above each prompt, a full-width horizontal line. It sounds trivial, but it solves a real annoyance I found for command-line only users: scrolling up through a session and not being able to tell where one command's output ends and the next begins. With a rule bracketing every command, that ambiguity disappears. 
 
 The fiddly part was making it resize-safe inside tmux. $COLUMNS doesn't propagate into starship's subshell, and tput cols reports the wrong width inside a tmux pane. The fix was to ask tmux directly:
 
@@ -75,9 +75,9 @@ tmux always knows its own pane width and updates it live on resize, with tput co
 
 ### Listings you can actually scan with a glance.
 
-I have about thirty project folders. A plain `ls` of that is a text wall and a nightmare to mentally parse. A few developers I've talked to hit the same lag just parsing a big ls dump.
+I have about thirty project folders. A plain `ls` (not even a `ls -R`) of that brings the same text wall problem and is often a nightmare to mentally parse at scale. A few developers I've talked to hit the same lag just parsing a big ls dump.
 
-So I made custom `ls`/`ll`/`lf`/`lt` commands wrapping `eza`, indented for readability, and an `lf` command, which does something specific. It's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down.
+So, I made custom `ls`/`ll`/`lf`/`lt` commands wrapping `eza`, indented for readability, and an `lf` command, which does something specific. It's a one-per-line view that emphasizes the first letter of each name, so an alphabetical list becomes something my eyes can jump down, taking the solution of the icon-based mental search to another level.
 
 Getting this right taught me a lesson. 
 

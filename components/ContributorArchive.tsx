@@ -23,11 +23,16 @@
 //    no report page, no ReportViewer, nothing added to the MDX pipeline
 //    (see that file's header comment for why).
 //
-// .win98-window chrome + ScrollPanel + win98-button rows, same structure as
-// ContactView's Internet Shortcuts panel — but with the dark content panel
-// (bg-[#2b2b2b], white text) matching GithubContributionGraph right above
-// it, instead of ContactView's light one. Entries are grouped into a
-// year-by-year timeline, newest year on top.
+// .win98-window chrome + win98-button rows, same structure as ContactView's
+// Internet Shortcuts panel — but with the dark content panel (bg-[#2b2b2b],
+// white text) matching GithubContributionGraph right above it, instead of
+// ContactView's light one. No nested scroll region here (unlike this
+// component's own earlier version) — the list just renders at its full
+// height so the tab's own outer scroll (see HomeClient's min-h-full
+// scroll-fix pattern and its scroll-linked parallax background) handles
+// overflow, the same reasoning ContactView's Internet Shortcuts panel
+// already uses. Entries are grouped into a year-by-year timeline, newest
+// year on top.
 //
 // Filtering is tag-only (see the chip row below) — no free-text search box.
 // For internal reports the "tags" are each report's `repos` frontmatter
@@ -181,7 +186,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                         >
                           <span className="flex items-center gap-1.5 min-w-0">
                             <img src="/win98/notes.webp" alt="" className="w-3.5 h-3.5 shrink-0" />
-                          <span className="block text-sm font-bold truncate min-w-0">{entry.note.title}</span>
+                            <span className="block text-sm font-bold truncate min-w-0">{entry.note.title}</span>
                           </span>
                           <span className="flex items-start justify-between gap-2 min-w-0 flex-wrap">
                             <span className="text-[10px] text-[#444] font-bold truncate">
@@ -199,11 +204,12 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                       ) : (
                         // External writeup — opens `url` in a new tab
                         // instead of routing anywhere on this site (see
-                        // data/externalReports.ts). The small internet
-                        // icon (same asset ContactView's Internet
-                        // Shortcuts titlebar uses) is the only visual cue
-                        // distinguishing this row from an internal report,
-                        // since both otherwise share the exact same
+                        // data/externalReports.ts). Internal report rows
+                        // above use a notes icon; this one uses the same
+                        // internet icon as ContactView's Internet Shortcuts
+                        // titlebar — that icon swap is the only visual cue
+                        // distinguishing an external row from an internal
+                        // one, since both otherwise share the exact same
                         // win98-button row styling.
                         <a
                           key={entry.key}

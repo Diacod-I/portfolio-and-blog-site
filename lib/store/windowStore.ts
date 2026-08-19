@@ -29,19 +29,20 @@ export type WinState = {
   preMaximizeRect: Rect | null
 }
 
-// Apps excluded from the "opens maximized by default" behavior below, for
-// two different reasons:
-//  - 'minesweeper': its window is content-driven and never meant to be
-//    maximized at all — see resizable={false}/maximizable={false} on its
-//    Win98Window in HomeClient.tsx. Like the real game, its window always
-//    fits the current difficulty's board exactly; forcing maximized would
-//    fill the screen with frame while the board stays a small fixed
-//    square floating inside it.
-//  - 'advith': the opposite reason — it's still fully maximizable (the
-//    user can click the button same as any other window), it just has a
-//    deliberate default position (center-right, see its cardOffset below)
-//    that a forced-maximize-on-first-open would skip straight past.
-const SKIP_AUTO_MAXIMIZE: AppId[] = ['minesweeper', 'advith']
+// Apps excluded from the "opens maximized by default" behavior below.
+// 'minesweeper': its window is content-driven and never meant to be
+// maximized at all — see resizable={false}/maximizable={false} on its
+// Win98Window in HomeClient.tsx. Like the real game, its window always
+// fits the current difficulty's board exactly; forcing maximized would
+// fill the screen with frame while the board stays a small fixed square
+// floating inside it.
+//
+// advith.exe used to be excluded here too (a deliberate center-right
+// default position, see its old cardOffset comment in HomeClient.tsx) but
+// that's since been changed back to auto-maximize on first open like
+// every other app — cardOffset only matters now for whatever size/position
+// the user restores to after manually un-maximizing it.
+const SKIP_AUTO_MAXIMIZE: AppId[] = ['minesweeper']
 
 const initialWins: Record<AppId, WinState> = {
   advith: { status: 'closed', z: 0, rect: null, maximized: false, preMaximizeRect: null },

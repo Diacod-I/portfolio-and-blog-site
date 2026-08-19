@@ -839,10 +839,10 @@ export default function HomeClient({
           // terminal backdrop showing around it — still, this caps how
           // large that gets.
           maxSize={{ w: 1100, h: 760 }}
-          // Deliberately not dead-center on first open — sits center-right
-          // (see SKIP_AUTO_MAXIMIZE in windowStore.ts, which keeps this
-          // window from immediately jumping to maximized and skipping past
-          // this position entirely).
+          // advith.exe now auto-maximizes on first open like every other
+          // app (see SKIP_AUTO_MAXIMIZE in windowStore.ts) — cardOffset
+          // below only matters for wherever it restores to after the user
+          // manually un-maximizes it, not the very first open anymore.
           cardOffset={{ x: 220, y: -10 }}
           rect={wins.advith.rect}
           onRectChange={(r) => setRect('advith', r)}

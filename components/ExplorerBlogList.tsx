@@ -81,7 +81,7 @@ function BlogRow({ note, compact }: { note: Note; compact: boolean }) {
                 // reduced-motion guard) so this reads as "one of the tag
                 // chips" rather than a differently-sized label — the pulse
                 // is the only thing that sets it apart.
-                <span className="win98-new-tag-pulse bg-yellow-300 border border-black px-1.5 py-0.5 text-[10px] font-extrabold rounded text-black shrink-0">
+                <span className="win98-new-tag-pulse text-yellow-300 text-[10px] font-extrabold px-2 shrink-0 drop-shadow-[5px_0px_3px_rgba(0,0,0,0.3)]">
                   NEW
                 </span>
               )}

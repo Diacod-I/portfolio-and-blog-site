@@ -475,6 +475,24 @@ export default function HomeClient({
   // useLayoutEffect (not useEffect) specifically so this happens before
   // the browser paints — a plain useEffect would let the hidden zone flash
   // into view for a frame first, on every single tab switch to Home.
+  //
+  // Also keyed on advithOpen, not just homeTab: homeTab already defaults
+  // to 'home' from the very first render (useState(initialHomeTab)), so
+  // on a normal desktop-icon open there's no actual *change* to homeTab
+  // for this effect to react to — advith.exe's window (and everything
+  // inside it, including homeScrollRef/homeContentStartRef) doesn't even
+  // exist in the DOM yet at that point, since Win98Window only mounts its
+  // content once wins.advith.status !== 'closed'. Without advithOpen
+  // here, this effect's one and only run (on mount) would hit the early
+  // `!scrollEl || !startEl` return below and never fire again once the
+  // window actually opens and those refs populate — which is exactly
+  // what left the tab sitting at the hidden zone (scrollTop 0) instead of
+  // the real starting position, and, as a side effect, kept
+  // startingScrollTopRef stuck at its initial 0 forever — handleTabScroll
+  // only updates the wash's opacity when `resting > 0`, so the wash never
+  // got a chance to work either. Advith.exe's own open sequence delays
+  // the window actually appearing anyway (see openApp/GLITCH_SPAWN_COUNT
+  // above), so this firing a beat after mount is invisible in practice.
   useLayoutEffect(() => {
     if (homeTab !== 'home') return
     const scrollEl = homeScrollRef.current
@@ -485,7 +503,7 @@ export default function HomeClient({
     scrollEl.scrollTop += startRect.top - scrollRect.top
     startingScrollTopRef.current = scrollEl.scrollTop
     if (easterEggWashRef.current) easterEggWashRef.current.style.opacity = '0'
-  }, [homeTab])
+  }, [homeTab, advithOpen])
 
   // Minesweeper isn't resizable at all (see resizable={false} below) — like
   // the real game, its window always fits the current difficulty's board

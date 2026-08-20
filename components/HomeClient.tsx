@@ -1020,16 +1020,34 @@ export default function HomeClient({
             // + bio stacked together in the right column (sm:flex-row;
             // stacks photo-above-text on narrow/mobile widths where there's
             // no room for two columns). Same min-h-full scroll-fix pattern
-            // as Contact/Logs above.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
+            // as Contact/Logs above, except the top padding is much taller
+            // here — pt-[max(1rem,15vh)] instead of the plain pt-4 the
+            // other tabs use — so the very first thing you see lands around
+            // the upper-middle of the window instead of flush against its
+            // top edge (this tab is tall enough now, with the story
+            // chapters below, that min-h-full's own centering never
+            // actually kicks in — it's a floor, not a cap, so without this
+            // the content would otherwise start right at the top). The
+            // max(...) is a floor for short/restored windows where 15vh
+            // would be cramped.
+            <div className="flex-1 min-h-0 overflow-y-auto pt-[max(1rem,15vh)] px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   {/* Both the heading and the photo+bio row share this same
                       max-w-2xl w-full column so "Database Query" lines up
                       flush with the left edge of the dossier block below it,
                       instead of being centered against the whole pane
                       (items-center above only centers this shared column as
-                      a unit, not each child inside it individually). */}
-                  <div className="max-w-2xl w-full flex flex-col gap-4">
+                      a unit, not each child inside it individually). No gap
+                      here (unlike a plain "gap-4") — see the mt-4 on the
+                      dossier row just below for why: flexbox `gap` sits
+                      *outside* a flex item's own box, so it can't become
+                      part of a sticky child's containing block the way
+                      padding can. That distinction matters a lot more
+                      further down (see the story-chapters section's own
+                      comment) than it does here, but staying consistent
+                      keeps the whole column's spacing built the same way
+                      end to end. */}
+                  <div className="max-w-2xl w-full flex flex-col">
                     {/* "$ >" prompt is always there, static — only the query
                         after it types out (see homeQueryTyped/homeQueryDone
                         above), with a blinking block cursor while it's still
@@ -1049,7 +1067,17 @@ export default function HomeClient({
                         )}
                     </h1>
                     {homeQueryDone && (
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left">
+                    // mt-4 (spacing after the "$ >" heading above) + pb-16
+                    // (spacing before chapter 1 below) — NOT a gap/margin
+                    // between this row and the chapters section, which
+                    // would otherwise be dead scroll space where neither
+                    // this photo nor chapter 1's image is sticky. Padding
+                    // stays *inside* this row's own box, so it extends how
+                    // long the photo can stay stuck right up until chapter
+                    // 1's row begins immediately after (zero gap — see its
+                    // own wrapper below) — see that section's comment for
+                    // the full "sticky relay" reasoning.
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-16">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
                           scroll container while the much taller text column
@@ -1138,26 +1166,46 @@ export default function HomeClient({
                         placeholder/lorem-ipsum) content and the reasoning
                         behind each chapter's own sticky image. Gated on
                         homeQueryDone same as the row above — nothing below
-                        the "$ >" prompt shows until that's finished typing. */}
+                        the "$ >" prompt shows until that's finished typing.
+
+                        No gap between chapters (unlike an earlier version
+                        of this that used a plain "gap-16" here) — each
+                        chapter's own pb-16 below does that spacing instead.
+                        The difference matters: flexbox `gap` sits between
+                        two flex items, outside either one's own box, so it
+                        can never become part of a sticky child's
+                        containing block — the previous chapter's image
+                        would release (stop being sticky) right as its text
+                        ends, then sit as a dead zone of plain scrolling
+                        space before the NEXT chapter's image scrolled up
+                        far enough to engage its own stickiness. Padding
+                        fixes that: it's part of the row's own box, so the
+                        row (and the sticky image pinned inside it) doesn't
+                        actually end until the padding is scrolled past too
+                        — which is timed to land exactly where the next
+                        chapter's row begins (zero gap between rows), so
+                        one image releases at the exact moment the next
+                        one is ready to take over, instead of leaving a gap
+                        where neither is stuck. */}
                     {homeQueryDone && (
-                      <div className="flex flex-col gap-16 mt-4">
+                      <div className="flex flex-col">
                         {STORY_CHAPTERS.map((chapter) => (
                           <div
                             key={chapter.id}
-                            className={`flex flex-col items-center gap-6 text-left sm:items-start ${
+                            className={`flex flex-col items-center gap-6 text-left sm:items-start pb-16 ${
                               chapter.side === 'right' ? 'sm:flex-row-reverse' : 'sm:flex-row'
                             }`}
                           >
                             {/* Same sm:sticky sm:top-4 trick the profile
                                 photo above uses: this row is exactly as
-                                tall as its (much taller) text column, so
-                                the image pins near the top of the scroll
-                                container for as long as that text is
+                                tall as its (much taller) text column plus
+                                its own trailing pb-16, so the image pins
+                                near the top of the scroll container for as
+                                long as that text (and padding) is
                                 scrolling past, then releases right as this
                                 row's bottom edge — and the next chapter's
-                                own sticky image — comes into view. That's
-                                the whole "chapters" effect, no scroll-snap
-                                or JS scroll-position math needed. */}
+                                own sticky image, sitting immediately
+                                after with no gap — comes into view. */}
                             <div className="shrink-0 w-full sm:w-56 sm:sticky sm:top-4 win98-terminal-pop">
                               {chapter.image ? (
                                 <div className="relative aspect-[4/3] border-2 border-white overflow-hidden">

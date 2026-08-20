@@ -4,13 +4,13 @@
 // Shortcuts card needs `featured`, passed down from HomeClient (moved here
 // from the Home tab, which was getting cluttered).
 //
-// `revealed` mirrors Home/Logs's own content gate (see HomeClient's
-// contactQueryDone / useTypedQuery): stays false while the "$ >" terminal
-// query above this component is still typing, so nothing here renders
-// until that finishes — then each piece pops in on its own stagger (see
-// the win98-terminal-pop class in globals.css), same "terminal printing
-// its output" reveal as the other two tabs. Defaults to true so this
-// component still works standalone if ever rendered without that gate.
+// `revealed` used to mirror a "$ >" terminal-query typing gate on the
+// Contact tab, same as Home still has (see HomeClient's homeQueryDone) —
+// that query was removed from Contact, so HomeClient now always passes
+// `revealed` true and this component mounts (and pops in via
+// win98-terminal-pop, see globals.css) immediately. Left as a prop rather
+// than deleted outright so this component still works standalone if ever
+// rendered without it — defaults to true either way.
 
 import FeaturedLinks from '@/components/FeaturedLinks'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'

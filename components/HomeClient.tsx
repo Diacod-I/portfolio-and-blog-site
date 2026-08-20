@@ -122,18 +122,16 @@ const randomGlitchSpawnPos = () => ({
   top: 12 + Math.random() * 56,
 })
 
-// Each of advith.exe's three content tabs (Home/Logs/Contact) opens with
-// its own "$ >" terminal query, typed out character by character the first
-// time advith.exe's window opens (see useTypedQuery below — all three type
-// concurrently in the background the moment the window opens, not gated on
-// which tab happens to be selected; see that function's comment for why),
-// after which that tab's content pops in line by line (see the
-// win98-terminal-pop class in globals.css and the .done-gated blocks in
-// the JSX). The "$ >" prompt itself is always shown, static — only the
-// query text after it types.
+// advith.exe's Home tab opens with a "$ >" terminal query, typed out
+// character by character — see useReplayableTypedQuery below — after
+// which the tab's content pops in line by line (see the
+// win98-terminal-pop class in globals.css and the homeQueryDone-gated
+// blocks in the JSX). The "$ >" prompt itself is always shown, static —
+// only the query text after it types. Logs and Contact used to have
+// their own queries here too (gh_logs / contact_info) — removed, but
+// each tab keeps an empty "$ >" -sized spacer where that line used to be
+// (see the JSX) so the rest of each tab's layout doesn't shift up.
 const HOME_QUERY_TEXT = 'select about from devs where name=\'Advith Krishnan\';'
-const LOGS_QUERY_TEXT = 'select gh_logs from devs where name=\'Advith Krishnan\';'
-const CONTACT_QUERY_TEXT = 'select contact_info from devs where name=\'Advith Krishnan\';'
 const TYPED_QUERY_CHAR_MS = 40
 
 // See the scroll-linked-parallax comment above bgScrollTop's declaration
@@ -171,81 +169,26 @@ const EASTER_EGG_DEAD_ZONE_FRACTION = (1 - EXHIBITION_FRAMES_MAX_TOP_PCT / 100) 
 // see handleTabScroll for how this and the dead zone combine.
 const EASTER_EGG_FULL_REVEAL_FRACTION = 0.6
 
-// "Already finished typing this session" is tracked in two layers, neither
-// of them component state:
-//  1. completedTypedQueries — an in-memory Set, module-scope. Survives a
-//     HomeClient remount within the same page load (e.g. clicking into a
-//     blog post navigates to /blogs/[slug], a different page.tsx, which
-//     remounts HomeClient and resets all of its plain useState/useRef —
-//     see the big comment atop lib/store/windowStore.ts for the same
-//     reasoning re: window position/size).
-//  2. sessionStorage (COMPLETED_QUERIES_STORAGE_KEY below) — a fallback
-//     for whatever this in-memory Set alone didn't actually cover in
-//     practice (a first attempt at just the Set above didn't fully fix the
-//     "stuck on the cursor" report — sessionStorage is the same mechanism
-//     the window-position store already relies on for surviving harder
-//     resets, so mirroring it here closes that remaining gap regardless of
-//     the exact mechanism).
-// Without either, a query that had already finished typing once would
-// reset to blank on the next remount and could end up stuck showing just
-// the "$ >" prompt and a cursor, never catching back up.
-const completedTypedQueries = new Set<string>()
-const COMPLETED_QUERIES_STORAGE_KEY = 'win98-typed-queries-done-v1'
+// Types `text` out character by character every time `active` transitions
+// from false to true — and resets back to blank the moment `active` goes
+// false, so the *next* time it becomes active it types from scratch again
+// rather than picking up where it left off or staying "done" forever.
+// This replaced an earlier version that tracked "already typed this
+// session" in a module-level Set + sessionStorage and intentionally never
+// retyped — the opposite of what's wanted here now that only the Home
+// tab's query is left and it's meant to replay every time that tab opens
+// (see homeQueryActive's own comment at the call site below for what
+// "opens" means exactly).
+function useReplayableTypedQuery(text: string, active: boolean) {
+  const [typed, setTyped] = useState('')
+  const [done, setDone] = useState(false)
 
-function readPersistedCompletedQueries(): string[] {
-  try {
-    const raw = sessionStorage.getItem(COMPLETED_QUERIES_STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as string[]) : []
-  } catch {
-    return []
-  }
-}
-
-function persistCompletedQuery(text: string) {
-  completedTypedQueries.add(text)
-  try {
-    const current = new Set(readPersistedCompletedQueries())
-    current.add(text)
-    sessionStorage.setItem(COMPLETED_QUERIES_STORAGE_KEY, JSON.stringify([...current]))
-  } catch { /* private browsing etc. — animation just replays, not worth surfacing an error for */ }
-}
-
-// Types `text` out character by character once `active` becomes true, then
-// never again this session (see the two-layer "already done" tracking
-// above). `active` is just "advith.exe's window is open" (see the call
-// sites in HomeClient below) — deliberately NOT also gated on "this is the
-// currently selected tab": all three tabs' queries start typing together,
-// in the background, the moment the window opens, regardless of which tab
-// is actually showing. That keeps this hook's trigger condition simple
-// (one dependency, not a tab-match races against local tab-switch state)
-// and means switching to a tab you haven't looked at yet still shows its
-// intro finishing naturally rather than depending on exactly when you
-// happened to switch to it.
-function useTypedQuery(text: string, active: boolean) {
-  const alreadyDone = completedTypedQueries.has(text)
-  const [typed, setTyped] = useState(alreadyDone ? text : '')
-  const [done, setDone] = useState(alreadyDone)
-  const startedRef = useRef(alreadyDone)
-
-  // Client-only fallback check (sessionStorage isn't touched during the
-  // very first render/SSR pass — see the FaultyTerminalBackground.tsx
-  // header comment for why touching window-only APIs outside an effect
-  // crashes there) for whatever the in-memory Set above didn't already
-  // catch on this particular remount.
   useEffect(() => {
-    if (startedRef.current) return
-    if (readPersistedCompletedQueries().includes(text)) {
-      startedRef.current = true
-      completedTypedQueries.add(text)
-      setTyped(text)
-      setDone(true)
+    if (!active) {
+      setTyped('')
+      setDone(false)
+      return
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text])
-
-  useEffect(() => {
-    if (!active || startedRef.current) return
-    startedRef.current = true
     let i = 0
     const interval = setInterval(() => {
       i++
@@ -253,7 +196,6 @@ function useTypedQuery(text: string, active: boolean) {
       if (i >= text.length) {
         clearInterval(interval)
         setDone(true)
-        persistCompletedQuery(text)
       }
     }, TYPED_QUERY_CHAR_MS)
     return () => clearInterval(interval)
@@ -401,19 +343,20 @@ export default function HomeClient({
   const toggleMaximize = useWindowStore(s => s.toggleMaximize)
   const setTaskOrder = useWindowStore(s => s.setTaskOrder)
 
-  // Each tab's typed "$ >" query + the content reveal it gates — see
-  // useTypedQuery above. Kept at this top level (not scoped inside each
-  // tab's own JSX branch, which unmounts/remounts on every tab switch) so
-  // each intro plays exactly once per session. Deliberately gated on just
-  // advithOpen — NOT also `homeTab === '...'` — so all three tabs' queries
-  // start typing together in the background the instant advith.exe's
-  // window is open, regardless of which tab happens to be selected at
-  // that moment. Whichever tab you're looking at (or switch to) just shows
-  // whatever that query's progress already is.
+  // The Home tab's typed "$ >" query + the content reveal it gates — see
+  // useReplayableTypedQuery above. Logs and Contact used to have their own
+  // queries here too; both were removed (see the JSX below, which now just
+  // reserves the same amount of vertical space instead). Gated on both
+  // homeTab === 'home' AND advithOpen: homeTab alone isn't enough since it
+  // defaults to 'home' even while advith.exe is closed (so it wouldn't
+  // reset when the window closes and reopens), and advithOpen alone isn't
+  // enough since it doesn't know which tab is actually selected. Either
+  // one going false resets the typed text to blank (see the hook), so
+  // switching away and back — or closing and reopening the window — while
+  // on/to the Home tab always replays the animation from scratch.
   const advithOpen = wins.advith.status !== 'closed'
-  const { typed: homeQueryTyped, done: homeQueryDone } = useTypedQuery(HOME_QUERY_TEXT, advithOpen)
-  const { typed: logsQueryTyped, done: logsQueryDone } = useTypedQuery(LOGS_QUERY_TEXT, advithOpen)
-  const { typed: contactQueryTyped, done: contactQueryDone } = useTypedQuery(CONTACT_QUERY_TEXT, advithOpen)
+  const homeQueryActive = homeTab === 'home' && advithOpen
+  const { typed: homeQueryTyped, done: homeQueryDone } = useReplayableTypedQuery(HOME_QUERY_TEXT, homeQueryActive)
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
   // background layer in the JSX below): each tab's own overflow-y-auto
@@ -1124,24 +1067,20 @@ export default function HomeClient({
               // fold — that's not reachable by scrolling in any browser.)
               <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
-                  {/* Same typed "$ >" terminal-query intro as Home/Logs (see
-                      useTypedQuery above) — CONTACT_QUERY_TEXT here. Shares
-                      ContactView's own max-w-3xl mx-auto width via its own
-                      identical wrapper below, so their left edges line up.
-                      ContactView itself gates and staggers its own content
-                      on the `revealed` prop — see ContactView.tsx. */}
+                  {/* Contact used to have its own typed "$ >" terminal-query
+                      intro here (CONTACT_QUERY_TEXT), same as Home still
+                      does — removed per request, but this empty h1 keeps
+                      the exact same box (classes, line-height, margin)
+                      that line used to occupy, so ContactView below doesn't
+                      shift up into its place. Shares ContactView's own
+                      max-w-3xl mx-auto width via its own identical wrapper
+                      below, so their left edges still line up. */}
                   <div className="max-w-3xl w-full mx-auto mb-4">
-                    <h1 className="text-white text-lg font-bold text-left font-mono">
-                        $ &gt; {contactQueryTyped}
-                        {!contactQueryDone && (
-                          <span
-                            className="inline-block w-2 h-5 bg-[#00FF00] ml-0.5 align-middle animate-pulse"
-                            aria-hidden="true"
-                          />
-                        )}
+                    <h1 className="text-white text-lg font-bold text-left font-mono" aria-hidden="true">
+                        &nbsp;
                     </h1>
                   </div>
-                  <ContactView featured={featured} revealed={contactQueryDone} />
+                  <ContactView featured={featured} revealed />
                 </div>
               </div>
             ) : homeTab === 'report' ? (
@@ -1167,22 +1106,18 @@ export default function HomeClient({
             <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   <div className="max-w-3xl w-full">
-                  {/* Same typed "$ >" terminal-query intro as Home (see
-                      useTypedQuery above) — the query text is LOGS_QUERY_TEXT
-                      here. The section below only mounts once logsQueryDone,
-                      each piece popping in on its own stagger, same
-                      win98-terminal-pop pattern as Home's profile row. */}
-                  <h1 className="text-white text-lg font-bold text-left font-mono mb-4">
-                      $ &gt; {logsQueryTyped}
-                      {!logsQueryDone && (
-                        <span
-                          className="inline-block w-2 h-5 bg-[#00FF00] ml-0.5 align-middle animate-pulse"
-                          aria-hidden="true"
-                        />
-                      )}
+                  {/* Logs used to have its own typed "$ >" terminal-query
+                      intro here (LOGS_QUERY_TEXT), same as Home still does
+                      — removed per request, but this empty h1 keeps the
+                      exact same box (classes, line-height, margin) that
+                      line used to occupy, so everything below doesn't shift
+                      up into its place. The content below no longer waits
+                      on a "done typing" gate (there's nothing to type
+                      anymore) — it just pops in immediately on mount, same
+                      win98-terminal-pop stagger as before. */}
+                  <h1 className="text-white text-lg font-bold text-left font-mono mb-4" aria-hidden="true">
+                      &nbsp;
                   </h1>
-                  {logsQueryDone && (
-                  <>
                   <h2 className="text-white text-2xl font-bold mb-2 win98-terminal-pop" style={{ animationDelay: '0ms' }}>
                       Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                   </h2>
@@ -1198,8 +1133,6 @@ export default function HomeClient({
                       <ContributorArchive notes={notes} />
                     </div>
                   </div>
-                  </>
-                  )}
                   </div>
                 </div>
             </div>

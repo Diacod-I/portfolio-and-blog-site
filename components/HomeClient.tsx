@@ -1182,8 +1182,14 @@ export default function HomeClient({
                     EASTER_EGG_DEAD_ZONE_FRACTION above specifically so
                     there's real, deliberate scroll distance before
                     anything happens: the gallery sits much further up,
-                    and reaching it takes a lot more scrolling than before. */}
-                <div className="relative w-full min-h-[280vh] overflow-hidden">
+                    and reaching it takes a lot more scrolling than before.
+                    mb-[18vh] below is extra breathing room between the
+                    lowest gallery frame and homeContentStartRef right
+                    after it — frame positions are percentages of *this*
+                    div's own height (see data/exhibitionFrames.ts), so
+                    this margin sits entirely outside that math instead of
+                    just spreading the frames themselves further apart. */}
+                <div className="relative w-full min-h-[280vh] mb-[18vh] overflow-hidden">
                   <ImageExhibition />
                 </div>
                 <div ref={homeContentStartRef} className="min-h-full flex flex-col items-center justify-center">

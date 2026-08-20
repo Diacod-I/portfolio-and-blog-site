@@ -1067,7 +1067,7 @@ export default function HomeClient({
                         )}
                     </h1>
                     {homeQueryDone && (
-                    // mt-4 (spacing after the "$ >" heading above) + pb-16
+                    // mt-4 (spacing after the "$ >" heading above) + pb-10
                     // (spacing before chapter 1 below) — NOT a gap/margin
                     // between this row and the chapters section, which
                     // would otherwise be dead scroll space where neither
@@ -1076,8 +1076,11 @@ export default function HomeClient({
                     // long the photo can stay stuck right up until chapter
                     // 1's row begins immediately after (zero gap — see its
                     // own wrapper below) — see that section's comment for
-                    // the full "sticky relay" reasoning.
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-16">
+                    // the full "sticky relay" reasoning. Trimmed down from
+                    // pb-16 so the release/handoff kicks in a little ahead
+                    // of where it used to, instead of holding the photo
+                    // pinned all the way to the last possible pixel.
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-10">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
                           scroll container while the much taller text column
@@ -1154,7 +1157,7 @@ export default function HomeClient({
                             when the IP line is also showing so it doesn't
                             overlap that line's own pop-in. */}
                         <div className="win98-terminal-pop" style={{ animationDelay: visitorIp ? '420ms' : '350ms' }}>
-                          <ExperienceSection />
+                        {/* <ExperienceSection /> */}
                         </div>
                       </div>
                     </div>
@@ -1170,7 +1173,7 @@ export default function HomeClient({
 
                         No gap between chapters (unlike an earlier version
                         of this that used a plain "gap-16" here) — each
-                        chapter's own pb-16 below does that spacing instead.
+                        chapter's own pb-10 below does that spacing instead.
                         The difference matters: flexbox `gap` sits between
                         two flex items, outside either one's own box, so it
                         can never become part of a sticky child's
@@ -1186,20 +1189,23 @@ export default function HomeClient({
                         chapter's row begins (zero gap between rows), so
                         one image releases at the exact moment the next
                         one is ready to take over, instead of leaving a gap
-                        where neither is stuck. */}
+                        where neither is stuck. (Was pb-16 — trimmed down
+                        so that handoff point lands a little ahead of where
+                        it used to, same reasoning as the dossier row
+                        above.) */}
                     {homeQueryDone && (
                       <div className="flex flex-col">
                         {STORY_CHAPTERS.map((chapter) => (
                           <div
                             key={chapter.id}
-                            className={`flex flex-col items-center gap-6 text-left sm:items-start pb-16 ${
+                            className={`flex flex-col items-center gap-6 text-left sm:items-start pb-10 ${
                               chapter.side === 'right' ? 'sm:flex-row-reverse' : 'sm:flex-row'
                             }`}
                           >
                             {/* Same sm:sticky sm:top-4 trick the profile
                                 photo above uses: this row is exactly as
                                 tall as its (much taller) text column plus
-                                its own trailing pb-16, so the image pins
+                                its own trailing pb-10, so the image pins
                                 near the top of the scroll container for as
                                 long as that text (and padding) is
                                 scrolling past, then releases right as this

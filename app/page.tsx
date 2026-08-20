@@ -1,7 +1,4 @@
 import { Metadata } from 'next'
-import HomeClient from '@/components/HomeClient'
-import { getAllNotes } from '@/lib/notes'
-import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 
 export const metadata: Metadata = {
   alternates: {
@@ -25,23 +22,20 @@ const personJsonLd = {
   ],
 }
 
-// Server component: reads repo content at build time and passes it down.
-// All interactivity lives in HomeClient.
-export default async function HomePage() {
-  // Full list: the Blogs window (reachable from any route via forceOpenApp)
-  // needs the complete set, not just a "recent" slice.
-  const [notes, featured] = await Promise.all([
-    getAllNotes(),
-    getFeaturedLinks(),
-  ])
-
+// The actual desktop (icons, taskbar, all app windows) now lives in the
+// persistent shell — see components/AppShellHost.tsx, mounted once from
+// app/layout.tsx — which renders a single, never-remounting <HomeClient>
+// shared across this route, /about, /contact, /blogs, and /credits.
+// AppShellHost derives forceOpenApp/initialHomeTab for "/" itself from the
+// URL (nothing force-opens here — same as before), so this page only has
+// one thing left that's specific to it and needs to exist in the actual
+// HTML for SEO: the Person JSON-LD block below. AppShellHost renders this
+// alongside (not instead of) the shared HomeClient instance.
+export default function HomePage() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
-      />
-      <HomeClient notes={notes} featured={featured} />
-    </>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+    />
   )
 }

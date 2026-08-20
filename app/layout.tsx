@@ -3,6 +3,9 @@ import { Inter, JetBrains_Mono, VT323 } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import { Metadata, Viewport } from 'next'
 import SoundEffects from '@/components/SoundEffects'
+import AppShellHost from '@/components/AppShellHost'
+import { getAllNotes } from '@/lib/notes'
+import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import { config as fontAwesomeConfig } from '@fortawesome/fontawesome-svg-core'
 
@@ -81,11 +84,20 @@ export const viewport: Viewport = {
   themeColor: '#0a0a0a',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Fetched once here (React's cache() in lib/notes.ts dedupes this
+  // against app/blogs/[slug] and app/reports/[slug], which still fetch
+  // their own copy for their own standalone <HomeClient> — see those
+  // files — so this doesn't double the real work per request) and handed
+  // down to AppShellHost, which renders the persistent desktop shell for
+  // '/', '/about', '/contact', '/blogs', and '/credits' — see that
+  // component for why those specifically, and not every route.
+  const [notes, featured] = await Promise.all([getAllNotes(), getFeaturedLinks()])
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -94,7 +106,9 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}>
         <div className="min-h-screen">
-          {children}
+          <AppShellHost notes={notes} featured={featured}>
+            {children}
+          </AppShellHost>
           <SoundEffects />
           <Analytics />
         </div>

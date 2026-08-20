@@ -303,8 +303,26 @@ export default function HomeClient({
     }
   }, [])
   // advith.exe's Home/About/Contact/Report tabs — local state, no navigation
-  // involved (see Navbar). Seeded once from whichever route we landed on.
+  // involved for switching tabs directly (see Navbar). Seeded from whichever
+  // route we landed on.
   const [homeTab, setHomeTab] = useState<HomeTab>(initialHomeTab)
+  // Re-seeds homeTab whenever the initialHomeTab PROP actually changes —
+  // matters for the persistent shell instance (see components/
+  // AppShellHost.tsx, mounted once from app/layout.tsx for '/', '/about',
+  // '/contact', '/blogs', '/credits'): navigating between those routes no
+  // longer remounts HomeClient, so without this the tab would just stay
+  // wherever it was left instead of landing on the new route's tab. Keyed
+  // on the prop value (not a plain mount-only effect) so it only re-fires
+  // on an actual route change, never when the user just clicks a different
+  // tab locally without navigating — that would otherwise get stomped back
+  // to initialHomeTab on every unrelated re-render. For the other routes
+  // (/blogs/[slug], /reports/[slug], which still mount their own fresh
+  // HomeClient per navigation — see AppShellHost.tsx), this just fires
+  // once on mount with the same value the useState above already seeded,
+  // a harmless no-op extra render.
+  useEffect(() => {
+    setHomeTab(initialHomeTab)
+  }, [initialHomeTab])
   const router = useRouter()
   const pathname = usePathname()
 
@@ -615,11 +633,19 @@ export default function HomeClient({
 
   // /blogs and /blogs/[slug] pass forceOpenApp="blogs" so those routes land
   // with the Blogs window already open — no query string involved, unlike
-  // the deep link above, so this doesn't touch the URL at all.
+  // the deep link above, so this doesn't touch the URL at all. Keyed on
+  // forceOpenApp itself (not mount-only) for the same reason as the
+  // initialHomeTab effect above: the persistent shell instance (see
+  // components/AppShellHost.tsx) needs this to re-fire when navigating to
+  // a different shell route passes a new forceOpenApp value, not just
+  // once ever. Only ever OPENS/focuses — never closes — so navigating to a
+  // route with no forceOpenApp (e.g. '/') doesn't auto-close whatever's
+  // already open, consistent with the window store's own "stuff you
+  // opened stays open" persistence. focusApp is a zustand action selector,
+  // stable across renders, so this doesn't re-fire on unrelated updates.
   useEffect(() => {
     if (forceOpenApp) focusApp(forceOpenApp)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [forceOpenApp, focusApp])
 
   // Morphing animation for roles with cryptic letters
   const roles = [

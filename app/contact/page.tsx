@@ -1,7 +1,4 @@
 import { Metadata } from 'next'
-import HomeClient from '@/components/HomeClient'
-import { getAllNotes } from '@/lib/notes'
-import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 
 export const metadata: Metadata = {
   title: 'Contact — Advith Krishnan',
@@ -10,18 +7,12 @@ export const metadata: Metadata = {
   },
 }
 
-// Contact is a tab within advith.exe now (see HomeClient's homeTab state),
-// not a standalone page — this route just lands on the real desktop with
-// advith.exe open and its Contact tab selected.
-export default async function ContactPage() {
-  const [notes, featured] = await Promise.all([getAllNotes(), getFeaturedLinks()])
-
-  return (
-    <HomeClient
-      notes={notes}
-      featured={featured}
-      forceOpenApp="advith"
-      initialHomeTab="contact"
-    />
-  )
+// Contact is a tab within advith.exe (see HomeClient's homeTab state), not
+// a standalone page. The actual desktop UI now lives in the persistent
+// shell — see components/AppShellHost.tsx, mounted once from
+// app/layout.tsx — which derives forceOpenApp="advith"/
+// initialHomeTab="contact" for this route itself from the URL, so this
+// page has nothing left to render.
+export default function ContactPage() {
+  return null
 }

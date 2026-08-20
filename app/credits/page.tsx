@@ -1,7 +1,4 @@
 import { Metadata } from 'next'
-import HomeClient from '@/components/HomeClient'
-import { getAllNotes } from '@/lib/notes'
-import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 
 export const metadata: Metadata = {
   title: 'Credits & attributions — Advith Krishnan',
@@ -10,17 +7,12 @@ export const metadata: Metadata = {
   },
 }
 
-// Credits opens as its own app window on the real desktop (see HomeClient) —
-// launched, not pinned: there's no desktop icon for it, only this route and
-// the taskbar's "Credits & attributions" link.
-export default async function CreditsPage() {
-  const [notes, featured] = await Promise.all([getAllNotes(), getFeaturedLinks()])
-
-  return (
-    <HomeClient
-      notes={notes}
-      featured={featured}
-      forceOpenApp="credits"
-    />
-  )
+// Credits opens as its own app window on the persistent desktop shell now
+// — see components/AppShellHost.tsx, mounted once from app/layout.tsx,
+// which derives forceOpenApp="credits" for this route itself from the URL
+// — so this page has nothing left to render. Launched, not pinned: there's
+// no desktop icon for it, only this route and the taskbar's "Credits &
+// attributions" link.
+export default function CreditsPage() {
+  return null
 }

@@ -2,9 +2,8 @@ import { notFound } from 'next/navigation'
 import { compile, run } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
 import { Metadata } from 'next'
-import HomeClient from '@/components/HomeClient'
+import { BlogPostRouteData } from '@/components/RouteContentData'
 import { getAllNotes, getNote } from '@/lib/notes'
-import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 
 const SITE_URL = 'https://www.advithkrishnan.com'
 
@@ -53,15 +52,23 @@ export async function generateMetadata({ params }: NotePageProps): Promise<Metad
 // the zustand store), with the Blogs window forced open and showing this
 // post — so a direct hit on /blogs/[slug] (search result, shared link) looks
 // like the real app, not an isolated reader page. The MDX is still compiled
-// server-side here (for indexing, opengraph-image, JSON-LD — all unchanged);
-// only the rendered <MDXContent/> element is handed down to the window.
+// server-side here (for indexing, opengraph-image, JSON-LD — all unchanged).
+//
+// This used to render its own <HomeClient> directly, which meant every
+// blog-post navigation mounted a brand new desktop (icons repainting,
+// windows flashing back in). It now renders <BlogPostRouteData> instead —
+// a no-op marker component that just carries note/seeAlso/content as props
+// — and AppShellHost.tsx (mounted once from the root layout, never
+// unmounts across navigation) reads those props straight off this element
+// and feeds them to the SAME persistent <HomeClient> instance it already
+// uses for '/', '/about', etc. See that file for the full reasoning.
 export default async function NotePage({ params }: NotePageProps) {
   const { slug } = await params
 
   const note = await getNote(slug)
   if (!note) notFound()
 
-  const [notes, featured] = await Promise.all([getAllNotes(), getFeaturedLinks()])
+  const notes = await getAllNotes()
   const seeAlso = notes.filter((n) => n.slug !== slug).slice(0, 2)
 
   const compiled = await compile(note.content, {
@@ -89,17 +96,7 @@ export default async function NotePage({ params }: NotePageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClient
-        notes={notes}
-        featured={featured}
-        forceOpenApp="blogs"
-        blogsView={{
-          mode: 'post',
-          note,
-          seeAlso,
-          content: <MDXContent />,
-        }}
-      />
+      <BlogPostRouteData note={note} seeAlso={seeAlso} content={<MDXContent />} />
     </>
   )
 }

@@ -2,9 +2,8 @@ import { notFound } from 'next/navigation'
 import { compile, run } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
 import { Metadata } from 'next'
-import HomeClient from '@/components/HomeClient'
+import { ReportRouteData } from '@/components/RouteContentData'
 import { getAllNotes, getNote } from '@/lib/notes'
-import { getFeaturedLinks } from '@/app/actions/getFeaturedLinks'
 
 const SITE_URL = 'https://www.advithkrishnan.com'
 
@@ -52,13 +51,16 @@ export async function generateMetadata({ params }: ReportPageProps): Promise<Met
 // ContributorArchive.tsx and components/ReportViewer.tsx — reports render
 // inside advith.exe itself, not a separate window/app). The MDX is still
 // compiled server-side here, same as app/blogs/[slug]/page.tsx.
+//
+// This used to render its own <HomeClient> directly (see that file's
+// comment for why that caused a repaint on every report navigation) — now
+// renders <ReportRouteData> instead, a no-op marker AppShellHost.tsx reads
+// note/content off of to feed the one persistent <HomeClient> instance.
 export default async function ReportPage({ params }: ReportPageProps) {
   const { slug } = await params
 
   const note = await getNote(slug)
   if (!note || note.tag !== 'Reports') notFound()
-
-  const [notes, featured] = await Promise.all([getAllNotes(), getFeaturedLinks()])
 
   const compiled = await compile(note.content, {
     outputFormat: 'function-body',
@@ -85,16 +87,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClient
-        notes={notes}
-        featured={featured}
-        forceOpenApp="advith"
-        initialHomeTab="report"
-        reportView={{
-          note,
-          content: <MDXContent />,
-        }}
-      />
+      <ReportRouteData note={note} content={<MDXContent />} />
     </>
   )
 }

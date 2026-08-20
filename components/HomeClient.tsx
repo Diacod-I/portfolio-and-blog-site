@@ -1171,30 +1171,20 @@ export default function HomeClient({
                         homeQueryDone same as the row above — nothing below
                         the "$ >" prompt shows until that's finished typing.
 
-                        No gap between chapters (unlike an earlier version
-                        of this that used a plain "gap-16" here) — each
-                        chapter's own pb-3 below does that spacing instead.
-                        The difference matters: flexbox `gap` sits between
-                        two flex items, outside either one's own box, so it
-                        can never become part of a sticky child's
-                        containing block — the previous chapter's image
-                        would release (stop being sticky) right as its text
-                        ends, then sit as a dead zone of plain scrolling
-                        space before the NEXT chapter's image scrolled up
-                        far enough to engage its own stickiness. Padding
-                        fixes that: it's part of the row's own box, so the
-                        row (and the sticky image pinned inside it) doesn't
-                        actually end until the padding is scrolled past too
-                        — which is timed to land exactly where the next
-                        chapter's row begins (zero gap between rows), so
-                        one image releases at the exact moment the next
-                        one is ready to take over, instead of leaving a gap
-                        where neither is stuck. (Was pb-16 — trimmed down
-                        so that handoff point lands a little ahead of where
-                        it used to, same reasoning as the dossier row
-                        above.) */}
+                        Each chapter's own pb-3 (inside its row's box) is
+                        what lets its sticky image stay pinned right up to
+                        that row's own end — see the per-chapter comment
+                        below for why that has to be padding rather than
+                        margin/gap. gap-y-16 here, between rows, is a
+                        deliberate exception to that rule: it's real
+                        breathing room the user asked for between chapters,
+                        which does mean each chapter's image releases and
+                        then sits in a brief plain-scroll gap before the
+                        next chapter's image scrolls up far enough to
+                        engage — unlike the zero-gap dossier→chapter-1
+                        handoff right above, which still has none. */}
                     {homeQueryDone && (
-                      <div className="flex flex-col">
+                      <div className="flex flex-col gap-y-16">
                         {STORY_CHAPTERS.map((chapter) => (
                           <div
                             key={chapter.id}

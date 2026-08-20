@@ -1197,17 +1197,25 @@ export default function HomeClient({
                               chapter.side === 'right' ? 'sm:flex-row-reverse' : 'sm:flex-row'
                             }`}
                           >
-                            {/* Same sm:sticky sm:top-4 trick the profile
-                                photo above uses: this row is exactly as
-                                tall as its (much taller) text column plus
-                                its own trailing pb-3, so the image pins
-                                near the top of the scroll container for as
-                                long as that text (and padding) is
-                                scrolling past, then releases right as this
-                                row's bottom edge — and the next chapter's
-                                own sticky image, sitting immediately
-                                after with no gap — comes into view. */}
-                            <div className="shrink-0 w-full sm:w-56 sm:sticky sm:top-4 win98-terminal-pop">
+                            {/* Chapters use sm:top-1/2 rather than the
+                                profile photo's sm:top-4 above: a sticky
+                                element's percentage `top` resolves against
+                                the nearest scrolling ancestor's height —
+                                here, the Home tab's own overflow-y-auto
+                                wrapper, i.e. the inner window itself — so
+                                top-1/2 pins this image's top edge at that
+                                container's vertical midpoint once stuck,
+                                instead of near its top edge. That also
+                                moves the release point: sticky release
+                                happens once holding the image at its `top`
+                                offset would push it past its row's own
+                                bottom edge, so with the offset now at the
+                                middle instead of near the top, the image
+                                releases as soon as scrolling would carry it
+                                to the middle of the inner window, rather
+                                than holding it pinned near the top for the
+                                entire row. */}
+                            <div className="shrink-0 w-full sm:w-56 sm:sticky sm:top-1/2 win98-terminal-pop">
                               {chapter.image ? (
                                 <div className="relative aspect-[4/3] border-2 border-white overflow-hidden">
                                   <Image

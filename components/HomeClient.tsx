@@ -28,6 +28,7 @@ import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowSto
 import highlights from '@/data/highlights'
 import projects from '@/data/projects'
 import { STORY_CHAPTERS } from '@/data/storyChapters'
+import { EXHIBITION_FRAMES_MAX_TOP_PCT } from '@/data/exhibitionFrames'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 
@@ -148,11 +149,19 @@ const FAULTY_TERMINAL_PARALLAX_SCALE = 0.0006
 // scroll (or even tiny residual/momentum scroll noise sitting right at
 // rest), which read as far too sensitive and, combined with the
 // shader's old hard-edged step() threshold, could flicker a strip of
-// the dissolve in and out at rest. This, the taller hidden zone itself
-// (see the Home tab JSX), and the shader's own smoothstep edge (see
-// FaultyTerminalBackground.tsx) all push in the same direction: scrolling
-// up needs real, deliberate distance before anything visibly changes.
-const EASTER_EGG_DEAD_ZONE_FRACTION = 0.3
+// the dissolve in and out at rest.
+//
+// Derived from EXHIBITION_FRAMES_MAX_TOP_PCT rather than a fixed number:
+// the frame with the largest topPct sits closest to the *bottom* of the
+// hidden zone, i.e. it's the first frame a user scrolling up from rest
+// actually reaches. raw (below, in handleTabScroll) is ~0 at rest and ~1
+// at the very top of the zone, and a point at topPct within the zone
+// corresponds to roughly raw = 1 - topPct/100 — so this lines the
+// dissolve's start up with wherever the gallery itself starts, instead
+// of an arbitrary fraction with no relationship to where the frames are.
+// (Approximates "resting" as the zone's own height, ignoring the scroll
+// container's own small top padding — negligible next to a 280vh zone.)
+const EASTER_EGG_DEAD_ZONE_FRACTION = 1 - EXHIBITION_FRAMES_MAX_TOP_PCT / 100
 
 // "Already finished typing this session" is tracked in two layers, neither
 // of them component state:

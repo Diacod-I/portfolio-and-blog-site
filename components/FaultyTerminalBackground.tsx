@@ -240,15 +240,41 @@ void main() {
     // sides of the dissolve — background flips black -> white (drifting
     // toward a subtle pink further down the screen), and the pattern's
     // own dots flip from uTint's usual color -> red/pink.
+    //
+    // gl_FragCoord.y is bottom-origin in WebGL/OpenGL (0 at the bottom of
+    // the viewport, increasing upward) — the opposite of CSS/screen
+    // coordinates. yFromTop below corrects for that explicitly; using
+    // gl_FragCoord.y directly here (an earlier version of this did) swept
+    // bottom-to-top instead of top-to-bottom, and put a band of
+    // near-zero thresholds at the *bottom* edge of the screen instead of
+    // the top — visible as a strip of dissolve artifacts sitting at the
+    // bottom of the window even at rest.
+    //
+    // compareValue is remapped (not uDissolveProgress used directly)
+    // specifically so the very first bit of scroll can't reveal anything
+    // and the very last bit reaches a fully clean reveal: threshold's own
+    // range (given the jitter below) runs roughly [-pad, 1+pad], so
+    // driving the comparison across that same padded range guarantees
+    // revealed==0 everywhere at progress 0 and ==1 everywhere at progress
+    // 1, instead of a plain 0..1 comparison clipping some blocks against
+    // the domain's edges and leaving them stuck partially revealed (or
+    // revealed too early) right at rest.
     if (uDissolveProgress > 0.0) {
-      vec2 blockCoord = floor(gl_FragCoord.xy / 14.0);
+      vec2 blockCoord = floor(gl_FragCoord.xy / 16.0);
       float dither = hash21(blockCoord + 91.7);
-      float yNorm = gl_FragCoord.y / iResolution.y;
-      float threshold = clamp(yNorm + (dither - 0.5) * 0.35, 0.0, 1.0);
-      float revealed = step(threshold, uDissolveProgress);
+      float yFromTop = 1.0 - (gl_FragCoord.y / iResolution.y);
+      float jitterHalf = 0.2;
+      float edgeSoftness = 0.05;
+      float threshold = yFromTop + (dither - 0.5) * (jitterHalf * 2.0);
+      float pad = jitterHalf + edgeSoftness + 0.02;
+      float compareValue = mix(-pad, 1.0 + pad, uDissolveProgress);
+      // smoothstep, not step: each block fades in over a small range
+      // instead of popping instantly, so the whole thing reads as a soft
+      // dissolve rather than a hard flicker.
+      float revealed = smoothstep(threshold - edgeSoftness, threshold + edgeSoftness, compareValue);
 
       float lum = clamp(dot(col, vec3(0.299, 0.587, 0.114)) * 2.5, 0.0, 1.0);
-      vec3 revealBg = mix(vec3(1.0), vec3(1.0, 0.86, 0.90), yNorm);
+      vec3 revealBg = mix(vec3(1.0), vec3(1.0, 0.86, 0.90), yFromTop);
       vec3 revealDot = vec3(0.95, 0.25, 0.45);
       vec3 revealedCol = mix(revealBg, revealDot, lum);
 

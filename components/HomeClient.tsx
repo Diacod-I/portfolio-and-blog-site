@@ -140,6 +140,20 @@ const TYPED_QUERY_CHAR_MS = 40
 // scrolled into the shader's own world-space units.
 const FAULTY_TERMINAL_PARALLAX_SCALE = 0.0006
 
+// Fraction of the hidden-zone scroll-up journey (see startingScrollTopRef
+// below) that produces *no* dissolve at all — scrolling up from the
+// starting position has to cross this much of the distance to the very
+// top before uDissolveProgress starts moving off 0. Without this, the
+// reveal used to start responding to the very first pixel of upward
+// scroll (or even tiny residual/momentum scroll noise sitting right at
+// rest), which read as far too sensitive and, combined with the
+// shader's old hard-edged step() threshold, could flicker a strip of
+// the dissolve in and out at rest. This, the taller hidden zone itself
+// (see the Home tab JSX), and the shader's own smoothstep edge (see
+// FaultyTerminalBackground.tsx) all push in the same direction: scrolling
+// up needs real, deliberate distance before anything visibly changes.
+const EASTER_EGG_DEAD_ZONE_FRACTION = 0.3
+
 // "Already finished typing this session" is tracked in two layers, neither
 // of them component state:
 //  1. completedTypedQueries — an in-memory Set, module-scope. Survives a
@@ -460,7 +474,13 @@ export default function HomeClient({
     // for the same reason faultyTerminalRef's call above is.
     const resting = startingScrollTopRef.current
     if (resting > 0) {
-      const progress = Math.max(0, Math.min(1, 1 - scrollTop / resting))
+      // 0 at rest, 1 at the very top of the scrollable range — then
+      // EASTER_EGG_DEAD_ZONE_FRACTION of that gets carved off the start
+      // (see its own comment) before progress actually begins moving off
+      // 0, remapped so it still reaches a clean 1 by the very top rather
+      // than topping out early.
+      const raw = 1 - scrollTop / resting
+      const progress = Math.max(0, Math.min(1, (raw - EASTER_EGG_DEAD_ZONE_FRACTION) / (1 - EASTER_EGG_DEAD_ZONE_FRACTION)))
       faultyTerminalRef.current?.setDissolveProgress(progress)
     }
   }, [])
@@ -495,14 +515,31 @@ export default function HomeClient({
   // above), so this firing a beat after mount is invisible in practice.
   useLayoutEffect(() => {
     if (homeTab !== 'home') return
-    const scrollEl = homeScrollRef.current
-    const startEl = homeContentStartRef.current
-    if (!scrollEl || !startEl) return
-    const scrollRect = scrollEl.getBoundingClientRect()
-    const startRect = startEl.getBoundingClientRect()
-    scrollEl.scrollTop += startRect.top - scrollRect.top
-    startingScrollTopRef.current = scrollEl.scrollTop
-    faultyTerminalRef.current?.setDissolveProgress(0)
+
+    const establishStartingPosition = () => {
+      const scrollEl = homeScrollRef.current
+      const startEl = homeContentStartRef.current
+      if (!scrollEl || !startEl) return
+      const scrollRect = scrollEl.getBoundingClientRect()
+      const startRect = startEl.getBoundingClientRect()
+      scrollEl.scrollTop += startRect.top - scrollRect.top
+      startingScrollTopRef.current = scrollEl.scrollTop
+      faultyTerminalRef.current?.setDissolveProgress(0)
+    }
+
+    establishStartingPosition()
+    // Defensive re-measurement one frame later: guards against anything
+    // shifting this tab's layout in the instant right after the first
+    // measurement above (this session saw the dissolve flicker briefly
+    // right after opening advith.exe and then settle down, which pointed
+    // at exactly this kind of race — the first measurement landing before
+    // something else finished settling). Re-running the same
+    // measurement — including re-adjusting scrollTop — one animation
+    // frame later self-corrects startingScrollTopRef if the geometry
+    // moved, instead of leaving it silently wrong (and handleTabScroll's
+    // progress math along with it) for the rest of the session.
+    const raf = requestAnimationFrame(establishStartingPosition)
+    return () => cancelAnimationFrame(raf)
   }, [homeTab, advithOpen])
 
   // Minesweeper isn't resizable at all (see resizable={false} below) — like
@@ -1176,8 +1213,13 @@ export default function HomeClient({
                     the faulty-terminal shader itself dissolving (see
                     uDissolveProgress in FaultyTerminalBackground.tsx),
                     driven by handleTabScroll above. This div is just the
-                    scroll-height placeholder the frames sit inside. */}
-                <div className="relative w-full min-h-[110vh] overflow-hidden">
+                    scroll-height placeholder the frames sit inside — tall
+                    (280vh, up from an original 110vh) and paired with
+                    EASTER_EGG_DEAD_ZONE_FRACTION above specifically so
+                    there's real, deliberate scroll distance before
+                    anything happens: the gallery sits much further up,
+                    and reaching it takes a lot more scrolling than before. */}
+                <div className="relative w-full min-h-[280vh] overflow-hidden">
                   <ImageExhibition />
                 </div>
                 <div ref={homeContentStartRef} className="min-h-full flex flex-col items-center justify-center">

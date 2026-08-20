@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
 import ContactView from '@/components/ContactView'
-import FaultyTerminalBackground from '@/components/FaultyTerminalBackground'
+import FaultyTerminalBackground, { type FaultyTerminalBackgroundHandle } from '@/components/FaultyTerminalBackground'
 import CreditsWindow from '@/components/CreditsWindow'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
@@ -376,6 +376,16 @@ export default function HomeClient({
   // matter how much taller a tab's content gets in the future — nothing
   // here needs to change again as more sections get added.
   //
+  // This used to be React state (setBgScrollTop on every scroll event),
+  // which re-rendered this entire component — every open window, the
+  // whole story-chapters section, all of it — on every single scroll
+  // tick, just to push one number into a shader uniform. That's what was
+  // behind the site feeling sluggish while scrolling. It's a ref + the
+  // shader's own imperative handle instead now (see
+  // FaultyTerminalBackgroundHandle): the value still updates every scroll
+  // event, but it writes straight into the shader's RAF loop with zero
+  // React re-renders anywhere.
+  //
   // FAULTY_TERMINAL_PARALLAX_SCALE converts "pixels scrolled" into "shader
   // world-space units" — picked to feel similar in speed to the old
   // 0.12px-of-DOM-translation-per-1px-scrolled version, but tuned by eye
@@ -383,12 +393,12 @@ export default function HomeClient({
   // FaultyTerminalBackground.tsx) rather than screen pixels, so it isn't
   // a direct conversion. Adjust this one constant if the parallax ever
   // needs to feel faster/slower — nothing else needs to change.
-  const [bgScrollTop, setBgScrollTop] = useState(0)
+  const faultyTerminalRef = useRef<FaultyTerminalBackgroundHandle>(null)
   const handleTabScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setBgScrollTop(e.currentTarget.scrollTop)
+    faultyTerminalRef.current?.setScrollOffset(e.currentTarget.scrollTop * FAULTY_TERMINAL_PARALLAX_SCALE)
   }, [])
   useEffect(() => {
-    setBgScrollTop(0)
+    faultyTerminalRef.current?.setScrollOffset(0)
   }, [homeTab])
 
   // Minesweeper isn't resizable at all (see resizable={false} below) — like
@@ -909,16 +919,14 @@ export default function HomeClient({
                 component's own default brightness (0.6) so it stays a quiet
                 backdrop instead of competing with the foreground text.
                 Exactly viewport-sized (inset-0), no CSS transform — the
-                scroll-linked parallax is a shader uniform now (see
-                scrollOffset prop, and the bgScrollTop comment above), which
-                is what makes it keep working no matter how far the user
-                scrolls or how much taller a tab's content gets. */}
+                scroll-linked parallax is a shader uniform now, driven
+                imperatively through faultyTerminalRef (see the comment
+                above handleTabScroll), which is what makes it keep working
+                no matter how far the user scrolls or how much taller a
+                tab's content gets, with no re-render cost. */}
             {homeTab !== 'report' && (
               <div className="absolute inset-0 bg-black">
-                <FaultyTerminalBackground
-                  brightness={0.3}
-                  scrollOffset={bgScrollTop * FAULTY_TERMINAL_PARALLAX_SCALE}
-                />
+                <FaultyTerminalBackground ref={faultyTerminalRef} brightness={0.3} />
               </div>
             )}
             <div className="relative z-10 flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -1154,7 +1162,7 @@ export default function HomeClient({
                             when the IP line is also showing so it doesn't
                             overlap that line's own pop-in. */}
                         <div className="win98-terminal-pop" style={{ animationDelay: visitorIp ? '420ms' : '350ms' }}>
-                        {/* <ExperienceSection /> */}
+                        <ExperienceSection />
                         </div>
                       </div>
                     </div>

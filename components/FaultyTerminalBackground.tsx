@@ -21,7 +21,7 @@
 // referentially stable across renders on its own, so the effect only reruns
 // when a real config value changes.
 
-import { useEffect, useRef, useCallback } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useCallback } from 'react'
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl'
 
 const vertexShader = `
@@ -250,16 +250,29 @@ type FaultyTerminalBackgroundProps = {
   mouseReact?: boolean
   mouseStrength?: number
   brightness?: number
-  /** World-space Y offset fed into the shader's pattern sampling (see
-   *  uScrollOffset in the fragment shader above) — the scroll-linked
-   *  parallax effect, driven by a caller's scroll position. Deliberately
-   *  NOT wired into the big WebGL-setup effect's dependency list below
-   *  (that would tear down and rebuild the whole GL context on every
-   *  scroll tick) — synced into a ref by its own small effect instead,
-   *  same pattern as mouseRef/smoothMouseRef, and read fresh each RAF
-   *  frame. Changing this as often as every scroll event is exactly the
-   *  intended usage. */
+  /** Initial world-space Y offset fed into the shader's pattern sampling
+   *  (see uScrollOffset in the fragment shader above) — only read once, on
+   *  mount, to seed scrollOffsetRef below. After mount, use the imperative
+   *  handle's setScrollOffset instead (see FaultyTerminalBackgroundHandle)
+   *  — a caller driving this from a scroll event needs to update it far
+   *  too often to go through a React prop/state round-trip without causing
+   *  a parent re-render on every scroll tick. */
   scrollOffset?: number
+}
+
+export type FaultyTerminalBackgroundHandle = {
+  /** Imperative scroll-linked parallax update — writes straight into the
+   *  ref the RAF loop reads from (see uScrollOffset in the fragment
+   *  shader), with no React state/prop involved and therefore no
+   *  re-render of this component OR whatever parent is calling this on
+   *  every scroll event. This existed as a `scrollOffset` prop + a state
+   *  variable on the caller (HomeClient) originally, but that meant every
+   *  scroll tick re-rendered HomeClient's entire tree (every open window,
+   *  the story chapters, etc.) just to push one number into a shader
+   *  uniform — visibly janky once the Home tab grew past a single
+   *  dossier. This imperative path is the fix: same value, same
+   *  destination, zero React re-renders. */
+  setScrollOffset: (value: number) => void
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -269,7 +282,7 @@ function hexToRgb(hex: string): [number, number, number] {
   return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255]
 }
 
-export default function FaultyTerminalBackground({
+const FaultyTerminalBackground = forwardRef<FaultyTerminalBackgroundHandle, FaultyTerminalBackgroundProps>(function FaultyTerminalBackground({
   scale = 1.5,
   digitSize = 1.2,
   scanlineIntensity = 0.5,
@@ -284,18 +297,22 @@ export default function FaultyTerminalBackground({
   mouseStrength = 0.5,
   brightness = 0.6,
   scrollOffset = 0,
-}: FaultyTerminalBackgroundProps) {
+}, ref) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mouseRef = useRef({ x: 0.5, y: 0.5 })
   const smoothMouseRef = useRef({ x: 0.5, y: 0.5 })
   const rafRef = useRef(0)
   const timeOffsetRef = useRef(Math.random() * 100)
+  // Seeded once from the initial prop, then updated exclusively through
+  // the imperative handle below (see FaultyTerminalBackgroundHandle) — no
+  // effect syncing this from a `scrollOffset` prop on every render.
   const scrollOffsetRef = useRef(scrollOffset)
-  // Cheap ref sync, separate from the WebGL-setup effect below on purpose
-  // — see scrollOffset's prop comment.
-  useEffect(() => {
-    scrollOffsetRef.current = scrollOffset
-  }, [scrollOffset])
+
+  useImperativeHandle(ref, () => ({
+    setScrollOffset: (value: number) => {
+      scrollOffsetRef.current = value
+    },
+  }), [])
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const ctn = containerRef.current
@@ -412,4 +429,8 @@ export default function FaultyTerminalBackground({
   ])
 
   return <div ref={containerRef} className="absolute inset-0 overflow-hidden" aria-hidden />
-}
+})
+
+FaultyTerminalBackground.displayName = 'FaultyTerminalBackground'
+
+export default FaultyTerminalBackground

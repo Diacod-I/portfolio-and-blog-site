@@ -89,14 +89,29 @@ const LOADING_MESSAGES: Record<AppId, string> = {
 const LOADING_DURATIONS: Partial<Record<AppId, number>> = {}
 const DEFAULT_LOADING_DURATION = 650
 
-// advith.exe's "hacker disruption" open sequence (see openApp below):
-// instead of one calm centered splash, several glitch splashes flash
-// across the screen in quick succession — like a system throwing up
-// alerts mid-breach — before the real window opens. Count × duration
-// (4 × 350ms = 1.4s) intentionally reads as a beat longer than a normal
-// app open: this is the one desktop icon meant to feel like an event.
+// advith.exe's "hacker disruption" open sequence (see openApp below): not
+// just the glitch spawns on their own — the whole thing now reads as a
+// normal app launch that goes wrong partway through.
+//  1. The same calm, single, centered splash every other app gets first
+//     (NORMAL_PHASE_RUN_MS of it actually running)...
+//  2. ...which then visibly hangs — WindowsLoader's `paused` prop freezes
+//     its marquee mid-sweep for NORMAL_PHASE_PAUSE_MS, a beat of
+//     something stalling before it's clear this isn't a normal open.
+//  3. Then GLITCH_SPAWN_COUNT error splashes spawn across the screen one
+//     at a time (GLITCH_SPAWN_DURATION apart) — but unlike before,
+//     accumulating (glitchSpawns is an array now, appended to, not a
+//     single value each new spawn replaced) so they all stay on screen
+//     together instead of each one vanishing as the next appears.
+//  4. Once all of them are up, they freeze together too (glitchPaused) —
+//     GLITCH_HOLD_MS of every card just sitting there, motionless.
+//  5. Only then do they all clear at once, in the same beat the real
+//     window actually opens (see openApp below) — nothing disappears
+//     one-by-one, it all resolves in a single moment.
 const GLITCH_SPAWN_COUNT = 4
 const GLITCH_SPAWN_DURATION = 350
+const NORMAL_PHASE_RUN_MS = 400
+const NORMAL_PHASE_PAUSE_MS = 350
+const GLITCH_HOLD_MS = 550
 // Kept away from the edges (the loader card is ~288px wide) so it never
 // clips off the visible desktop, and out of the very bottom to clear the
 // taskbar.
@@ -264,9 +279,18 @@ export default function HomeClient({
   const [loadingApp, setLoadingApp] = useState<AppId | null>(null)
   // advith.exe's multi-spawn glitch splash (see GLITCH_SPAWN_COUNT above) —
   // separate from loadingApp/single-splash path above since several of
-  // these flash across the screen in sequence rather than one dialog
-  // sitting centered. Null when no spawn is currently showing.
-  const [glitchSpawn, setGlitchSpawn] = useState<{ left: number; top: number } | null>(null)
+  // these accumulate on screen together rather than one dialog sitting
+  // centered. An array (not a single nullable spawn) specifically so each
+  // new one appends instead of replacing the last — see the openApp
+  // comment for why that matters now. glitchPaused freezes all of them in
+  // place for a beat once every spawn is up, before they clear together.
+  const [glitchSpawns, setGlitchSpawns] = useState<{ left: number; top: number }[]>([])
+  const [glitchPaused, setGlitchPaused] = useState(false)
+  // Freezes the normal single splash's marquee mid-sweep partway through
+  // advith.exe's open sequence (see openApp) — never set true for any
+  // other app, so this piggybacking on the shared `loadingApp` splash
+  // below is safe.
+  const [loadingPaused, setLoadingPaused] = useState(false)
   // Small rotating pool of the same error chime ErrorWindow's 404 dialog
   // uses (see components/ErrorWindow.tsx) — one per glitch spawn, so
   // overlapping plays (a new spawn firing before the previous chime
@@ -444,17 +468,26 @@ export default function HomeClient({
     // that don't actually need to retrigger it.
     if (useWindowStore.getState().wins[id].status === 'closed') {
       if (id === 'advith') {
-        // advith.exe gets the multi-spawn "hacker disruption" open instead
-        // of the single centered splash every other app uses — see
-        // GLITCH_SPAWN_COUNT above and WindowsLoader's glitch/left/top
-        // props. Only once every spawn has flashed does the real window
-        // open (focusApp below).
+        // advith.exe's open sequence — see the big comment above
+        // GLITCH_SPAWN_COUNT for the full five-step shape of this. Only
+        // once it's all played out does the real window open (focusApp
+        // below).
+        setLoadingApp('advith')
+        await new Promise(resolve => setTimeout(resolve, NORMAL_PHASE_RUN_MS))
+        setLoadingPaused(true)
+        await new Promise(resolve => setTimeout(resolve, NORMAL_PHASE_PAUSE_MS))
+        setLoadingApp(null)
+        setLoadingPaused(false)
+
         for (let i = 0; i < GLITCH_SPAWN_COUNT; i++) {
-          setGlitchSpawn(randomGlitchSpawnPos())
+          setGlitchSpawns(prev => [...prev, randomGlitchSpawnPos()])
           playGlitchSound()
           await new Promise(resolve => setTimeout(resolve, GLITCH_SPAWN_DURATION))
         }
-        setGlitchSpawn(null)
+        setGlitchPaused(true)
+        await new Promise(resolve => setTimeout(resolve, GLITCH_HOLD_MS))
+        setGlitchSpawns([])
+        setGlitchPaused(false)
       } else {
         setLoadingApp(id)
         await new Promise(resolve => setTimeout(resolve, LOADING_DURATIONS[id] ?? DEFAULT_LOADING_DURATION))
@@ -1487,18 +1520,25 @@ export default function HomeClient({
           title={`Loading ${APPS[loadingApp].name}...`}
           icon={APPS[loadingApp].icon}
           message={LOADING_MESSAGES[loadingApp]}
+          paused={loadingPaused}
         />
       )}
-      {glitchSpawn && (
+      {/* Each accumulated glitch spawn gets its own card (see glitchSpawns'
+          comment above) — array index is a safe key here since spawns are
+          only ever appended or cleared all at once, never reordered or
+          individually removed. */}
+      {glitchSpawns.map((spawn, i) => (
         <WindowsLoader
+          key={i}
           title={`Loading ${APPS.advith.name}...`}
           icon={APPS.advith.icon}
           message={LOADING_MESSAGES.advith}
           glitch
-          left={glitchSpawn.left}
-          top={glitchSpawn.top}
+          left={spawn.left}
+          top={spawn.top}
+          paused={glitchPaused}
         />
-      )}
+      ))}
     </div>
     <FooterConsole
       activeApps={taskbarApps}

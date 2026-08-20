@@ -39,15 +39,25 @@ type WindowsLoaderProps = {
    *  (dead-center), same as every non-advith app's splash. */
   left?: number
   top?: number
+  /** Freezes every animation on this card mid-motion (shake, marquee,
+   *  glitch-text flicker) via animationPlayState, instead of unmounting or
+   *  slowing it down — used by advith.exe's open sequence in
+   *  HomeClient.tsx for two different "something's hanging" beats: midway
+   *  through the normal splash before it turns into the error sequence,
+   *  and again once every error card has spawned, holding them all
+   *  visible together before they clear as the real window opens.
+   *  Defaults to false — running normally, same as before this existed. */
+  paused?: boolean
 }
 
-export default function WindowsLoader({ title, icon, message, glitch = false, left = 50, top = 50 }: WindowsLoaderProps) {
+export default function WindowsLoader({ title, icon, message, glitch = false, left = 50, top = 50, paused = false }: WindowsLoaderProps) {
+  const animationPlayState = paused ? 'paused' : undefined
   return (
     <div
       className={`win98-window fixed -translate-x-1/2 -translate-y-1/2 w-80 ${
         glitch ? 'win98-loader-glitch' : 'win98-loader-pop'
       }`}
-      style={{ zIndex: 20000, left: `${left}%`, top: `${top}%` }}
+      style={{ zIndex: 20000, left: `${left}%`, top: `${top}%`, animationPlayState }}
     >
       {/* min-w-0 on the flex row + truncate on the title: the card is wide
           enough (w-80) that every current title fits without truncating,
@@ -57,7 +67,12 @@ export default function WindowsLoader({ title, icon, message, glitch = false, le
       <div className="win98-titlebar">
         <div className="flex items-center gap-2 min-w-0">
           <Image src={icon} alt="" width={16} height={16} className="w-4 h-4 object-contain shrink-0" />
-          <span className={`truncate ${glitch ? 'win98-glitch-text' : ''}`}>{title}</span>
+          <span
+            className={`truncate ${glitch ? 'win98-glitch-text' : ''}`}
+            style={{ animationPlayState }}
+          >
+            {title}
+          </span>
         </div>
       </div>
       <div className="p-4 bg-[#c0c0c0] flex flex-col gap-4">
@@ -72,7 +87,10 @@ export default function WindowsLoader({ title, icon, message, glitch = false, le
           {/* min-w-0 lets this wrap instead of squeezing the icon into an
               oval — same reasoning as the old single-app version of this
               component. */}
-          <span className={`min-w-0 text-sm leading-snug ${glitch ? 'win98-glitch-text' : ''}`}>
+          <span
+            className={`min-w-0 text-sm leading-snug ${glitch ? 'win98-glitch-text' : ''}`}
+            style={{ animationPlayState }}
+          >
             {message}
           </span>
         </div>
@@ -81,6 +99,7 @@ export default function WindowsLoader({ title, icon, message, glitch = false, le
         <div className="h-4 bg-white border-2 border-t-[#808080] border-l-[#808080] border-b-white border-r-white overflow-hidden">
           <div
             className={`h-full w-1/3 ${glitch ? 'bg-[#2baca4] win98-loader-marquee-glitch' : 'bg-[#000080] win98-loader-marquee'}`}
+            style={{ animationPlayState }}
           />
         </div>
       </div>

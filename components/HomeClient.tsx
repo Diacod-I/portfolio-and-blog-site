@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
@@ -10,6 +10,7 @@ import CreditsWindow from '@/components/CreditsWindow'
 import WindowsLoader from '@/components/WindowsLoader'
 import FooterConsole from '@/components/FooterConsole'
 import ExplorerBlogList from '@/components/ExplorerBlogList'
+import ImageExhibition from '@/components/ImageExhibition'
 import BlogPostView from '@/components/BlogPostView'
 import ReportViewer from '@/components/ReportViewer'
 import GalleryWindow from '@/components/GalleryWindow'
@@ -418,11 +419,72 @@ export default function HomeClient({
   // a direct conversion. Adjust this one constant if the parallax ever
   // needs to feel faster/slower — nothing else needs to change.
   const faultyTerminalRef = useRef<FaultyTerminalBackgroundHandle>(null)
+
+  // Hidden "easter egg" zone above the Home tab's normal starting position
+  // (see the JSX below, and the layout effect further down that scrolls
+  // past it on every Home-tab mount so the tab still *looks* like it did
+  // before this existed) — scrolling up past what looks like the top
+  // reveals it: a gallery of placeholder frames (see
+  // components/ImageExhibition.tsx) that the faulty-terminal backdrop
+  // gradually washes from black toward white/pink as you go, imperatively
+  // (easterEggWashRef's opacity, set directly in handleTabScroll below) —
+  // same reasoning as faultyTerminalRef just above: this updates on every
+  // scroll event, so it goes through a ref instead of React state to avoid
+  // re-rendering this whole component on every tick.
+  //   homeScrollRef       — the Home tab's own scroll container.
+  //   homeContentStartRef — the div holding everything the tab shows
+  //                         today (dossier + chapters) — its top edge,
+  //                         once scrolled flush against homeScrollRef's
+  //                         own top, IS "the starting position".
+  //   easterEggWashRef    — the white/pink overlay inside the hidden zone;
+  //                         opacity 0 at the starting position, 1 at the
+  //                         very top of the scrollable range.
+  //   startingScrollTopRef — the exact scrollTop that lines up with
+  //                          homeContentStartRef's top edge, computed once
+  //                          per Home-tab mount (see the layout effect) and
+  //                          reused every scroll tick to turn raw scrollTop
+  //                          into a 0–1 reveal progress without re-doing
+  //                          any DOM measurement per scroll event.
+  const homeScrollRef = useRef<HTMLDivElement>(null)
+  const homeContentStartRef = useRef<HTMLDivElement>(null)
+  const easterEggWashRef = useRef<HTMLDivElement>(null)
+  const startingScrollTopRef = useRef(0)
+
   const handleTabScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    faultyTerminalRef.current?.setScrollOffset(e.currentTarget.scrollTop * FAULTY_TERMINAL_PARALLAX_SCALE)
+    const scrollTop = e.currentTarget.scrollTop
+    faultyTerminalRef.current?.setScrollOffset(scrollTop * FAULTY_TERMINAL_PARALLAX_SCALE)
+
+    // No-ops on every tab besides Home (easterEggWashRef only exists while
+    // the Home tab's hidden zone is mounted) — safe to leave unguarded by
+    // homeTab for the same reason faultyTerminalRef's call above is.
+    const washEl = easterEggWashRef.current
+    const resting = startingScrollTopRef.current
+    if (washEl && resting > 0) {
+      const progress = Math.max(0, Math.min(1, 1 - scrollTop / resting))
+      washEl.style.opacity = String(progress)
+    }
   }, [])
   useEffect(() => {
     faultyTerminalRef.current?.setScrollOffset(0)
+  }, [homeTab])
+
+  // Establishes "the starting position" every time the Home tab mounts —
+  // scrolls homeContentStartRef flush to the top of homeScrollRef (exactly
+  // where it would sit if the hidden zone above it didn't exist) and
+  // records that scrollTop for handleTabScroll's progress math above.
+  // useLayoutEffect (not useEffect) specifically so this happens before
+  // the browser paints — a plain useEffect would let the hidden zone flash
+  // into view for a frame first, on every single tab switch to Home.
+  useLayoutEffect(() => {
+    if (homeTab !== 'home') return
+    const scrollEl = homeScrollRef.current
+    const startEl = homeContentStartRef.current
+    if (!scrollEl || !startEl) return
+    const scrollRect = scrollEl.getBoundingClientRect()
+    const startRect = startEl.getBoundingClientRect()
+    scrollEl.scrollTop += startRect.top - scrollRect.top
+    startingScrollTopRef.current = scrollEl.scrollTop
+    if (easterEggWashRef.current) easterEggWashRef.current.style.opacity = '0'
   }, [homeTab])
 
   // Minesweeper isn't resizable at all (see resizable={false} below) — like
@@ -1071,8 +1133,39 @@ export default function HomeClient({
             // the content would otherwise start right at the top). The
             // max(...) is a floor for short/restored windows where 15vh
             // would be cramped.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-[max(1rem,8vh)] px-4 pb-16" onScroll={handleTabScroll}>
-                <div className="min-h-full flex flex-col items-center justify-center">
+            <div
+              ref={homeScrollRef}
+              className="flex-1 min-h-0 overflow-y-auto pt-[max(1rem,8vh)] px-4 pb-16 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              onScroll={handleTabScroll}
+            >
+                {/* Hidden "easter egg" zone — see the refs/comments above
+                    handleTabScroll (further up this file) for the full
+                    mechanics. The layout effect there scrolls straight
+                    past this on every Home-tab mount, so by default the
+                    tab still looks exactly like it did before this
+                    existed; only scrolling up past what looks like the
+                    top reveals it. Full window width (outside the
+                    max-w-2xl reading column below) for the "gallery wall"
+                    feel — see components/ImageExhibition.tsx for the
+                    scattered placeholder frames. The scrollbar itself is
+                    hidden on this whole container (see the
+                    [scrollbar-width...]/[&::-webkit-scrollbar] classes
+                    above) — a normal scrollbar's thumb would visibly show
+                    there's more content above the "top", giving the whole
+                    thing away before anyone actually scrolls up. */}
+                <div className="relative w-full min-h-[110vh] overflow-hidden">
+                  <div
+                    ref={easterEggWashRef}
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      opacity: 0,
+                      background: 'linear-gradient(to bottom, #ffffff 0%, #ffd6e6 100%)',
+                    }}
+                    aria-hidden
+                  />
+                  <ImageExhibition />
+                </div>
+                <div ref={homeContentStartRef} className="min-h-full flex flex-col items-center justify-center">
                   {/* Both the heading and the photo+bio row share this same
                       max-w-2xl w-full column so "Database Query" lines up
                       flush with the left edge of the dossier block below it,

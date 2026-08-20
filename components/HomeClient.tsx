@@ -119,6 +119,11 @@ const LOGS_QUERY_TEXT = 'select gh_logs from devs where name=\'Advith Krishnan\'
 const CONTACT_QUERY_TEXT = 'select contact_info from devs where name=\'Advith Krishnan\';'
 const TYPED_QUERY_CHAR_MS = 40
 
+// See the scroll-linked-parallax comment above bgScrollTop's declaration
+// (further down this file) for the full reasoning — this converts pixels
+// scrolled into the shader's own world-space units.
+const FAULTY_TERMINAL_PARALLAX_SCALE = 0.0006
+
 // "Already finished typing this session" is tracked in two layers, neither
 // of them component state:
 //  1. completedTypedQueries — an in-memory Set, module-scope. Survives a
@@ -356,11 +361,28 @@ export default function HomeClient({
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
   // background layer in the JSX below): each tab's own overflow-y-auto
-  // scroll container reports its scrollTop here via onScroll, and the
-  // backdrop shifts by a fraction of it — up while scrolling down, back
-  // down while scrolling up, per tab request. Reset on every tab switch so
-  // a leftover offset from the previous tab's scroll position doesn't
-  // carry over and jump the backdrop.
+  // scroll container reports its scrollTop here via onScroll, converted
+  // into a world-space offset the shader itself samples at (see
+  // FaultyTerminalBackground's uScrollOffset uniform) — NOT a CSS
+  // transform on an oversized DOM element like this used to be. That
+  // approach was bounded by however much extra canvas got pre-rendered
+  // above/below the viewport (a fixed overscan), so it broke — a bare
+  // edge showing through — once a tab's content scrolled deeper than that
+  // budget, which is exactly what started happening once the Home tab
+  // grew past a single dossier (see the story chapters below). Feeding
+  // the offset into the shader instead is unbounded by construction: the
+  // pattern is a continuous procedural function of world-space position,
+  // not a finite pre-rendered image, so it keeps working identically no
+  // matter how much taller a tab's content gets in the future — nothing
+  // here needs to change again as more sections get added.
+  //
+  // FAULTY_TERMINAL_PARALLAX_SCALE converts "pixels scrolled" into "shader
+  // world-space units" — picked to feel similar in speed to the old
+  // 0.12px-of-DOM-translation-per-1px-scrolled version, but tuned by eye
+  // against the shader's own coordinate space (uScale/uGridMul in
+  // FaultyTerminalBackground.tsx) rather than screen pixels, so it isn't
+  // a direct conversion. Adjust this one constant if the parallax ever
+  // needs to feel faster/slower — nothing else needs to change.
   const [bgScrollTop, setBgScrollTop] = useState(0)
   const handleTabScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setBgScrollTop(e.currentTarget.scrollTop)
@@ -886,22 +908,17 @@ export default function HomeClient({
                 getting a decorative backdrop either. Dimmed well below the
                 component's own default brightness (0.6) so it stays a quiet
                 backdrop instead of competing with the foreground text.
-                Oversized (top/bottom pushed 100px past the pane's own edges)
-                and shifted by a fraction of whichever tab's scroll position
-                (see bgScrollTop/handleTabScroll above) — up while scrolling
-                down, back down while scrolling up. The parent pane below is
-                overflow-hidden, so panning this never reveals the oversized
-                edges, just more of the shader moving with the scroll. */}
+                Exactly viewport-sized (inset-0), no CSS transform — the
+                scroll-linked parallax is a shader uniform now (see
+                scrollOffset prop, and the bgScrollTop comment above), which
+                is what makes it keep working no matter how far the user
+                scrolls or how much taller a tab's content gets. */}
             {homeTab !== 'report' && (
-              <div
-                className="absolute left-0 right-0 bg-black"
-                style={{
-                  top: -100,
-                  bottom: -100,
-                  transform: `translateY(${-bgScrollTop * 0.12}px)`,
-                }}
-              >
-                <FaultyTerminalBackground brightness={0.3} />
+              <div className="absolute inset-0 bg-black">
+                <FaultyTerminalBackground
+                  brightness={0.3}
+                  scrollOffset={bgScrollTop * FAULTY_TERMINAL_PARALLAX_SCALE}
+                />
               </div>
             )}
             <div className="relative z-10 flex-1 min-h-0 flex flex-col overflow-hidden">

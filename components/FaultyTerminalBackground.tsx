@@ -57,6 +57,7 @@ uniform vec2  uMouse;
 uniform float uMouseStrength;
 uniform float uUseMouse;
 uniform float uBrightness;
+uniform float uScrollOffset;
 
 float time;
 
@@ -199,6 +200,18 @@ void main() {
     }
 
     vec2 p = uv * uScale;
+    // Scroll-linked parallax lives here now, not as a CSS transform on an
+    // oversized DOM element (see HomeClient.tsx's old bgScrollTop/
+    // handleTabScroll wrapper div, since replaced) — that approach was
+    // bounded by however much extra canvas was pre-rendered above/below
+    // the viewport, so it broke (revealed a bare edge) once scrolling past
+    // that fixed overscan, and would keep needing a bigger overscan as
+    // more content (e.g. the Home tab's story chapters) got added. Adding
+    // the offset directly to the world-space coordinate the pattern is
+    // sampled at is genuinely unbounded — fbm/noise below are continuous
+    // functions of p, not a finite pre-rendered image, so this works
+    // identically at any scroll depth, no matter how tall the page gets.
+    p.y += uScrollOffset;
     vec3 col = getColor(p);
 
     if(uChromaticAberration != 0.0){
@@ -237,6 +250,16 @@ type FaultyTerminalBackgroundProps = {
   mouseReact?: boolean
   mouseStrength?: number
   brightness?: number
+  /** World-space Y offset fed into the shader's pattern sampling (see
+   *  uScrollOffset in the fragment shader above) — the scroll-linked
+   *  parallax effect, driven by a caller's scroll position. Deliberately
+   *  NOT wired into the big WebGL-setup effect's dependency list below
+   *  (that would tear down and rebuild the whole GL context on every
+   *  scroll tick) — synced into a ref by its own small effect instead,
+   *  same pattern as mouseRef/smoothMouseRef, and read fresh each RAF
+   *  frame. Changing this as often as every scroll event is exactly the
+   *  intended usage. */
+  scrollOffset?: number
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -260,12 +283,19 @@ export default function FaultyTerminalBackground({
   mouseReact = true,
   mouseStrength = 0.5,
   brightness = 0.6,
+  scrollOffset = 0,
 }: FaultyTerminalBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mouseRef = useRef({ x: 0.5, y: 0.5 })
   const smoothMouseRef = useRef({ x: 0.5, y: 0.5 })
   const rafRef = useRef(0)
   const timeOffsetRef = useRef(Math.random() * 100)
+  const scrollOffsetRef = useRef(scrollOffset)
+  // Cheap ref sync, separate from the WebGL-setup effect below on purpose
+  // — see scrollOffset's prop comment.
+  useEffect(() => {
+    scrollOffsetRef.current = scrollOffset
+  }, [scrollOffset])
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const ctn = containerRef.current
@@ -317,6 +347,7 @@ export default function FaultyTerminalBackground({
         uMouseStrength: { value: mouseStrength },
         uUseMouse: { value: mouseReact ? 1 : 0 },
         uBrightness: { value: brightness },
+        uScrollOffset: { value: scrollOffsetRef.current },
       },
     })
     const mesh = new Mesh(gl, { geometry, program })
@@ -337,6 +368,7 @@ export default function FaultyTerminalBackground({
     function update(t: number) {
       rafRef.current = requestAnimationFrame(update)
       program.uniforms.iTime.value = (t * 0.001 + timeOffsetRef.current) * TIME_SCALE
+      program.uniforms.uScrollOffset.value = scrollOffsetRef.current
 
       if (mouseReact) {
         const damping = 0.08

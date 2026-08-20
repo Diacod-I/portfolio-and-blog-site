@@ -58,6 +58,7 @@ uniform float uMouseStrength;
 uniform float uUseMouse;
 uniform float uBrightness;
 uniform float uScrollOffset;
+uniform float uDissolveProgress;
 
 float time;
 
@@ -223,6 +224,37 @@ void main() {
     col *= uTint;
     col *= uBrightness;
 
+    // Hidden-zone "reveal" easter egg (see HomeClient.tsx's Home tab and
+    // its faultyTerminalRef.setDissolveProgress calls) — NOT a flat
+    // overlay/fade. A blocky, dithered threshold (same coarse-pixel
+    // aesthetic as the digit pattern above) sweeps top-to-bottom across
+    // the screen as uDissolveProgress goes 0->1, so the boundary reads as
+    // a scattered, pixelated dissolve edge — like static resolving into a
+    // new picture — rather than a smooth linear wipe. Screen-space
+    // (gl_FragCoord), not world-space: the boundary stays fixed relative
+    // to the viewport as you scroll, instead of scrolling away with the
+    // parallax. Recolors per-pixel based on this same pixel's own
+    // pre-existing brightness (a proxy for "is this a lit digit or a gap
+    // between them") rather than just tinting everything uniformly, so
+    // the underlying faulty-terminal pattern stays recognizable on both
+    // sides of the dissolve — background flips black -> white (drifting
+    // toward a subtle pink further down the screen), and the pattern's
+    // own dots flip from uTint's usual color -> red/pink.
+    if (uDissolveProgress > 0.0) {
+      vec2 blockCoord = floor(gl_FragCoord.xy / 14.0);
+      float dither = hash21(blockCoord + 91.7);
+      float yNorm = gl_FragCoord.y / iResolution.y;
+      float threshold = clamp(yNorm + (dither - 0.5) * 0.35, 0.0, 1.0);
+      float revealed = step(threshold, uDissolveProgress);
+
+      float lum = clamp(dot(col, vec3(0.299, 0.587, 0.114)) * 2.5, 0.0, 1.0);
+      vec3 revealBg = mix(vec3(1.0), vec3(1.0, 0.86, 0.90), yNorm);
+      vec3 revealDot = vec3(0.95, 0.25, 0.45);
+      vec3 revealedCol = mix(revealBg, revealDot, lum);
+
+      col = mix(col, revealedCol, revealed);
+    }
+
     if(uDither > 0.0){
       float rnd = hash21(gl_FragCoord.xy);
       col += (rnd - 0.5) * (uDither * 0.003922);
@@ -258,6 +290,12 @@ type FaultyTerminalBackgroundProps = {
    *  too often to go through a React prop/state round-trip without causing
    *  a parent re-render on every scroll tick. */
   scrollOffset?: number
+  /** Initial value for the hidden-zone "reveal" dissolve (see
+   *  uDissolveProgress in the fragment shader above) — same "only read
+   *  once, on mount" deal as scrollOffset, for the same reason: driven
+   *  from a scroll handler via the imperative handle's
+   *  setDissolveProgress after that. */
+  dissolveProgress?: number
 }
 
 export type FaultyTerminalBackgroundHandle = {
@@ -273,6 +311,10 @@ export type FaultyTerminalBackgroundHandle = {
    *  dossier. This imperative path is the fix: same value, same
    *  destination, zero React re-renders. */
   setScrollOffset: (value: number) => void
+  /** Same deal as setScrollOffset, for the hidden-zone reveal (see
+   *  uDissolveProgress in the fragment shader above) — 0 = normal,
+   *  1 = fully dissolved into the white/pink + red/pink-dot look. */
+  setDissolveProgress: (value: number) => void
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -297,6 +339,7 @@ const FaultyTerminalBackground = forwardRef<FaultyTerminalBackgroundHandle, Faul
   mouseStrength = 0.5,
   brightness = 0.6,
   scrollOffset = 0,
+  dissolveProgress = 0,
 }, ref) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mouseRef = useRef({ x: 0.5, y: 0.5 })
@@ -307,10 +350,14 @@ const FaultyTerminalBackground = forwardRef<FaultyTerminalBackgroundHandle, Faul
   // the imperative handle below (see FaultyTerminalBackgroundHandle) — no
   // effect syncing this from a `scrollOffset` prop on every render.
   const scrollOffsetRef = useRef(scrollOffset)
+  const dissolveProgressRef = useRef(dissolveProgress)
 
   useImperativeHandle(ref, () => ({
     setScrollOffset: (value: number) => {
       scrollOffsetRef.current = value
+    },
+    setDissolveProgress: (value: number) => {
+      dissolveProgressRef.current = value
     },
   }), [])
 
@@ -365,6 +412,7 @@ const FaultyTerminalBackground = forwardRef<FaultyTerminalBackgroundHandle, Faul
         uUseMouse: { value: mouseReact ? 1 : 0 },
         uBrightness: { value: brightness },
         uScrollOffset: { value: scrollOffsetRef.current },
+        uDissolveProgress: { value: dissolveProgressRef.current },
       },
     })
     const mesh = new Mesh(gl, { geometry, program })
@@ -386,6 +434,7 @@ const FaultyTerminalBackground = forwardRef<FaultyTerminalBackgroundHandle, Faul
       rafRef.current = requestAnimationFrame(update)
       program.uniforms.iTime.value = (t * 0.001 + timeOffsetRef.current) * TIME_SCALE
       program.uniforms.uScrollOffset.value = scrollOffsetRef.current
+      program.uniforms.uDissolveProgress.value = dissolveProgressRef.current
 
       if (mouseReact) {
         const damping = 0.08

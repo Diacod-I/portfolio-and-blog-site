@@ -425,20 +425,20 @@ export default function HomeClient({
   // past it on every Home-tab mount so the tab still *looks* like it did
   // before this existed) — scrolling up past what looks like the top
   // reveals it: a gallery of placeholder frames (see
-  // components/ImageExhibition.tsx) that the faulty-terminal backdrop
-  // gradually washes from black toward white/pink as you go, imperatively
-  // (easterEggWashRef's opacity, set directly in handleTabScroll below) —
-  // same reasoning as faultyTerminalRef just above: this updates on every
-  // scroll event, so it goes through a ref instead of React state to avoid
-  // re-rendering this whole component on every tick.
+  // components/ImageExhibition.tsx), while the faulty-terminal backdrop
+  // itself dissolves from its usual black/tinted look into white/pink —
+  // not a flat overlay fading in, a blocky pixelated dissolve sweeping
+  // top-to-bottom, driven straight through the shader (see
+  // uDissolveProgress in FaultyTerminalBackground.tsx and
+  // faultyTerminalRef.setDissolveProgress below) — same reasoning as
+  // faultyTerminalRef's setScrollOffset calls: this updates on every
+  // scroll event, so it goes through an imperative ref instead of React
+  // state to avoid re-rendering this whole component on every tick.
   //   homeScrollRef       — the Home tab's own scroll container.
   //   homeContentStartRef — the div holding everything the tab shows
   //                         today (dossier + chapters) — its top edge,
   //                         once scrolled flush against homeScrollRef's
   //                         own top, IS "the starting position".
-  //   easterEggWashRef    — the white/pink overlay inside the hidden zone;
-  //                         opacity 0 at the starting position, 1 at the
-  //                         very top of the scrollable range.
   //   startingScrollTopRef — the exact scrollTop that lines up with
   //                          homeContentStartRef's top edge, computed once
   //                          per Home-tab mount (see the layout effect) and
@@ -447,21 +447,21 @@ export default function HomeClient({
   //                          any DOM measurement per scroll event.
   const homeScrollRef = useRef<HTMLDivElement>(null)
   const homeContentStartRef = useRef<HTMLDivElement>(null)
-  const easterEggWashRef = useRef<HTMLDivElement>(null)
   const startingScrollTopRef = useRef(0)
 
   const handleTabScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const scrollTop = e.currentTarget.scrollTop
     faultyTerminalRef.current?.setScrollOffset(scrollTop * FAULTY_TERMINAL_PARALLAX_SCALE)
 
-    // No-ops on every tab besides Home (easterEggWashRef only exists while
-    // the Home tab's hidden zone is mounted) — safe to leave unguarded by
-    // homeTab for the same reason faultyTerminalRef's call above is.
-    const washEl = easterEggWashRef.current
+    // No-op on every tab besides Home until startingScrollTopRef has
+    // actually been set by the layout effect below (it stays 0 — its
+    // useRef initial value — everywhere else, including on About/Contact,
+    // which never run that effect) — safe to leave unguarded by homeTab
+    // for the same reason faultyTerminalRef's call above is.
     const resting = startingScrollTopRef.current
-    if (washEl && resting > 0) {
+    if (resting > 0) {
       const progress = Math.max(0, Math.min(1, 1 - scrollTop / resting))
-      washEl.style.opacity = String(progress)
+      faultyTerminalRef.current?.setDissolveProgress(progress)
     }
   }, [])
   useEffect(() => {
@@ -489,9 +489,9 @@ export default function HomeClient({
   // what left the tab sitting at the hidden zone (scrollTop 0) instead of
   // the real starting position, and, as a side effect, kept
   // startingScrollTopRef stuck at its initial 0 forever — handleTabScroll
-  // only updates the wash's opacity when `resting > 0`, so the wash never
-  // got a chance to work either. Advith.exe's own open sequence delays
-  // the window actually appearing anyway (see openApp/GLITCH_SPAWN_COUNT
+  // only updates the dissolve when `resting > 0`, so the reveal never got
+  // a chance to work either. Advith.exe's own open sequence delays the
+  // window actually appearing anyway (see openApp/GLITCH_SPAWN_COUNT
   // above), so this firing a beat after mount is invisible in practice.
   useLayoutEffect(() => {
     if (homeTab !== 'home') return
@@ -502,7 +502,7 @@ export default function HomeClient({
     const startRect = startEl.getBoundingClientRect()
     scrollEl.scrollTop += startRect.top - scrollRect.top
     startingScrollTopRef.current = scrollEl.scrollTop
-    if (easterEggWashRef.current) easterEggWashRef.current.style.opacity = '0'
+    faultyTerminalRef.current?.setDissolveProgress(0)
   }, [homeTab, advithOpen])
 
   // Minesweeper isn't resizable at all (see resizable={false} below) — like
@@ -1119,7 +1119,7 @@ export default function HomeClient({
                       Contributor Activity <span className="text-sky-200"><a href="https://github.com/Diacod-I">@Diacod-I</a></span>
                   </h2>
                   <div className="text-gray-300 mb-4 win98-terminal-pop" style={{ animationDelay: '70ms' }}>
-                      "Look at that subtle graph optimization pass. The tasteful vectorized register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion."<p className="text-end mb-2">— American Psycho prolly</p>
+                      "Look at that subtle graph optimization pass. The tasteful register reuse of it. Oh my God, it even has statically scheduled memory-safe kernel fusion."<p className="text-end mb-2">— American Psycho prolly</p>
                   </div>
 
                   <div className="flex-1 min-w-0 flex flex-col gap-4">
@@ -1170,17 +1170,14 @@ export default function HomeClient({
                     [scrollbar-width...]/[&::-webkit-scrollbar] classes
                     above) — a normal scrollbar's thumb would visibly show
                     there's more content above the "top", giving the whole
-                    thing away before anyone actually scrolls up. */}
+                    thing away before anyone actually scrolls up.
+
+                    No overlay div here for the color change anymore — it's
+                    the faulty-terminal shader itself dissolving (see
+                    uDissolveProgress in FaultyTerminalBackground.tsx),
+                    driven by handleTabScroll above. This div is just the
+                    scroll-height placeholder the frames sit inside. */}
                 <div className="relative w-full min-h-[110vh] overflow-hidden">
-                  <div
-                    ref={easterEggWashRef}
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      opacity: 0,
-                      background: 'linear-gradient(to bottom, #ffffff 0%, #ffd6e6 100%)',
-                    }}
-                    aria-hidden
-                  />
                   <ImageExhibition />
                 </div>
                 <div ref={homeContentStartRef} className="min-h-full flex flex-col items-center justify-center">

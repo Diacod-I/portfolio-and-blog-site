@@ -1038,7 +1038,7 @@ export default function HomeClient({
             // the content would otherwise start right at the top). The
             // max(...) is a floor for short/restored windows where 15vh
             // would be cramped.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-[max(1rem,15vh)] px-4 pb-16" onScroll={handleTabScroll}>
+            <div className="flex-1 min-h-0 overflow-y-auto pt-[max(1rem,8vh)] px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   {/* Both the heading and the photo+bio row share this same
                       max-w-2xl w-full column so "Database Query" lines up
@@ -1085,7 +1085,7 @@ export default function HomeClient({
                     // real, doubled-vs-chapters breathing gap before
                     // chapter 1 starts, during which this photo has already
                     // released and chapter 1's image hasn't engaged yet.
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-32">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-16">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
                           scroll container while the much taller text column
@@ -1100,7 +1100,7 @@ export default function HomeClient({
                           column) — only enabled at sm: and up, matching the
                           row/column breakpoint above. */}
                       <div
-                        className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-4 win98-terminal-pop"
+                        className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-2 win98-terminal-pop"
                         style={{ animationDelay: '0ms' }}
                       >
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
@@ -1197,7 +1197,7 @@ export default function HomeClient({
                               chapter.side === 'right' ? 'sm:flex-row-reverse' : 'sm:flex-row'
                             }`}
                           >
-                            {/* Chapters use sm:top-1/2 rather than the
+                            {/* Chapters use sm:top-1/4 rather than the
                                 profile photo's sm:top-4 above: a sticky
                                 element's percentage `top` resolves against
                                 the nearest scrolling ancestor's height —
@@ -1215,7 +1215,7 @@ export default function HomeClient({
                                 to the middle of the inner window, rather
                                 than holding it pinned near the top for the
                                 entire row. */}
-                            <div className="shrink-0 w-full sm:w-56 sm:sticky sm:top-1/2 win98-terminal-pop">
+                            <div className="shrink-0 w-full sm:w-56 sm:sticky sm:top-1/4 win98-terminal-pop">
                               {chapter.image ? (
                                 <div className="relative aspect-[4/3] border-2 border-white overflow-hidden">
                                   <Image

@@ -33,17 +33,17 @@ export type StoryChapter = {
 export const STORY_CHAPTERS: StoryChapter[] = [
   {
     id: 'chapter-01',
-    title: 'Chapter 01 — Placeholder Title',
+    title: '[2003 - 2011] ',
     side: 'left',
     paragraphs: [
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      'Before I became a 6\'4 giant who struggles to fit his legs within a flight\'s seat allocated legroom, I was a tiny gremlin.',
       'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
       'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
     ],
   },
   {
     id: 'chapter-02',
-    title: 'Chapter 02 — Placeholder Title',
+    title: '[2011 - 2019]',
     side: 'right',
     paragraphs: [
       'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.',
@@ -53,7 +53,7 @@ export const STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     id: 'chapter-03',
-    title: 'Chapter 03 — Placeholder Title',
+    title: '[2020 - Present]',
     side: 'left',
     paragraphs: [
       'Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus.',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, type CSSProperties } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
@@ -168,6 +168,25 @@ const EASTER_EGG_DEAD_ZONE_FRACTION = (1 - EXHIBITION_FRAMES_MAX_TOP_PCT / 100) 
 // means most frames sit against an already fully-revealed background —
 // see handleTabScroll for how this and the dead zone combine.
 const EASTER_EGG_FULL_REVEAL_FRACTION = 0.6
+
+// Text color for the hidden zone's "protest" lines (the h1s sitting
+// between the gallery and homeContentStartRef in the JSX below) — plain
+// white text would go invisible the moment the faulty-terminal background
+// behind it dissolves to its light/pink look (see uDissolveProgress in
+// FaultyTerminalBackground.tsx), same problem ImageExhibition.tsx's own
+// black frame borders have against the dark starting look, just mirrored.
+// Rather than tracking a second, separate progress value for these lines,
+// this reuses the exact same 0-1 number handleTabScroll already computes
+// for the shader — written straight onto homeScrollRef's own
+// --reveal-progress CSS custom property there (imperative DOM write, no
+// React state/re-render, same reasoning as faultyTerminalRef's calls) —
+// and color-mix()es between white and black off of it, so these lines
+// cross-fade in step with the background instead of drifting out of sync
+// with it. Falls back to 0 (white) via var()'s second argument for the
+// instant before the first scroll event ever fires.
+const EASTER_EGG_TEXT_STYLE: CSSProperties = {
+  color: 'color-mix(in srgb, white calc((1 - var(--reveal-progress, 0)) * 100%), black calc(var(--reveal-progress, 0) * 100%))',
+}
 
 // Types `text` out character by character every time `active` transitions
 // from false to true — and resets back to blank the moment `active` goes
@@ -446,6 +465,14 @@ export default function HomeClient({
         Math.min(1, (raw - EASTER_EGG_DEAD_ZONE_FRACTION) / (EASTER_EGG_FULL_REVEAL_FRACTION - EASTER_EGG_DEAD_ZONE_FRACTION))
       )
       faultyTerminalRef.current?.setDissolveProgress(progress)
+      // Same progress value, mirrored onto a CSS custom property so the
+      // "protest" lines' color (see EASTER_EGG_TEXT_STYLE above) can
+      // color-mix() off it — e.currentTarget here IS homeScrollRef's own
+      // element (this handler only reaches this branch on the Home tab,
+      // see the resting > 0 guard above), and --reveal-progress cascades
+      // down to every descendant, so no separate ref/lookup is needed for
+      // those h1s to pick it up.
+      e.currentTarget.style.setProperty('--reveal-progress', String(progress))
     }
   }, [])
   useEffect(() => {
@@ -1189,9 +1216,17 @@ export default function HomeClient({
                     div's own height (see data/exhibitionFrames.ts), so
                     this margin sits entirely outside that math instead of
                     just spreading the frames themselves further apart. */}
-                <div className="relative w-full min-h-[280vh] mb-[18vh] overflow-hidden">
+                <div className="relative w-full min-h-[280vh] mb-[40vh] overflow-hidden">
                   <ImageExhibition />
                 </div>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>AHHH!! YOUR POWER OF LOVE AND HOPE IS TOO STRONG!!!</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>DON'T SCROLL UP!!!</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>YOU CAN'T DO THAT!!</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>WAIT WAIT WAIT WAIT!!</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>No... wait...</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>This is.. not possible....</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>What are you doing??</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>Huh? Why are you scrolling up?</h1>
                 <div ref={homeContentStartRef} className="min-h-full flex flex-col items-center justify-center">
                   {/* Both the heading and the photo+bio row share this same
                       max-w-2xl w-full column so "Database Query" lines up
@@ -1406,6 +1441,7 @@ export default function HomeClient({
                             </div>
                           </div>
                         ))}
+                                        <h1 className="text-center text-white mb-24">Fly high into the sky, even from the lowest pit.</h1>
                       </div>
                     )}
                   </div>

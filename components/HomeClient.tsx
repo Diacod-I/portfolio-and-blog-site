@@ -1068,19 +1068,16 @@ export default function HomeClient({
                     </h1>
                     {homeQueryDone && (
                     // mt-4 (spacing after the "$ >" heading above) + pb-3
-                    // (spacing before chapter 1 below) — NOT a gap/margin
-                    // between this row and the chapters section, which
-                    // would otherwise be dead scroll space where neither
-                    // this photo nor chapter 1's image is sticky. Padding
-                    // stays *inside* this row's own box, so it extends how
-                    // long the photo can stay stuck right up until chapter
-                    // 1's row begins immediately after (zero gap — see its
-                    // own wrapper below) — see that section's comment for
-                    // the full "sticky relay" reasoning. Trimmed down from
-                    // pb-16 so the release/handoff kicks in a little ahead
-                    // of where it used to, instead of holding the photo
-                    // pinned all the way to the last possible pixel.
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3">
+                    // (spacing before chapter 1 below) — pb-3 is padding,
+                    // not a gap/margin: it's what lets this row's sticky
+                    // photo keep pinning to the last possible pixel of the
+                    // row's own box. mb-32 below it *is* real margin,
+                    // deliberately — same tradeoff as the story chapters'
+                    // own gap-y-16 (see that section's comment): it opens a
+                    // real, doubled-vs-chapters breathing gap before
+                    // chapter 1 starts, during which this photo has already
+                    // released and chapter 1's image hasn't engaged yet.
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-32">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
                           scroll container while the much taller text column

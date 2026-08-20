@@ -151,17 +151,25 @@ const FAULTY_TERMINAL_PARALLAX_SCALE = 0.0006
 // shader's old hard-edged step() threshold, could flicker a strip of
 // the dissolve in and out at rest.
 //
-// Derived from EXHIBITION_FRAMES_MAX_TOP_PCT rather than a fixed number:
-// the frame with the largest topPct sits closest to the *bottom* of the
-// hidden zone, i.e. it's the first frame a user scrolling up from rest
-// actually reaches. raw (below, in handleTabScroll) is ~0 at rest and ~1
-// at the very top of the zone, and a point at topPct within the zone
-// corresponds to roughly raw = 1 - topPct/100 — so this lines the
-// dissolve's start up with wherever the gallery itself starts, instead
-// of an arbitrary fraction with no relationship to where the frames are.
-// (Approximates "resting" as the zone's own height, ignoring the scroll
-// container's own small top padding — negligible next to a 280vh zone.)
-const EASTER_EGG_DEAD_ZONE_FRACTION = 1 - EXHIBITION_FRAMES_MAX_TOP_PCT / 100
+// Half of where the gallery's own first frame (largest topPct — see
+// EXHIBITION_FRAMES_MAX_TOP_PCT's comment in data/exhibitionFrames.ts,
+// and raw's own comment below) sits — not lined up exactly with it
+// anymore. Syncing it exactly there meant progress was still ~0 the
+// *moment* the first frame appeared, so it sat against an almost fully
+// dark background right when it showed up ("some images are still in
+// the dark zone"). Starting the ramp a bit earlier gives progress a
+// head start before any frame is actually on screen.
+const EASTER_EGG_DEAD_ZONE_FRACTION = (1 - EXHIBITION_FRAMES_MAX_TOP_PCT / 100) * 0.5
+
+// Where the ramp reaches a full, clean 1 — deliberately well short of
+// raw's own max of 1 (the very top of the hidden zone). The gallery's
+// frames span roughly raw 0.22 to 0.97 (topPct 78 down to 3); if
+// progress only reached 1 at raw 1.0, most of the gallery would still be
+// scrolling past a partially-dark background the whole way through.
+// Reaching full white/pink around the midpoint of that span instead
+// means most frames sit against an already fully-revealed background —
+// see handleTabScroll for how this and the dead zone combine.
+const EASTER_EGG_FULL_REVEAL_FRACTION = 0.6
 
 // "Already finished typing this session" is tracked in two layers, neither
 // of them component state:
@@ -483,18 +491,32 @@ export default function HomeClient({
     // for the same reason faultyTerminalRef's call above is.
     const resting = startingScrollTopRef.current
     if (resting > 0) {
-      // 0 at rest, 1 at the very top of the scrollable range — then
-      // EASTER_EGG_DEAD_ZONE_FRACTION of that gets carved off the start
-      // (see its own comment) before progress actually begins moving off
-      // 0, remapped so it still reaches a clean 1 by the very top rather
-      // than topping out early.
+      // raw: 0 at rest, 1 at the very top of the scrollable range. progress
+      // stays 0 until EASTER_EGG_DEAD_ZONE_FRACTION, then ramps up to a
+      // clean 1 by EASTER_EGG_FULL_REVEAL_FRACTION (see both constants'
+      // comments — deliberately not synced exactly to the gallery's own
+      // span, so most frames scroll past an already fully-revealed
+      // background rather than still catching up to it).
       const raw = 1 - scrollTop / resting
-      const progress = Math.max(0, Math.min(1, (raw - EASTER_EGG_DEAD_ZONE_FRACTION) / (1 - EASTER_EGG_DEAD_ZONE_FRACTION)))
+      const progress = Math.max(
+        0,
+        Math.min(1, (raw - EASTER_EGG_DEAD_ZONE_FRACTION) / (EASTER_EGG_FULL_REVEAL_FRACTION - EASTER_EGG_DEAD_ZONE_FRACTION))
+      )
       faultyTerminalRef.current?.setDissolveProgress(progress)
     }
   }, [])
   useEffect(() => {
     faultyTerminalRef.current?.setScrollOffset(0)
+    // Leaving the Home tab entirely: reset the dissolve baseline so
+    // Logs/Contact's own scroll containers (which share this same
+    // handleTabScroll) don't fall through the `resting > 0` guard above
+    // using a *stale* Home-tab value left over from before the switch —
+    // that's exactly what was putting the white/pink reveal on Logs and
+    // Contact, which should never show it at all.
+    if (homeTab !== 'home') {
+      startingScrollTopRef.current = 0
+      faultyTerminalRef.current?.setDissolveProgress(0)
+    }
   }, [homeTab])
 
   // Establishes "the starting position" every time the Home tab mounts —

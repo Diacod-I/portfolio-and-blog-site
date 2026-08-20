@@ -227,52 +227,53 @@ void main() {
     // Hidden-zone "reveal" easter egg (see HomeClient.tsx's Home tab and
     // its faultyTerminalRef.setDissolveProgress calls) — NOT a flat
     // overlay/fade. A blocky, dithered threshold (same coarse-pixel
-    // aesthetic as the digit pattern above) sweeps top-to-bottom across
-    // the screen as uDissolveProgress goes 0->1, so the boundary reads as
-    // a scattered, pixelated dissolve edge — like static resolving into a
-    // new picture — rather than a smooth linear wipe. Screen-space
-    // (gl_FragCoord), not world-space: the boundary stays fixed relative
-    // to the viewport as you scroll, instead of scrolling away with the
-    // parallax. Recolors per-pixel based on this same pixel's own
-    // pre-existing brightness (a proxy for "is this a lit digit or a gap
-    // between them") rather than just tinting everything uniformly, so
-    // the underlying faulty-terminal pattern stays recognizable on both
-    // sides of the dissolve — background flips black -> white (drifting
-    // toward a subtle pink further down the screen), and the pattern's
-    // own dots flip from uTint's usual color -> red/pink.
+    // aesthetic as the digit pattern above) reveals more and more of the
+    // screen as uDissolveProgress goes 0->1, so it reads as a scattered,
+    // pixelated dissolve — like static resolving into a new picture —
+    // rather than a smooth linear wipe. Recolors per-pixel based on this
+    // same pixel's own pre-existing brightness (a proxy for "is this a
+    // lit digit or a gap between them") rather than just tinting
+    // everything uniformly, so the underlying faulty-terminal pattern
+    // stays recognizable on both sides of the dissolve — background
+    // flips black -> white (drifting toward a subtle pink further down
+    // the screen), and the pattern's own dots flip from uTint's usual
+    // color -> red/pink.
     //
-    // gl_FragCoord.y is bottom-origin in WebGL/OpenGL (0 at the bottom of
-    // the viewport, increasing upward) — the opposite of CSS/screen
-    // coordinates. yFromTop below corrects for that explicitly; using
-    // gl_FragCoord.y directly here (an earlier version of this did) swept
-    // bottom-to-top instead of top-to-bottom, and put a band of
-    // near-zero thresholds at the *bottom* edge of the screen instead of
-    // the top — visible as a strip of dissolve artifacts sitting at the
-    // bottom of the window even at rest.
+    // Deliberately NOT a directional top-to-bottom sweep timing-wise
+    // (an earlier version thresholded against screen-space Y, i.e.
+    // gl_FragCoord) — only the *color* still varies top-to-bottom
+    // (revealBg's own gradient below), not *when* a given block reveals.
+    // The hidden zone this backs (HomeClient.tsx) is much taller than the
+    // window itself, so the gallery's placeholder frames move down the
+    // screen far faster, as you keep scrolling up, than any fixed
+    // screen-space sweep could keep pace with — frames were scrolling
+    // most of the way down the screen, and sometimes back off it, while
+    // still sitting in a screen-space band the sweep hadn't reached yet
+    // ("still in the dark zone"). Reveal probability keyed on a fixed
+    // per-block dither value instead of screen position doesn't have
+    // that problem: it's the same regardless of where on screen (or how
+    // fast) something is currently moving.
     //
     // compareValue is remapped (not uDissolveProgress used directly)
-    // specifically so the very first bit of scroll can't reveal anything
-    // and the very last bit reaches a fully clean reveal: threshold's own
-    // range (given the jitter below) runs roughly [-pad, 1+pad], so
-    // driving the comparison across that same padded range guarantees
-    // revealed==0 everywhere at progress 0 and ==1 everywhere at progress
-    // 1, instead of a plain 0..1 comparison clipping some blocks against
-    // the domain's edges and leaving them stuck partially revealed (or
-    // revealed too early) right at rest.
+    // specifically so the very first bit of progress can't reveal
+    // anything and the last bit reaches a fully clean reveal: dither's
+    // own range (given the softness below) runs roughly
+    // [-edgeSoftness, 1+edgeSoftness], so driving the comparison across
+    // that same padded range guarantees revealed==0 everywhere at
+    // progress 0 and ==1 everywhere at progress 1, instead of a plain
+    // 0..1 comparison clipping some blocks against the domain's edges.
     if (uDissolveProgress > 0.0) {
       vec2 blockCoord = floor(gl_FragCoord.xy / 16.0);
       float dither = hash21(blockCoord + 91.7);
-      float yFromTop = 1.0 - (gl_FragCoord.y / iResolution.y);
-      float jitterHalf = 0.2;
-      float edgeSoftness = 0.05;
-      float threshold = yFromTop + (dither - 0.5) * (jitterHalf * 2.0);
-      float pad = jitterHalf + edgeSoftness + 0.02;
+      float edgeSoftness = 0.06;
+      float pad = edgeSoftness + 0.02;
       float compareValue = mix(-pad, 1.0 + pad, uDissolveProgress);
       // smoothstep, not step: each block fades in over a small range
       // instead of popping instantly, so the whole thing reads as a soft
       // dissolve rather than a hard flicker.
-      float revealed = smoothstep(threshold - edgeSoftness, threshold + edgeSoftness, compareValue);
+      float revealed = smoothstep(dither - edgeSoftness, dither + edgeSoftness, compareValue);
 
+      float yFromTop = 1.0 - (gl_FragCoord.y / iResolution.y);
       float lum = clamp(dot(col, vec3(0.299, 0.587, 0.114)) * 2.5, 0.0, 1.0);
       vec3 revealBg = mix(vec3(1.0), vec3(1.0, 0.86, 0.90), yFromTop);
       vec3 revealDot = vec3(0.95, 0.25, 0.45);

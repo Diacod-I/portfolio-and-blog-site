@@ -1067,7 +1067,7 @@ export default function HomeClient({
                         )}
                     </h1>
                     {homeQueryDone && (
-                    // mt-4 (spacing after the "$ >" heading above) + pb-10
+                    // mt-4 (spacing after the "$ >" heading above) + pb-6
                     // (spacing before chapter 1 below) — NOT a gap/margin
                     // between this row and the chapters section, which
                     // would otherwise be dead scroll space where neither
@@ -1080,7 +1080,7 @@ export default function HomeClient({
                     // pb-16 so the release/handoff kicks in a little ahead
                     // of where it used to, instead of holding the photo
                     // pinned all the way to the last possible pixel.
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-10">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-6">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
                           scroll container while the much taller text column
@@ -1173,7 +1173,7 @@ export default function HomeClient({
 
                         No gap between chapters (unlike an earlier version
                         of this that used a plain "gap-16" here) — each
-                        chapter's own pb-10 below does that spacing instead.
+                        chapter's own pb-6 below does that spacing instead.
                         The difference matters: flexbox `gap` sits between
                         two flex items, outside either one's own box, so it
                         can never become part of a sticky child's
@@ -1198,14 +1198,14 @@ export default function HomeClient({
                         {STORY_CHAPTERS.map((chapter) => (
                           <div
                             key={chapter.id}
-                            className={`flex flex-col items-center gap-6 text-left sm:items-start pb-10 ${
+                            className={`flex flex-col items-center gap-6 text-left sm:items-start pb-6 ${
                               chapter.side === 'right' ? 'sm:flex-row-reverse' : 'sm:flex-row'
                             }`}
                           >
                             {/* Same sm:sticky sm:top-4 trick the profile
                                 photo above uses: this row is exactly as
                                 tall as its (much taller) text column plus
-                                its own trailing pb-10, so the image pins
+                                its own trailing pb-6, so the image pins
                                 near the top of the scroll container for as
                                 long as that text (and padding) is
                                 scrolling past, then releases right as this

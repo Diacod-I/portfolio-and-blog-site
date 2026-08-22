@@ -20,15 +20,17 @@
 //    anymore).
 //
 // object-cover, not object-contain: each `src` frame's widthPx/heightPx in
-// exhibitionFrames.ts is that photo's aspect ratio *clamped* to a
-// plausible polaroid range (not its raw, sometimes extreme, aspect
-// ratio — a very tall/narrow phone photo forced into a "no cropping" box
-// would render as a near-invisible sliver once it also needs to look like
-// a normal photo card). object-cover crops the photo to fill that clamped
-// box exactly instead of letterboxing it, same as slotting a photo that's
-// a slightly different shape than the frame it's going into — a little
-// gets trimmed off the long edge, nothing gets distorted or left with
-// gaps.
+// exhibitionFrames.ts is that photo's own real aspect ratio (capped at
+// 170px on the longer side only) — not clamped into a "plausible
+// polaroid" range the way an earlier version did. That clamping caused
+// visible top/bottom cropping on anything far from the clamp range (a
+// couple of these are naturally tall, narrow phone photos), which is
+// exactly the "photos have their height clipped" problem it was changed
+// to fix. Since each box's aspect ratio now matches its photo almost
+// exactly, object-cover has (essentially) nothing left to crop — it's
+// kept over object-contain mainly so a fraction-of-a-pixel rounding
+// mismatch between the box's integer px size and the photo's exact ratio
+// fills the box cleanly instead of leaving a hairline letterbox gap.
 import Image from 'next/image'
 import { EXHIBITION_FRAMES } from '@/data/exhibitionFrames'
 

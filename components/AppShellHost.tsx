@@ -20,32 +20,41 @@
 //    (the server-compiled MDX for that specific post/report), which this
 //    component doesn't have access to directly (it's generic across every
 //    route, rendered from the root layout). That content travels here via
-//    `children`: those two page.tsx files render a small no-op marker
-//    component (<BlogPostRouteData>/<ReportRouteData> — see
-//    RouteContentData.tsx) instead of their own <HomeClient>, carrying
-//    note/seeAlso/content as props. Since `children` is just a plain,
-//    already-resolved React element at this point (no hooks, no refs, no
-//    client-side effect/timing involved), reading `.props` straight off
-//    it here works identically during the very first SSR pass (so a
-//    direct hit on a permalink still gets the real content in the initial
-//    HTML — crawlers see it fine) and every later client-side navigation.
-//    This is deliberately NOT the same approach as the reverted
-//    client-side-MDX-recompilation attempt from earlier — the MDX itself
-//    is still compiled exactly once, server-side, in the page.tsx, same
-//    as it always was; only *which* <HomeClient> instance ends up
-//    rendering the result changed.
-//  - Anything else (404, or a route that doesn't carry the expected
-//    marker for some reason — e.g. a not-found boundary) — renders
-//    `children` unchanged, same fallback as before this file existed.
+//    useRouteContentStore: those two page.tsx files render a small no-op
+//    marker component (<BlogPostRouteData>/<ReportRouteData> — see
+//    RouteContentData.tsx) instead of their own <HomeClient>, and that
+//    marker writes note/seeAlso/content into the store on mount — see
+//    lib/store/routeContentStore.ts for the read/write side of that and,
+//    importantly, the trade-off it comes with (a brief flash of fallback
+//    content on a cold permalink load, before the store's first client-side
+//    update lands).
+//
+//    An earlier version of this read note/seeAlso/content straight off the
+//    `children` element tree instead (Children.toArray + a type match),
+//    reasoning that a Server Component handing a Client Component element
+//    down as a prop/child keeps that element "opaque" (type + props
+//    intact) across the server→client boundary. True as far as it goes,
+//    but `children` as this component actually receives it isn't a plain,
+//    directly-inspectable element tree: the App Router wraps a page's real
+//    output in its own internal boundary component(s) first, and (per an
+//    actual runtime trace — logging the tree showed a single opaque
+//    wrapper object with no `.props.children` to recurse into) that
+//    wrapper doesn't expose its content via a normal `children` prop the
+//    way a hand-written component would. There was nothing reliable left
+//    to walk to find the marker, hence the store instead.
+//  - Anything else (404, or a route with no matching store content, e.g.
+//    a not-found boundary) — HomeClient's own props already default
+//    sensibly (blogsView falls back to list mode, reportView to undefined
+//    → "No report loaded."), so there's no special-cased fallback needed
+//    here beyond just not populating those props.
 //
 // notes/featured are fetched once in app/layout.tsx and handed down here
 // so this doesn't need its own data-fetching, and so none of these pages
 // need to fetch them just to pass along to a <HomeClient> they no longer
 // render themselves.
-import { Children, isValidElement } from 'react'
 import { usePathname } from 'next/navigation'
 import HomeClient, { type BlogsView, type ReportView } from '@/components/HomeClient'
-import { BlogPostRouteData, ReportRouteData, type BlogPostRouteDataProps, type ReportRouteDataProps } from '@/components/RouteContentData'
+import { useRouteContentStore } from '@/lib/store/routeContentStore'
 import type { AppId } from '@/lib/store/windowStore'
 import type { HomeTab } from '@/components/Navbar'
 import type { Note } from '@/lib/notes'
@@ -76,40 +85,6 @@ function deriveShellView(pathname: string): { forceOpenApp?: AppId; initialHomeT
   }
 }
 
-// Finds the first element of the given type anywhere in `node`'s subtree
-// and returns its props, typed. Used to pull note/seeAlso/content back out
-// of <BlogPostRouteData>/<ReportRouteData> (see the file header) —
-// undefined if it's not there (e.g. a not-found boundary rendered instead
-// of the real page), which callers treat as "fall back to plain
-// `children`" rather than guessing at content that doesn't exist.
-//
-// Recurses through each element's own `children` prop rather than just
-// checking the immediate top-level children — the marker component isn't
-// necessarily a direct sibling of whatever else the page renders. The App
-// Router wraps a page's actual output in its own internal boundary
-// elements before it ever reaches a layout's `children` prop (this app
-// uses generateMetadata, which specifically pulls in an extra streaming/
-// error boundary around the page for async metadata resolution) — a
-// single-level Children.toArray check missed the marker sitting a level
-// or two below that, so findRouteData always returned undefined and
-// AppShellHost fell back to rendering bare `children` with no <HomeClient>
-// at all (blank page, just the base bg-[#008080] body color showing
-// through — see globals.css — since nothing else ever mounted). depth
-// is just a defensive cap against unexpectedly deep/circular trees, not
-// expected to ever matter in practice.
-function findRouteData<P>(node: React.ReactNode, type: unknown, depth = 0): P | undefined {
-  if (depth > 20) return undefined
-  for (const child of Children.toArray(node)) {
-    if (!isValidElement(child)) continue
-    if (child.type === type) return child.props as P
-    const nested = (child.props as { children?: React.ReactNode } | undefined)?.children
-    if (nested === undefined) continue
-    const found = findRouteData<P>(nested, type, depth + 1)
-    if (found !== undefined) return found
-  }
-  return undefined
-}
-
 type AppShellHostProps = {
   notes: Note[]
   featured: FeaturedLink[]
@@ -118,19 +93,23 @@ type AppShellHostProps = {
 
 export default function AppShellHost({ notes, featured, children }: AppShellHostProps) {
   const pathname = usePathname() ?? '/'
+  // Always subscribed (not just inside the branches that use them) so
+  // this component re-renders the instant either marker writes to the
+  // store, rather than only picking up the new value on some later,
+  // unrelated re-render.
+  const blogPost = useRouteContentStore((s) => s.blogPost)
+  const report = useRouteContentStore((s) => s.report)
 
   if (isBlogPostRoute(pathname)) {
-    const data = findRouteData<BlogPostRouteDataProps>(children, BlogPostRouteData)
-    if (!data) {
-      // No marker found (e.g. a not-found boundary rendered here instead
-      // of NotePage) — render whatever `children` actually is, unchanged,
-      // rather than force-opening a Blogs window with content that
-      // doesn't exist.
-      return <>{children}</>
-    }
-    const blogsView: BlogsView = { mode: 'post', note: data.note, seeAlso: data.seeAlso, content: data.content }
+    const blogsView: BlogsView = blogPost
+      ? { mode: 'post', note: blogPost.note, seeAlso: blogPost.seeAlso, content: blogPost.content }
+      : { mode: 'list' }
     return (
       <>
+        {/* Mounts <BlogPostRouteData>, which feeds blogPost above — plus
+            any other invisible per-page content (e.g. the post's JSON-LD
+            script), still rendered even though the page no longer renders
+            its own <HomeClient>. */}
         {children}
         <HomeClient notes={notes} featured={featured} forceOpenApp="blogs" blogsView={blogsView} />
       </>
@@ -138,11 +117,7 @@ export default function AppShellHost({ notes, featured, children }: AppShellHost
   }
 
   if (isReportRoute(pathname)) {
-    const data = findRouteData<ReportRouteDataProps>(children, ReportRouteData)
-    if (!data) {
-      return <>{children}</>
-    }
-    const reportView: ReportView = { note: data.note, content: data.content }
+    const reportView: ReportView | undefined = report ? { note: report.note, content: report.content } : undefined
     return (
       <>
         {children}

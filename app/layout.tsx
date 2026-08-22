@@ -1,5 +1,5 @@
 import './globals.css'
-import { Inter, JetBrains_Mono, VT323 } from 'next/font/google'
+import { Inter, JetBrains_Mono, VT323, Cedarville_Cursive } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import { Metadata, Viewport } from 'next'
 import SoundEffects from '@/components/SoundEffects'
@@ -32,6 +32,19 @@ const vt323 = VT323({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-vt323',
+})
+
+// Handwriting-style font for the hidden gallery's polaroid captions (see
+// components/ImageExhibition.tsx) — only ever referenced there via the
+// CSS variable below (fontFamily: 'var(--font-cedarville-cursive)'), not
+// through a Tailwind font-* utility, since this project has no
+// tailwind.config mapping font families to these variables (same as
+// vt323 above).
+const cedarvilleCursive = Cedarville_Cursive({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-cedarville-cursive',
 })
 
 export const metadata: Metadata = {
@@ -104,7 +117,7 @@ export default async function RootLayout({
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
         <link rel="preload" href="/win98/click.mp3" as="audio" type="audio/mpeg" />
       </head>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable} ${cedarvilleCursive.variable}`}>
         <div className="min-h-screen">
           <AppShellHost notes={notes} featured={featured}>
             {children}

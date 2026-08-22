@@ -36,49 +36,52 @@ export type ExhibitionFrame = {
   heightPx: number
   rotationDeg: number
   /** Path under /public. Omitted → renders as a black-outline placeholder
-   *  (see ImageExhibition.tsx) instead of a real photo. */
+   *  (see ImageExhibition.tsx) instead of a real photo/polaroid. */
   src?: string
   alt?: string
+  /** Handwritten-style caption in the polaroid's bottom margin (see
+   *  ImageExhibition.tsx's Cedarville Cursive text) — only meaningful
+   *  alongside `src`. Derived from each file's embedded date where one
+   *  exists; feel free to replace with something more personal. */
+  caption?: string
 }
 
+// widthPx/heightPx for every `src` frame below are the *photo* area only
+// (ImageExhibition.tsx adds the white polaroid border/margin around it in
+// CSS, not baked in here) — and deliberately NOT each photo's raw aspect
+// ratio. A pure "no cropping" size (what an earlier version of this file
+// used) produces absurdly thin slivers for very tall/narrow phone photos
+// (one of these is naturally 1429x3508 — AR 0.41) once every frame also
+// needs a plausible polaroid-card shape. Each photo's AR is clamped to
+// [0.65, 1.4] here (typical portrait-to-slightly-landscape polaroid
+// range), then object-cover (see ImageExhibition.tsx) crops just enough
+// to fill that clamped box — a little content is cropped off the top/
+// bottom of the most extreme photos, but nowhere near as much as forcing
+// the raw 0.41 AR into a normal-looking frame would have needed, and nothing
+// here ends up a near-invisible sliver. Computed via Pillow, honoring EXIF
+// orientation the same way a browser does (see the photo-07/11 note this
+// file used to carry) — width/height base capped at 170px on the longer
+// side.
 export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // ---- Light zone: real photos (see the file header) ----
-  // widthPx/heightPx below are each photo's own aspect ratio scaled down
-  // (longer side capped to 200px) rather than a fixed box — see
-  // ImageExhibition.tsx's object-contain, which relies on this to avoid
-  // ever cropping. A tall/narrow original photo means a tall/narrow frame
-  // here, not a cropped square.
-  //
-  // These are the *displayed* dimensions, not always the raw file's pixel
-  // dimensions — a couple of these (photo-07, photo-11) carry an EXIF
-  // orientation tag (phones/cameras store the sensor's native landscape
-  // pixels plus a "rotate on display" flag rather than re-encoding the
-  // pixels themselves). Browsers apply that rotation automatically when
-  // rendering an <img>, so the on-screen aspect ratio is the *rotated*
-  // one — using the raw file's reported width/height for those two
-  // produced a frame box whose aspect ratio didn't match what actually
-  // renders, showing up as black object-contain letterboxing on the
-  // sides. Re-derived via Pillow's ImageOps.exif_transpose (which applies
-  // the same rotation a browser would) rather than the plain .size a
-  // first pass used.
-  { id: 'photo-01', leftPct: 6,  topPct: 2,  widthPx: 200, heightPx: 187, rotationDeg: -3, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo' },
-  { id: 'photo-02', leftPct: 56, topPct: 3,  widthPx: 81,  heightPx: 200, rotationDeg: 4,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo' },
-  { id: 'photo-03', leftPct: 30, topPct: 6,  widthPx: 78,  heightPx: 200, rotationDeg: -2, src: '/IMG_20190103_080007.jpg', alt: 'A personal photo' },
-  { id: 'photo-04', leftPct: 74, topPct: 8,  widthPx: 200, heightPx: 164, rotationDeg: 3,  src: '/IMG_20190103_081554.jpg', alt: 'A personal photo' },
-  { id: 'photo-05', leftPct: 10, topPct: 11, widthPx: 200, heightPx: 127, rotationDeg: 2,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo' },
-  { id: 'photo-06', leftPct: 46, topPct: 13, widthPx: 122, heightPx: 200, rotationDeg: -4, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo' },
-  { id: 'photo-07', leftPct: 66, topPct: 16, widthPx: 150, heightPx: 200, rotationDeg: 3,  src: '/IMG_20211122_122534.jpg', alt: 'A personal photo' },
-  { id: 'photo-08', leftPct: 20, topPct: 18, widthPx: 200, heightPx: 76,  rotationDeg: -2, src: '/IMG_20220302_175741.jpg', alt: 'A personal photo' },
-  { id: 'photo-09', leftPct: 4,  topPct: 21, widthPx: 150, heightPx: 200, rotationDeg: 4,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo' },
-  { id: 'photo-10', leftPct: 58, topPct: 23, widthPx: 170, heightPx: 200, rotationDeg: -3, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo' },
-  { id: 'photo-11', leftPct: 36, topPct: 26, widthPx: 150, heightPx: 200, rotationDeg: 2,  src: '/IMG_20231022_140633.jpg', alt: 'A personal photo' },
-  { id: 'photo-12', leftPct: 76, topPct: 28, widthPx: 190, heightPx: 200, rotationDeg: -5, src: '/IMG_20240423_080639.jpg', alt: 'A personal photo' },
-  { id: 'photo-13', leftPct: 14, topPct: 31, widthPx: 200, heightPx: 123, rotationDeg: 3,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo' },
-  { id: 'photo-14', leftPct: 50, topPct: 33, widthPx: 200, heightPx: 114, rotationDeg: -2, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo' },
-  { id: 'photo-15', leftPct: 68, topPct: 36, widthPx: 200, heightPx: 150, rotationDeg: 4,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo' },
-  { id: 'photo-16', leftPct: 26, topPct: 38, widthPx: 200, heightPx: 150, rotationDeg: -3, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo' },
-  { id: 'photo-17', leftPct: 44, topPct: 41, widthPx: 200, heightPx: 150, rotationDeg: 2,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo' },
-  { id: 'photo-18', leftPct: 62, topPct: 43, widthPx: 200, heightPx: 150, rotationDeg: -4, src: '/IMG_0756.jpg', alt: 'A personal photo' },
+  { id: 'photo-01', leftPct: 6,  topPct: 2,  widthPx: 170, heightPx: 159, rotationDeg: -3, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo', caption: 'Jan 3, 2019' },
+  { id: 'photo-02', leftPct: 56, topPct: 3,  widthPx: 110, heightPx: 170, rotationDeg: 4,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'Jan 3, 2019' },
+  { id: 'photo-03', leftPct: 30, topPct: 6,  widthPx: 110, heightPx: 170, rotationDeg: -2, src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: 'Jan 3, 2019' },
+  { id: 'photo-04', leftPct: 74, topPct: 8,  widthPx: 170, heightPx: 139, rotationDeg: 3,  src: '/IMG_20190103_081554.jpg', alt: 'A personal photo', caption: 'Jan 3, 2019' },
+  { id: 'photo-05', leftPct: 10, topPct: 11, widthPx: 170, heightPx: 121, rotationDeg: 2,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo', caption: 'Jan 3, 2019' },
+  { id: 'photo-06', leftPct: 46, topPct: 13, widthPx: 110, heightPx: 170, rotationDeg: -4, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo', caption: 'Nov 19, 2021' },
+  { id: 'photo-07', leftPct: 66, topPct: 16, widthPx: 128, heightPx: 170, rotationDeg: 3,  src: '/IMG_20211122_122534.jpg', alt: 'A personal photo', caption: 'Nov 22, 2021' },
+  { id: 'photo-08', leftPct: 20, topPct: 18, widthPx: 170, heightPx: 121, rotationDeg: -2, src: '/IMG_20220302_175741.jpg', alt: 'A personal photo', caption: 'Mar 2, 2022' },
+  { id: 'photo-09', leftPct: 4,  topPct: 21, widthPx: 127, heightPx: 170, rotationDeg: 4,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo', caption: 'Mar 4, 2022' },
+  { id: 'photo-10', leftPct: 58, topPct: 23, widthPx: 144, heightPx: 170, rotationDeg: -3, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo', caption: 'Apr 1, 2022' },
+  { id: 'photo-11', leftPct: 36, topPct: 26, widthPx: 128, heightPx: 170, rotationDeg: 2,  src: '/IMG_20231022_140633.jpg', alt: 'A personal photo', caption: 'Oct 22, 2023' },
+  { id: 'photo-12', leftPct: 76, topPct: 28, widthPx: 162, heightPx: 170, rotationDeg: -5, src: '/IMG_20240423_080639.jpg', alt: 'A personal photo', caption: 'Apr 23, 2024' },
+  { id: 'photo-13', leftPct: 14, topPct: 31, widthPx: 170, heightPx: 121, rotationDeg: 3,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo', caption: 'May 28, 2024' },
+  { id: 'photo-14', leftPct: 50, topPct: 33, widthPx: 170, heightPx: 121, rotationDeg: -2, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo', caption: 'May 28, 2024' },
+  { id: 'photo-15', leftPct: 68, topPct: 36, widthPx: 170, heightPx: 128, rotationDeg: 4,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo', caption: 'May 28, 2024' },
+  { id: 'photo-16', leftPct: 26, topPct: 38, widthPx: 170, heightPx: 128, rotationDeg: -3, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo', caption: 'Jun 4, 2024' },
+  { id: 'photo-17', leftPct: 44, topPct: 41, widthPx: 170, heightPx: 128, rotationDeg: 2,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo', caption: 'Jul 14, 2025' },
+  { id: 'photo-18', leftPct: 62, topPct: 43, widthPx: 170, heightPx: 128, rotationDeg: -4, src: '/IMG_0756.jpg', alt: 'A personal photo', caption: 'a doodle' },
 
   // ---- Dark zone: still plain placeholder outlines (see the file header) ----
   { id: 'frame-07', leftPct: 18, topPct: 50, widthPx: 150, heightPx: 190, rotationDeg: 4 },

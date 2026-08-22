@@ -1,5 +1,5 @@
 import './globals.css'
-import { Inter, JetBrains_Mono, VT323, Cedarville_Cursive } from 'next/font/google'
+import { Inter, JetBrains_Mono, VT323 } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import { Metadata, Viewport } from 'next'
 import SoundEffects from '@/components/SoundEffects'
@@ -32,19 +32,6 @@ const vt323 = VT323({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-vt323',
-})
-
-// Handwriting-style font for the hidden gallery's polaroid captions (see
-// components/ImageExhibition.tsx) — only ever referenced there via the
-// CSS variable below (fontFamily: 'var(--font-cedarville-cursive)'), not
-// through a Tailwind font-* utility, since this project has no
-// tailwind.config mapping font families to these variables (same as
-// vt323 above).
-const cedarvilleCursive = Cedarville_Cursive({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-cedarville-cursive',
 })
 
 export const metadata: Metadata = {
@@ -116,8 +103,25 @@ export default async function RootLayout({
       <head>
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
         <link rel="preload" href="/win98/click.mp3" as="audio" type="audio/mpeg" />
+        {/* Cedarville Cursive (hidden gallery's polaroid captions, see
+            components/ImageExhibition.tsx) — loaded straight from Google
+            Fonts' CDN rather than next/font/google like the other four
+            fonts here. next/font/google self-hosts by downloading the
+            font file at build time and serving it from this domain, which
+            should work identically, but it wasn't actually rendering as
+            Cedarville Cursive for some reason — switched to the plain
+            <link> approach instead of chasing why. ImageExhibition.tsx
+            references the family by its literal name now (not a CSS
+            variable), matching this. Only the Cedarville Cursive family is
+            requested below, not Roboto — Google Fonts' site tends to
+            tack on a default Roboto import unless removed, but this
+            project already has Inter as its sans font and doesn't need a
+            second one. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Cedarville+Cursive&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable} ${cedarvilleCursive.variable}`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}>
         <div className="min-h-screen">
           <AppShellHost notes={notes} featured={featured}>
             {children}

@@ -87,7 +87,7 @@ export default function ImageExhibition() {
             {frame.caption && (
               <p
                 className="text-center text-neutral-800 mt-2 leading-tight"
-                style={{ fontFamily: 'var(--font-cedarville-cursive)', fontSize: 18 }}
+                style={{ fontFamily: "'Cedarville Cursive', cursive", fontSize: 18 }}
               >
                 {frame.caption}
               </p>

@@ -76,17 +76,38 @@ function deriveShellView(pathname: string): { forceOpenApp?: AppId; initialHomeT
   }
 }
 
-// Finds the first `children` element of the given type and returns its
-// props, typed. Used to pull note/seeAlso/content back out of
-// <BlogPostRouteData>/<ReportRouteData> (see the file header) — undefined
-// if it's not there (e.g. a not-found boundary rendered instead of the
-// real page), which callers treat as "fall back to plain `children`"
-// rather than guessing at content that doesn't exist.
-function findRouteData<P>(children: React.ReactNode, type: unknown): P | undefined {
-  const match = Children.toArray(children).find(
-    (child) => isValidElement(child) && child.type === type
-  )
-  return match && isValidElement(match) ? (match.props as P) : undefined
+// Finds the first element of the given type anywhere in `node`'s subtree
+// and returns its props, typed. Used to pull note/seeAlso/content back out
+// of <BlogPostRouteData>/<ReportRouteData> (see the file header) —
+// undefined if it's not there (e.g. a not-found boundary rendered instead
+// of the real page), which callers treat as "fall back to plain
+// `children`" rather than guessing at content that doesn't exist.
+//
+// Recurses through each element's own `children` prop rather than just
+// checking the immediate top-level children — the marker component isn't
+// necessarily a direct sibling of whatever else the page renders. The App
+// Router wraps a page's actual output in its own internal boundary
+// elements before it ever reaches a layout's `children` prop (this app
+// uses generateMetadata, which specifically pulls in an extra streaming/
+// error boundary around the page for async metadata resolution) — a
+// single-level Children.toArray check missed the marker sitting a level
+// or two below that, so findRouteData always returned undefined and
+// AppShellHost fell back to rendering bare `children` with no <HomeClient>
+// at all (blank page, just the base bg-[#008080] body color showing
+// through — see globals.css — since nothing else ever mounted). depth
+// is just a defensive cap against unexpectedly deep/circular trees, not
+// expected to ever matter in practice.
+function findRouteData<P>(node: React.ReactNode, type: unknown, depth = 0): P | undefined {
+  if (depth > 20) return undefined
+  for (const child of Children.toArray(node)) {
+    if (!isValidElement(child)) continue
+    if (child.type === type) return child.props as P
+    const nested = (child.props as { children?: React.ReactNode } | undefined)?.children
+    if (nested === undefined) continue
+    const found = findRouteData<P>(nested, type, depth + 1)
+    if (found !== undefined) return found
+  }
+  return undefined
 }
 
 type AppShellHostProps = {

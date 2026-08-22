@@ -1,6 +1,6 @@
-// Placeholder positions for the hidden "image exhibition" easter egg —
-// see components/ImageExhibition.tsx and the hidden zone above the Home
-// tab's normal starting position in HomeClient.tsx.
+// Frame positions for the hidden "image exhibition" easter egg — see
+// components/ImageExhibition.tsx and the hidden zone above the Home tab's
+// normal starting position in HomeClient.tsx.
 //
 // Fixed/hardcoded rather than randomly generated at render time:
 // generating truly random positions during render would differ between
@@ -11,9 +11,20 @@
 // a tidy grid — see the "Scattered/absolute (gallery wall feel)" framing
 // this was built to.
 //
-// No real images yet — just each frame's shape (position/size/rotation).
-// Add a `src` field and an <Image> in ImageExhibition.tsx later without
-// touching this layout.
+// Two zones, split by topPct (each frame's position within the 280vh
+// gallery box — see HomeClient.tsx's own comment on that div):
+//  - "Light zone" (topPct below ~45) — closer to the top of the hidden
+//    zone, i.e. further into the scroll-up journey, where the
+//    faulty-terminal dissolve (see uDissolveProgress in
+//    FaultyTerminalBackground.tsx) has reliably finished revealing the
+//    white/pink look by the time a frame here is actually on screen. Real
+//    photos (the `src` field below) live here.
+//  - "Dark zone" (topPct 45+) — reached earlier in the scroll-up journey,
+//    while the background is still transitioning (or hasn't started) —
+//    these stay plain black-outline placeholders (no `src`) for now, same
+//    as this whole gallery originally shipped, since a real photo dropped
+//    here would spend a while sitting against a partially-dark background
+//    before the sweep (see FaultyTerminalBackground.tsx) catches up to it.
 export type ExhibitionFrame = {
   id: string
   /** Percent of the exhibition zone's own width/height (the zone is
@@ -24,15 +35,33 @@ export type ExhibitionFrame = {
   widthPx: number
   heightPx: number
   rotationDeg: number
+  /** Path under /public. Omitted → renders as a black-outline placeholder
+   *  (see ImageExhibition.tsx) instead of a real photo. */
+  src?: string
+  alt?: string
 }
 
 export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
-  { id: 'frame-01', leftPct: 6,  topPct: 4,  widthPx: 170, heightPx: 210, rotationDeg: -4 },
-  { id: 'frame-02', leftPct: 58, topPct: 3,  widthPx: 210, heightPx: 150, rotationDeg: 3 },
-  { id: 'frame-03', leftPct: 32, topPct: 14, widthPx: 140, heightPx: 180, rotationDeg: 2 },
-  { id: 'frame-04', leftPct: 76, topPct: 20, widthPx: 160, heightPx: 200, rotationDeg: -3 },
-  { id: 'frame-05', leftPct: 4,  topPct: 30, widthPx: 190, heightPx: 140, rotationDeg: 5 },
-  { id: 'frame-06', leftPct: 46, topPct: 34, widthPx: 180, heightPx: 230, rotationDeg: -2 },
+  // ---- Light zone: real photos (see the file header) ----
+  { id: 'photo-01', leftPct: 6,  topPct: 2,  widthPx: 190, heightPx: 150, rotationDeg: -3, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo' },
+  { id: 'photo-02', leftPct: 56, topPct: 3,  widthPx: 160, heightPx: 200, rotationDeg: 4,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo' },
+  { id: 'photo-03', leftPct: 30, topPct: 6,  widthPx: 200, heightPx: 150, rotationDeg: -2, src: '/IMG_20190103_080007.jpg', alt: 'A personal photo' },
+  { id: 'photo-04', leftPct: 74, topPct: 8,  widthPx: 150, heightPx: 190, rotationDeg: 3,  src: '/IMG_20190103_081554.jpg', alt: 'A personal photo' },
+  { id: 'photo-05', leftPct: 10, topPct: 11, widthPx: 170, heightPx: 210, rotationDeg: 2,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo' },
+  { id: 'photo-06', leftPct: 46, topPct: 13, widthPx: 190, heightPx: 150, rotationDeg: -4, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo' },
+  { id: 'photo-07', leftPct: 66, topPct: 16, widthPx: 160, heightPx: 200, rotationDeg: 3,  src: '/IMG_20211122_122534.jpg', alt: 'A personal photo' },
+  { id: 'photo-08', leftPct: 20, topPct: 18, widthPx: 180, heightPx: 140, rotationDeg: -2, src: '/IMG_20220302_175741.jpg', alt: 'A personal photo' },
+  { id: 'photo-09', leftPct: 4,  topPct: 21, widthPx: 150, heightPx: 190, rotationDeg: 4,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo' },
+  { id: 'photo-10', leftPct: 58, topPct: 23, widthPx: 200, heightPx: 160, rotationDeg: -3, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo' },
+  { id: 'photo-11', leftPct: 36, topPct: 26, widthPx: 170, heightPx: 210, rotationDeg: 2,  src: '/IMG_20231022_140633.jpg', alt: 'A personal photo' },
+  { id: 'photo-12', leftPct: 76, topPct: 28, widthPx: 150, heightPx: 180, rotationDeg: -5, src: '/IMG_20240423_080639.jpg', alt: 'A personal photo' },
+  { id: 'photo-13', leftPct: 14, topPct: 31, widthPx: 190, heightPx: 150, rotationDeg: 3,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo' },
+  { id: 'photo-14', leftPct: 50, topPct: 33, widthPx: 160, heightPx: 200, rotationDeg: -2, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo' },
+  { id: 'photo-15', leftPct: 68, topPct: 36, widthPx: 180, heightPx: 140, rotationDeg: 4,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo' },
+  { id: 'photo-16', leftPct: 26, topPct: 38, widthPx: 150, heightPx: 190, rotationDeg: -3, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo' },
+  { id: 'photo-17', leftPct: 44, topPct: 41, widthPx: 200, heightPx: 160, rotationDeg: 2,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo' },
+
+  // ---- Dark zone: still plain placeholder outlines (see the file header) ----
   { id: 'frame-07', leftPct: 18, topPct: 50, widthPx: 150, heightPx: 190, rotationDeg: 4 },
   { id: 'frame-08', leftPct: 68, topPct: 52, widthPx: 200, heightPx: 160, rotationDeg: -5 },
   { id: 'frame-09', leftPct: 38, topPct: 66, widthPx: 170, heightPx: 210, rotationDeg: 1 },

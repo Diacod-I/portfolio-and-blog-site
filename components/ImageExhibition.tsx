@@ -1,16 +1,23 @@
 'use client'
 
-// Scattered black-outline placeholders for the hidden "image exhibition"
-// easter egg (see the hidden zone above the Home tab's normal starting
-// position in HomeClient.tsx) — no real images yet, just each frame's
-// shape/position, absolutely placed and slightly rotated for a "hung
-// unevenly on a gallery wall" feel rather than a tidy grid. Black borders
-// specifically: this zone's background washes from the faulty-terminal
-// shader's black backdrop up to white/pink the further up you scroll (see
-// HomeClient.tsx's easterEggWashRef), so black frames start out invisible
-// against the dark backdrop near the bottom of this zone and gradually
-// reveal themselves as the wash lightens further up — not a bug, part of
-// the "little by little" reveal.
+// Scattered frames for the hidden "image exhibition" easter egg (see the
+// hidden zone above the Home tab's normal starting position in
+// HomeClient.tsx), absolutely placed and slightly rotated for a "hung
+// unevenly on a gallery wall" feel rather than a tidy grid. Frames with a
+// `src` (see data/exhibitionFrames.ts) render the real photo via
+// next/image; frames without one still fall back to the original
+// black-outline placeholder.
+//
+// Black borders specifically (both real photos and placeholders): this
+// zone's background washes from the faulty-terminal shader's black
+// backdrop up to white/pink the further up you scroll (see
+// uDissolveProgress in FaultyTerminalBackground.tsx), so a black-bordered
+// frame low in the zone starts out nearly blended into the dark backdrop
+// and gradually stands out as the wash lightens further up — not a bug,
+// part of the "little by little" reveal. That's also why every real photo
+// so far sits in the "light zone" (see exhibitionFrames.ts's file header)
+// rather than mixed in with the still-placeholder "dark zone" frames.
+import Image from 'next/image'
 import { EXHIBITION_FRAMES } from '@/data/exhibitionFrames'
 
 export default function ImageExhibition() {
@@ -19,7 +26,7 @@ export default function ImageExhibition() {
       {EXHIBITION_FRAMES.map((frame) => (
         <div
           key={frame.id}
-          className="absolute border-2 border-black flex items-center justify-center"
+          className="absolute border-2 border-black overflow-hidden flex items-center justify-center bg-black"
           style={{
             left: `${frame.leftPct}%`,
             top: `${frame.topPct}%`,
@@ -28,9 +35,19 @@ export default function ImageExhibition() {
             transform: `rotate(${frame.rotationDeg}deg)`,
           }}
         >
-          <span className="text-black/40 text-[10px] font-mono text-center px-2">
-            Image placeholder
-          </span>
+          {frame.src ? (
+            <Image
+              src={frame.src}
+              alt={frame.alt ?? ''}
+              fill
+              sizes="220px"
+              className="object-cover"
+            />
+          ) : (
+            <span className="text-black/40 text-[10px] font-mono text-center px-2">
+              Image placeholder
+            </span>
+          )}
         </div>
       ))}
     </div>

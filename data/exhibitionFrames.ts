@@ -43,23 +43,29 @@ export type ExhibitionFrame = {
 
 export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // ---- Light zone: real photos (see the file header) ----
-  { id: 'photo-01', leftPct: 6,  topPct: 2,  widthPx: 190, heightPx: 150, rotationDeg: -3, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo' },
-  { id: 'photo-02', leftPct: 56, topPct: 3,  widthPx: 160, heightPx: 200, rotationDeg: 4,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo' },
-  { id: 'photo-03', leftPct: 30, topPct: 6,  widthPx: 200, heightPx: 150, rotationDeg: -2, src: '/IMG_20190103_080007.jpg', alt: 'A personal photo' },
-  { id: 'photo-04', leftPct: 74, topPct: 8,  widthPx: 150, heightPx: 190, rotationDeg: 3,  src: '/IMG_20190103_081554.jpg', alt: 'A personal photo' },
-  { id: 'photo-05', leftPct: 10, topPct: 11, widthPx: 170, heightPx: 210, rotationDeg: 2,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo' },
-  { id: 'photo-06', leftPct: 46, topPct: 13, widthPx: 190, heightPx: 150, rotationDeg: -4, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo' },
-  { id: 'photo-07', leftPct: 66, topPct: 16, widthPx: 160, heightPx: 200, rotationDeg: 3,  src: '/IMG_20211122_122534.jpg', alt: 'A personal photo' },
-  { id: 'photo-08', leftPct: 20, topPct: 18, widthPx: 180, heightPx: 140, rotationDeg: -2, src: '/IMG_20220302_175741.jpg', alt: 'A personal photo' },
-  { id: 'photo-09', leftPct: 4,  topPct: 21, widthPx: 150, heightPx: 190, rotationDeg: 4,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo' },
-  { id: 'photo-10', leftPct: 58, topPct: 23, widthPx: 200, heightPx: 160, rotationDeg: -3, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo' },
-  { id: 'photo-11', leftPct: 36, topPct: 26, widthPx: 170, heightPx: 210, rotationDeg: 2,  src: '/IMG_20231022_140633.jpg', alt: 'A personal photo' },
-  { id: 'photo-12', leftPct: 76, topPct: 28, widthPx: 150, heightPx: 180, rotationDeg: -5, src: '/IMG_20240423_080639.jpg', alt: 'A personal photo' },
-  { id: 'photo-13', leftPct: 14, topPct: 31, widthPx: 190, heightPx: 150, rotationDeg: 3,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo' },
-  { id: 'photo-14', leftPct: 50, topPct: 33, widthPx: 160, heightPx: 200, rotationDeg: -2, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo' },
-  { id: 'photo-15', leftPct: 68, topPct: 36, widthPx: 180, heightPx: 140, rotationDeg: 4,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo' },
-  { id: 'photo-16', leftPct: 26, topPct: 38, widthPx: 150, heightPx: 190, rotationDeg: -3, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo' },
-  { id: 'photo-17', leftPct: 44, topPct: 41, widthPx: 200, heightPx: 160, rotationDeg: 2,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo' },
+  // widthPx/heightPx below are each photo's own aspect ratio scaled down
+  // (longer side capped to 200px) rather than a fixed box — see
+  // ImageExhibition.tsx's object-contain, which relies on this to avoid
+  // ever cropping. A tall/narrow original photo means a tall/narrow frame
+  // here, not a cropped square.
+  { id: 'photo-01', leftPct: 6,  topPct: 2,  widthPx: 200, heightPx: 187, rotationDeg: -3, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo' },
+  { id: 'photo-02', leftPct: 56, topPct: 3,  widthPx: 81,  heightPx: 200, rotationDeg: 4,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo' },
+  { id: 'photo-03', leftPct: 30, topPct: 6,  widthPx: 78,  heightPx: 200, rotationDeg: -2, src: '/IMG_20190103_080007.jpg', alt: 'A personal photo' },
+  { id: 'photo-04', leftPct: 74, topPct: 8,  widthPx: 200, heightPx: 164, rotationDeg: 3,  src: '/IMG_20190103_081554.jpg', alt: 'A personal photo' },
+  { id: 'photo-05', leftPct: 10, topPct: 11, widthPx: 200, heightPx: 127, rotationDeg: 2,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo' },
+  { id: 'photo-06', leftPct: 46, topPct: 13, widthPx: 122, heightPx: 200, rotationDeg: -4, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo' },
+  { id: 'photo-07', leftPct: 66, topPct: 16, widthPx: 200, heightPx: 150, rotationDeg: 3,  src: '/IMG_20211122_122534.jpg', alt: 'A personal photo' },
+  { id: 'photo-08', leftPct: 20, topPct: 18, widthPx: 200, heightPx: 76,  rotationDeg: -2, src: '/IMG_20220302_175741.jpg', alt: 'A personal photo' },
+  { id: 'photo-09', leftPct: 4,  topPct: 21, widthPx: 150, heightPx: 200, rotationDeg: 4,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo' },
+  { id: 'photo-10', leftPct: 58, topPct: 23, widthPx: 170, heightPx: 200, rotationDeg: -3, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo' },
+  { id: 'photo-11', leftPct: 36, topPct: 26, widthPx: 200, heightPx: 137, rotationDeg: 2,  src: '/IMG_20231022_140633.jpg', alt: 'A personal photo' },
+  { id: 'photo-12', leftPct: 76, topPct: 28, widthPx: 190, heightPx: 200, rotationDeg: -5, src: '/IMG_20240423_080639.jpg', alt: 'A personal photo' },
+  { id: 'photo-13', leftPct: 14, topPct: 31, widthPx: 200, heightPx: 123, rotationDeg: 3,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo' },
+  { id: 'photo-14', leftPct: 50, topPct: 33, widthPx: 200, heightPx: 114, rotationDeg: -2, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo' },
+  { id: 'photo-15', leftPct: 68, topPct: 36, widthPx: 200, heightPx: 150, rotationDeg: 4,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo' },
+  { id: 'photo-16', leftPct: 26, topPct: 38, widthPx: 200, heightPx: 150, rotationDeg: -3, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo' },
+  { id: 'photo-17', leftPct: 44, topPct: 41, widthPx: 200, heightPx: 150, rotationDeg: 2,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo' },
+  { id: 'photo-18', leftPct: 62, topPct: 43, widthPx: 200, heightPx: 150, rotationDeg: -4, src: '/IMG_0756.jpg', alt: 'A personal photo' },
 
   // ---- Dark zone: still plain placeholder outlines (see the file header) ----
   { id: 'frame-07', leftPct: 18, topPct: 50, widthPx: 150, heightPx: 190, rotationDeg: 4 },

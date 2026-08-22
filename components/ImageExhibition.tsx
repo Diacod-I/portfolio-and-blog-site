@@ -17,6 +17,13 @@
 // part of the "little by little" reveal. That's also why every real photo
 // so far sits in the "light zone" (see exhibitionFrames.ts's file header)
 // rather than mixed in with the still-placeholder "dark zone" frames.
+//
+// object-contain, not object-cover: each frame's own widthPx/heightPx in
+// exhibitionFrames.ts is already that photo's real aspect ratio (scaled
+// down, not cropped), so the frame box and the image should match almost
+// exactly — contain just guarantees no cropping ever happens even if a
+// size was off by a rounding pixel or two, rather than cover silently
+// slicing off an edge.
 import Image from 'next/image'
 import { EXHIBITION_FRAMES } from '@/data/exhibitionFrames'
 
@@ -40,8 +47,8 @@ export default function ImageExhibition() {
               src={frame.src}
               alt={frame.alt ?? ''}
               fill
-              sizes="220px"
-              className="object-cover"
+              sizes="200px"
+              className="object-contain"
             />
           ) : (
             <span className="text-black/40 text-[10px] font-mono text-center px-2">

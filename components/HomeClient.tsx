@@ -1205,18 +1205,25 @@ export default function HomeClient({
                     uDissolveProgress in FaultyTerminalBackground.tsx),
                     driven by handleTabScroll above. This div is just the
                     scroll-height placeholder the frames sit inside — tall
-                    (280vh, up from an original 110vh) and paired with
-                    EASTER_EGG_DEAD_ZONE_FRACTION above specifically so
-                    there's real, deliberate scroll distance before
-                    anything happens: the gallery sits much further up,
-                    and reaching it takes a lot more scrolling than before.
-                    mb-[18vh] below is extra breathing room between the
-                    lowest gallery frame and homeContentStartRef right
-                    after it — frame positions are percentages of *this*
-                    div's own height (see data/exhibitionFrames.ts), so
-                    this margin sits entirely outside that math instead of
-                    just spreading the frames themselves further apart. */}
-                <div className="relative w-full min-h-[280vh] mb-[40vh] overflow-hidden">
+                    (380vh, up from an original 110vh, then 280vh) and
+                    paired with EASTER_EGG_DEAD_ZONE_FRACTION above
+                    specifically so there's real, deliberate scroll
+                    distance before anything happens: the gallery sits
+                    much further up, and reaching it takes a lot more
+                    scrolling than before. The most recent bump (280vh ->
+                    380vh) wasn't a pacing tweak like the earlier ones —
+                    it's a direct consequence of exhibitionFrames.ts's own
+                    packing script needing more vertical room to lay out
+                    24 non-overlapping light-zone frames than it did for
+                    the original 11; see that file's header for the actual
+                    layout logic. mb-[40vh] below is extra breathing room
+                    between the lowest gallery frame and
+                    homeContentStartRef right after it — frame positions
+                    are percentages of *this* div's own height (see
+                    data/exhibitionFrames.ts), so this margin sits
+                    entirely outside that math instead of just spreading
+                    the frames themselves further apart. */}
+                <div className="relative w-full min-h-[380vh] mb-[40vh] overflow-hidden">
                   <ImageExhibition />
                 </div>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>AHHH!! YOUR POWER OF LOVE AND HOPE IS TOO STRONG!!!</h1>

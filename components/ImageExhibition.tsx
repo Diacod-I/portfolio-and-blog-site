@@ -10,9 +10,14 @@
 //    next/image, and a bottom margin — deliberately taller than the
 //    top/side margins, same proportions as a real instant photo — for the
 //    handwritten-style caption (frame.caption, set in
-//    data/exhibitionFrames.ts) in Cedarville Cursive.
-//  - Frames without a `src` still fall back to the original black-outline
-//    placeholder (see exhibitionFrames.ts's "dark zone" section).
+//    data/exhibitionFrames.ts) in Cedarville Cursive. Every frame in
+//    exhibitionFrames.ts is one of these right now — the black-outline
+//    placeholder fallback below is unused in practice at the moment, kept
+//    around for whenever a frame gets added without a photo for it yet.
+//  - Frames without a `src` fall back to a plain black-outline box
+//    instead (see exhibitionFrames.ts's file header for why a bare
+//    outline used to be the *only* option in part of this zone, and isn't
+//    anymore).
 //
 // object-cover, not object-contain: each `src` frame's widthPx/heightPx in
 // exhibitionFrames.ts is that photo's aspect ratio *clamped* to a
@@ -24,17 +29,6 @@
 // a slightly different shape than the frame it's going into — a little
 // gets trimmed off the long edge, nothing gets distorted or left with
 // gaps.
-//
-// Black borders on the placeholder frames specifically: this zone's
-// background washes from the faulty-terminal shader's black backdrop up
-// to white/pink the further up you scroll (see uDissolveProgress in
-// FaultyTerminalBackground.tsx), so a black-bordered placeholder low in
-// the zone starts out nearly blended into the dark backdrop and gradually
-// stands out as the wash lightens further up — not a bug, part of the
-// "little by little" reveal. Polaroid frames don't have this problem
-// (they're white, not black-outlined), which is one more reason they only
-// live in the already-light "light zone" for now (see
-// exhibitionFrames.ts's file header).
 import Image from 'next/image'
 import { EXHIBITION_FRAMES } from '@/data/exhibitionFrames'
 

@@ -44,7 +44,7 @@ export type ExhibitionFrame = {
   src?: string
   alt?: string
   /** Handwritten-style caption in the polaroid's bottom margin (see
-   *  ImageExhibition.tsx's Cedarville Cursive text) — only meaningful
+   *  ImageExhibition.tsx's Edu NSW/ACT Cursive text) — only meaningful
    *  alongside `src`. Every one of these is a short description of what's
    *  actually in the shot (not a date/timestamp — an earlier pass used the
    *  file's embedded date for a batch that hadn't been individually
@@ -99,32 +99,32 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // ---- Light zone: dense — mostly personal photos, plus the 4
   // downloaded images mixed in among them rather than kept in their own
   // separate cluster (see the swap note below the dark zone). ----
-  { id: 'photo-01', leftPct: 10.3, topPct: 48.0, widthPx: 170, heightPx: 159, rotationDeg: -3.1, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo', caption: 'caught mid-squat' },
-  { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'a camel, apparently' },
-  { id: 'photo-03', leftPct: 2.0,  topPct: 27.8, widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: 'little bandana' },
-  { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: '/IMG_20190103_081554.jpg', alt: 'A personal photo', caption: 'goofing off' },
-  { id: 'photo-05', leftPct: 68.1, topPct: 15.6, widthPx: 170, heightPx: 108, rotationDeg: 1.4,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo', caption: 'meeting grandma' },
+  { id: 'photo-01', leftPct: 10.3, topPct: 48.0, widthPx: 170, heightPx: 159, rotationDeg: -3.1, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo', caption: ':P' },
+  { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'kangaroo' },
+  { id: 'photo-03', leftPct: 2.0,  topPct: 27.8, widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: ':)' },
+  { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: '/IMG_20190103_081554.jpg', alt: 'A personal photo', caption: 'too loud aaaa' },
+  { id: 'photo-05', leftPct: 68.1, topPct: 15.6, widthPx: 170, heightPx: 108, rotationDeg: 1.4,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo', caption: 'love you mom' },
   { id: 'photo-06', leftPct: 44.1, topPct: 2.4,  widthPx: 104, heightPx: 170, rotationDeg: -1.7, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo', caption: 'drip check' },
-  { id: 'photo-07', leftPct: 81.3, topPct: 26.8, widthPx: 128, heightPx: 170, rotationDeg: -1.8, src: '/IMG_20211122_122534.jpg', alt: 'A personal photo', caption: 'a sketch' },
-  { id: 'photo-08', leftPct: 38.2, topPct: 29.5, widthPx: 170, heightPx: 65,  rotationDeg: 1.9,  src: '/IMG_20220302_175741.jpg', alt: 'A personal photo', caption: 'a plant, a slide' },
-  { id: 'photo-09', leftPct: 42.1, topPct: 53.4, widthPx: 127, heightPx: 170, rotationDeg: 2.0,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo', caption: 'dried flowers' },
-  { id: 'photo-10', leftPct: 1.4,  topPct: 19.0, widthPx: 144, heightPx: 170, rotationDeg: -4.5, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo', caption: 'reading my palm' },
-  { id: 'photo-12', leftPct: 78.7, topPct: 43.6, widthPx: 162, heightPx: 170, rotationDeg: 0.5,  src: '/IMG_20240423_080639.jpg', alt: 'A personal photo', caption: 'step 1' },
-  { id: 'photo-16', leftPct: 78.5, topPct: 53.3, widthPx: 170, heightPx: 128, rotationDeg: -1.6, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo', caption: 'drawing from a photo' },
-  { id: 'photo-17', leftPct: 13.2, topPct: 56.0, widthPx: 170, heightPx: 128, rotationDeg: 0.3,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo', caption: 'just the eyes' },
+  { id: 'photo-07', leftPct: 81.3, topPct: 26.8, widthPx: 128, heightPx: 170, rotationDeg: -1.8, src: '/IMG_20211122_122534.jpg', alt: 'A personal photo', caption: 'first startup idea' },
+  { id: 'photo-08', leftPct: 38.2, topPct: 29.5, widthPx: 170, heightPx: 65,  rotationDeg: 1.9,  src: '/IMG_20220302_175741.jpg', alt: 'A personal photo', caption: 'This is Pachi' },
+  { id: 'photo-09', leftPct: 42.1, topPct: 53.4, widthPx: 127, heightPx: 170, rotationDeg: 2.0,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo', caption: 'Prolly a fractal' },
+  { id: 'photo-10', leftPct: 1.4,  topPct: 19.0, widthPx: 144, heightPx: 170, rotationDeg: -4.5, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo', caption: 'magic' },
+  { id: 'photo-12', leftPct: 78.7, topPct: 43.6, widthPx: 162, heightPx: 170, rotationDeg: 0.5,  src: '/IMG_20240423_080639.jpg', alt: 'A personal photo', caption: 'gotta grind' },
+  { id: 'photo-16', leftPct: 78.5, topPct: 53.3, widthPx: 170, heightPx: 128, rotationDeg: -1.6, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo', caption: 'if you know, you know' },
+  { id: 'photo-17', leftPct: 13.2, topPct: 56.0, widthPx: 170, heightPx: 128, rotationDeg: 0.3,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo', caption: 'do I need to explain?' },
   { id: 'photo-18', leftPct: 63.8, topPct: 59.8, widthPx: 170, heightPx: 128, rotationDeg: 1.0,  src: '/IMG_0756.jpg', alt: 'A personal photo', caption: 'a doodle' },
   { id: 'photo-19', leftPct: 60.5, topPct: 47.5, widthPx: 128, heightPx: 170, rotationDeg: -3.2, src: '/05FCBBAF-CDA5-4B1B-922D-6426A9B6DBA3_1_105_c.jpeg', alt: 'A personal photo', caption: 'good morning' },
   { id: 'photo-20', leftPct: 24.8, topPct: 12.5, widthPx: 170, heightPx: 146, rotationDeg: 2.5,  src: '/1109AEAE-CB76-481B-A0C5-637DF2636E1C_4_5005_c.jpeg', alt: 'A personal photo', caption: 'worth it?' },
-  { id: 'photo-21', leftPct: 71.0, topPct: 5.2,  widthPx: 119, heightPx: 170, rotationDeg: 4.1,  src: '/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg', alt: 'A personal photo', caption: 'a portrait' },
+  { id: 'photo-21', leftPct: 71.0, topPct: 5.2,  widthPx: 119, heightPx: 170, rotationDeg: 4.1,  src: '/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg', alt: 'A personal photo', caption: 'portrait made with love <3' },
   { id: 'photo-22', leftPct: 62.7, topPct: 22.8, widthPx: 128, heightPx: 170, rotationDeg: 2.2,  src: '/326387A0-CF8E-42C2-9F7A-87A04A5903D7_1_105_c.jpeg', alt: 'A personal photo', caption: 'browsing' },
   { id: 'photo-23', leftPct: 16.0, topPct: 5.8,  widthPx: 170, heightPx: 128, rotationDeg: 4.2,  src: '/4443A26E-06E7-46C1-AF1B-D7058056D458_1_105_c.jpeg', alt: 'A personal photo', caption: 'night bloom' },
   { id: 'photo-24', leftPct: 14.5, topPct: 30.2, widthPx: 128, heightPx: 170, rotationDeg: -0.4, src: '/8DEE3877-00A4-4592-B09F-300D29B8A3EF_1_105_c.jpeg', alt: 'A personal photo', caption: 'whiteboarding' },
-  { id: 'photo-30', leftPct: 36.1, topPct: 36.0, widthPx: 170, heightPx: 128, rotationDeg: -4.4, src: '/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg', alt: 'A personal photo', caption: 'red bloom' },
-  { id: 'photo-31', leftPct: 75.6, topPct: 35.8, widthPx: 128, heightPx: 170, rotationDeg: -1.2, src: '/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg', alt: 'A personal photo', caption: 'flower for me' },
+  { id: 'photo-30', leftPct: 36.1, topPct: 36.0, widthPx: 170, heightPx: 128, rotationDeg: -4.4, src: '/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg', alt: 'A personal photo', caption: 'roses are red or some shit' },
+  { id: 'photo-31', leftPct: 75.6, topPct: 35.8, widthPx: 128, heightPx: 170, rotationDeg: -1.2, src: '/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg', alt: 'A personal photo', caption: 'pookie phase (ongoing)' },
   { id: 'photo-32', leftPct: 46.4, topPct: 12.3, widthPx: 128, heightPx: 170, rotationDeg: -2.2, src: '/E71A0C45-4BA0-42AB-8B15-D2EBFA7A2AB9_1_105_c.jpeg', alt: 'A personal photo', caption: 'golden hour' },
-  { id: 'photo-33', leftPct: 33.3, topPct: 43.5, widthPx: 110, heightPx: 170, rotationDeg: -4.5, src: '/8eqko4.png', alt: 'A black-and-white manga illustration', caption: 'all might' },
+  { id: 'photo-33', leftPct: 33.3, topPct: 43.5, widthPx: 110, heightPx: 170, rotationDeg: -4.5, src: '/8eqko4.png', alt: 'A black-and-white manga illustration', caption: 'the goat' },
   { id: 'photo-34', leftPct: 35.4, topPct: 61.5, widthPx: 170, heightPx: 128, rotationDeg: 2.0,  src: '/hqdefault.jpg', alt: 'An anime screenshot', caption: 'za warudo' },
-  { id: 'photo-35', leftPct: 14.3, topPct: 39.3, widthPx: 135, heightPx: 170, rotationDeg: -2.5, src: '/images.jpeg', alt: 'An anime screenshot with a golden-ratio overlay', caption: 'the golden ratio' },
+  { id: 'photo-35', leftPct: 14.3, topPct: 39.3, widthPx: 135, heightPx: 170, rotationDeg: -2.5, src: '/images.jpeg', alt: 'An anime screenshot with a golden-ratio overlay', caption: 'the persona ratio' },
   { id: 'photo-36', leftPct: 0.9,  topPct: 12.8, widthPx: 170, heightPx: 96,  rotationDeg: 3.2,  src: '/maxresdefault.jpg', alt: 'A video game screenshot', caption: 'yakuza' },
 
   // ---- Dark zone: sparse — 4 personal photos (moved out of the light
@@ -139,9 +139,9 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // the candid photos, which felt like a reasonable set to stand alone
   // and sparse rather than an arbitrary pick. ----
   { id: 'photo-11', leftPct: 53.8, topPct: 87.4, widthPx: 170, heightPx: 114, rotationDeg: -2.0, src: '/IMG_20231022_140633.jpg', alt: 'A personal photo', caption: 'the honest fourier transform' },
-  { id: 'photo-13', leftPct: 8.8,  topPct: 80.1, widthPx: 170, heightPx: 104, rotationDeg: 4.8,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo', caption: 'a duel' },
-  { id: 'photo-14', leftPct: 63.7, topPct: 74.3, widthPx: 170, heightPx: 97,  rotationDeg: -4.0, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo', caption: 'praying hands' },
-  { id: 'photo-15', leftPct: 5.5,  topPct: 72.6, widthPx: 170, heightPx: 128, rotationDeg: 2.7,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo', caption: 'holding the world' },
+  { id: 'photo-13', leftPct: 8.8,  topPct: 80.1, widthPx: 170, heightPx: 104, rotationDeg: 4.8,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo', caption: 'naruto phase' },
+  { id: 'photo-14', leftPct: 63.7, topPct: 74.3, widthPx: 170, heightPx: 97,  rotationDeg: -4.0, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo', caption: 'artsy phase' },
+  { id: 'photo-15', leftPct: 5.5,  topPct: 72.6, widthPx: 170, heightPx: 128, rotationDeg: 2.7,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo', caption: 'campaign poster made by me' },
 ]
 
 // The frame closest to the *bottom* of the zone (largest topPct) is the

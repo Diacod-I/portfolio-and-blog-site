@@ -103,23 +103,24 @@ export default async function RootLayout({
       <head>
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
         <link rel="preload" href="/win98/click.mp3" as="audio" type="audio/mpeg" />
-        {/* Cedarville Cursive (hidden gallery's polaroid captions, see
+        {/* Edu NSW/ACT Cursive (hidden gallery's polaroid captions, see
             components/ImageExhibition.tsx) — loaded straight from Google
             Fonts' CDN rather than next/font/google like the other four
-            fonts here. next/font/google self-hosts by downloading the
-            font file at build time and serving it from this domain, which
-            should work identically, but it wasn't actually rendering as
-            Cedarville Cursive for some reason — switched to the plain
-            <link> approach instead of chasing why. ImageExhibition.tsx
-            references the family by its literal name now (not a CSS
-            variable), matching this. Only the Cedarville Cursive family is
-            requested below, not Roboto — Google Fonts' site tends to
-            tack on a default Roboto import unless removed, but this
-            project already has Inter as its sans font and doesn't need a
-            second one. */}
+            fonts here, same as the Cedarville Cursive this replaced:
+            next/font/google self-hosts by downloading the font file at
+            build time and serving it from this domain, which should work
+            identically, but Cedarville Cursive wasn't actually rendering
+            that way for some reason, so the plain <link> approach stuck
+            around across the font swap instead of revisiting that.
+            ImageExhibition.tsx references the family by its literal name
+            (not a CSS variable), matching this. The wght@400..700 range
+            below is the full variable-font weight range Google Fonts
+            offers for this family — ImageExhibition.tsx doesn't request a
+            specific weight, so this just makes the whole range available
+            if a weight ever gets set explicitly. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Cedarville+Cursive&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap" rel="stylesheet" />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} ${vt323.variable}`}>
         <div className="min-h-screen">

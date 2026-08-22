@@ -10,7 +10,7 @@
 //    next/image, and a bottom margin — deliberately taller than the
 //    top/side margins, same proportions as a real instant photo — for the
 //    handwritten-style caption (frame.caption, set in
-//    data/exhibitionFrames.ts) in Cedarville Cursive. Every frame in
+//    data/exhibitionFrames.ts) in Edu NSW/ACT Cursive. Every frame in
 //    exhibitionFrames.ts is one of these right now — the black-outline
 //    placeholder fallback below is unused in practice at the moment, kept
 //    around for whenever a frame gets added without a photo for it yet.
@@ -83,7 +83,7 @@ export default function ImageExhibition() {
             {frame.caption && (
               <p
                 className="text-center text-neutral-800 mt-2 leading-tight"
-                style={{ fontFamily: "'Cedarville Cursive', cursive", fontSize: 18 }}
+                style={{ fontFamily: "'Edu NSW ACT Cursive', cursive", fontSize: 18 }}
               >
                 {frame.caption}
               </p>

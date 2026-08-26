@@ -1,123 +1,47 @@
 'use client'
 
 // Interactive world map for advith.exe's Home tab, sitting right after the
-// Experience section in the dossier column (see HomeClient.tsx) — real
-// per-country boundaries (see data/worldMap.ts for provenance) rendered as
-// thin outline-only paths against the dark background, with India filled
-// solid in the same blue GithubContributionGraph.tsx's heatmap uses.
+// Experience section in the dossier column (see HomeClient.tsx).
 //
-// Pan/zoom is hand-rolled (drag-to-pan via Pointer Events, scroll-to-zoom
-// anchored on the cursor, plus +/- /reset buttons) rather than pulled in
-// from a mapping library like react-simple-maps: this sandbox's shell has
-// no npm registry access (`npm view react-simple-maps` 403s), so a new
-// dependency here would go untested — tsc would have nothing to type-check
-// against locally, and Vercel's build is the first place it would ever
-// actually resolve. Real country geometry + a small transform-on-a-<g>
-// implementation gets the same drag/scroll/zoom feel as the reference
-// (karanpargal.vercel.app) the user pointed at, without that risk.
-import { useCallback, useRef, useState } from 'react'
-import { WORLD_PATHS, INDIA_FILL, INDIA_PATH, WORLD_MAP_VIEWBOX } from '@/data/worldMap'
+// Rendered with react-simple-maps (d3-geo under the hood) rather than
+// hand-rolled SVG paths — that was the previous approach here and it read
+// as broken (bad projection math, done by hand instead of by a real
+// geometry engine). This is the "component that's already done the work":
+// react-simple-maps handles the projection, path generation, and drag/
+// wheel/pinch zoom (via ZoomableGroup); this file just wires it up and
+// fills in India.
+//
+// Country geometry comes from data/countries.geo.json — a real GeoJSON
+// FeatureCollection (not hand-projected), see that file's neighbor
+// data/worldMap.ts for provenance. Loaded as a lazy dynamic import from
+// HomeClient.tsx (see that file) since the JSON payload is ~140KB and this
+// panel only renders once the boot-log sequence finishes.
+import { useState } from 'react'
+import { ComposableMap, Geographies, Geography, Graticule, Sphere, ZoomableGroup } from 'react-simple-maps'
+import { INDIA_FILL } from '@/data/worldMap'
+import countriesGeo from '@/data/countries.geo.json'
 
-const VB_W = 1000
-const VB_H = 500
-const MIN_SCALE = 1
-const MAX_SCALE = 8
-const WHEEL_ZOOM_FACTOR = 1.15
-const BUTTON_ZOOM_FACTOR = 1.35
+const MIN_ZOOM = 1
+const MAX_ZOOM = 8
+const ZOOM_STEP = 1.5
 
-type MapTransform = { x: number; y: number; k: number }
+type MapPosition = { coordinates: [number, number]; zoom: number }
 
-const IDENTITY_TRANSFORM: MapTransform = { x: 0, y: 0, k: 1 }
-
-// Keeps the map from being dragged/zoomed completely off-panel — generous
-// enough that panning still feels free, not a hard "snap back" boundary.
-function clampTransform(t: MapTransform): MapTransform {
-  const k = Math.min(MAX_SCALE, Math.max(MIN_SCALE, t.k))
-  const slackX = VB_W * (k - 1) + VB_W * 0.4
-  const slackY = VB_H * (k - 1) + VB_H * 0.4
-  return {
-    k,
-    x: Math.min(slackX, Math.max(-slackX, t.x)),
-    y: Math.min(slackY, Math.max(-slackY, t.y)),
-  }
-}
+const DEFAULT_POSITION: MapPosition = { coordinates: [0, 0], zoom: 1 }
 
 export default function WorldMap() {
-  const svgRef = useRef<SVGSVGElement>(null)
-  const [transform, setTransform] = useState<MapTransform>(IDENTITY_TRANSFORM)
-  // Pointer-drag state lives in a ref, not React state — it changes on every
-  // pointermove and doesn't need to trigger its own re-render (setTransform
-  // already does that).
-  const dragRef = useRef<{ startClientX: number; startClientY: number; startX: number; startY: number } | null>(null)
+  // Controlled zoom/pan, following react-simple-maps' own documented
+  // pattern for wiring external +/- buttons up to ZoomableGroup: keep the
+  // {coordinates, zoom} pair in state, hand it to ZoomableGroup as
+  // center/zoom, and let onMoveEnd (fired after a drag or wheel gesture)
+  // write the user's own panning/zooming back into that same state.
+  const [position, setPosition] = useState<MapPosition>(DEFAULT_POSITION)
 
-  // Ratio between CSS pixels the SVG is actually rendered at and its
-  // viewBox's user units — needed because the SVG is responsive
-  // (`w-full h-auto`), so a screen-pixel drag delta isn't a 1:1 viewBox
-  // delta once the panel is narrower or wider than 1000px.
-  const pxToSvgRatio = useCallback(() => {
-    const svg = svgRef.current
-    const width = svg?.getBoundingClientRect().width
-    return width ? VB_W / width : 1
-  }, [])
-
-  const zoomAtClientPoint = useCallback((clientX: number, clientY: number, factor: number) => {
-    const svg = svgRef.current
-    if (!svg) return
-    const rect = svg.getBoundingClientRect()
-    const ratio = pxToSvgRatio()
-    setTransform((t) => {
-      // Point under the cursor, in pre-transform "world" (viewBox) space —
-      // solving k'*world + x' = k*world + x for x' keeps that exact point
-      // fixed under the cursor as k changes, which is what makes
-      // scroll-to-zoom feel anchored instead of re-centering on every tick.
-      const screenX = (clientX - rect.left) * ratio
-      const screenY = (clientY - rect.top) * ratio
-      const worldX = (screenX - t.x) / t.k
-      const worldY = (screenY - t.y) / t.k
-      const nextK = Math.min(MAX_SCALE, Math.max(MIN_SCALE, t.k * factor))
-      return clampTransform({
-        k: nextK,
-        x: screenX - worldX * nextK,
-        y: screenY - worldY * nextK,
-      })
-    })
-  }, [pxToSvgRatio])
-
-  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    dragRef.current = { startClientX: e.clientX, startClientY: e.clientY, startX: transform.x, startY: transform.y }
-  }
-
-  const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    const drag = dragRef.current
-    if (!drag) return
-    const ratio = pxToSvgRatio()
-    const dx = (e.clientX - drag.startClientX) * ratio
-    const dy = (e.clientY - drag.startClientY) * ratio
-    setTransform((t) => clampTransform({ ...t, x: drag.startX + dx, y: drag.startY + dy }))
-  }
-
-  const onPointerUp = () => {
-    dragRef.current = null
-  }
-
-  const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault()
-    zoomAtClientPoint(e.clientX, e.clientY, e.deltaY < 0 ? WHEEL_ZOOM_FACTOR : 1 / WHEEL_ZOOM_FACTOR)
-  }
-
-  const zoomFromButton = (factor: number) => {
-    const rect = svgRef.current?.getBoundingClientRect()
-    if (!rect) return
-    zoomAtClientPoint(rect.left + rect.width / 2, rect.top + rect.height / 2, factor)
-  }
-
-  const resetView = () => setTransform(IDENTITY_TRANSFORM)
-
-  // Hairline strokes get visually thicker as the map zooms in (since the
-  // whole <g> — paths included — is being scaled up); dividing by k keeps
-  // the stroke width constant on screen instead of ballooning at max zoom.
-  const strokeWidth = 1.2 / transform.k
+  const handleZoomIn = () =>
+    setPosition((p) => ({ ...p, zoom: Math.min(p.zoom * ZOOM_STEP, MAX_ZOOM) }))
+  const handleZoomOut = () =>
+    setPosition((p) => ({ ...p, zoom: Math.max(p.zoom / ZOOM_STEP, MIN_ZOOM) }))
+  const handleReset = () => setPosition(DEFAULT_POSITION)
 
   return (
     // Same nested win98-window pattern ExperienceSection.tsx and
@@ -136,36 +60,52 @@ export default function WorldMap() {
           <span>INDIA</span>
           <span>DRAG · SCROLL · ZOOM</span>
         </div>
-        <svg
-          ref={svgRef}
-          viewBox={WORLD_MAP_VIEWBOX}
-          // Not aria-hidden — decorative, but the actual information ("based
-          // in India") is redundant with this label, so it's fine as a
-          // straightforward img role rather than needing to be hidden.
+        <ComposableMap
+          projection="geoNaturalEarth1"
           role="img"
           aria-label="An interactive world map with India highlighted; drag to pan, scroll to zoom"
-          className="w-full h-auto cursor-grab active:cursor-grabbing touch-none select-none"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerLeave={onPointerUp}
-          onWheel={onWheel}
+          style={{ width: '100%', height: 'auto', cursor: 'grab' }}
         >
-          <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}>
-            {WORLD_PATHS.map((c) => (
-              <path key={c.id} d={c.d} fill="none" stroke="#6b7280" strokeWidth={strokeWidth} strokeLinejoin="round" />
-            ))}
-            <path d={INDIA_PATH} fill={INDIA_FILL} stroke={INDIA_FILL} strokeWidth={strokeWidth} strokeLinejoin="round" />
-          </g>
-        </svg>
+          <ZoomableGroup
+            center={position.coordinates}
+            zoom={position.zoom}
+            minZoom={MIN_ZOOM}
+            maxZoom={MAX_ZOOM}
+            onMoveEnd={(pos) => setPosition(pos as MapPosition)}
+          >
+            <Sphere id="rsm-sphere" fill="transparent" stroke="#3a3a3a" strokeWidth={0.5} />
+            <Graticule stroke="#2a2a2a" strokeWidth={0.5} />
+            <Geographies geography={countriesGeo}>
+              {({ geographies }) =>
+                geographies.map((geo) => {
+                  const isIndia = geo.properties?.name === 'India'
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill={isIndia ? INDIA_FILL : 'transparent'}
+                      stroke={isIndia ? INDIA_FILL : '#6b7280'}
+                      strokeWidth={0.6}
+                      style={{
+                        default: { outline: 'none' },
+                        hover: { outline: 'none' },
+                        pressed: { outline: 'none' },
+                      }}
+                    />
+                  )
+                })
+              }
+            </Geographies>
+          </ZoomableGroup>
+        </ComposableMap>
         <div className="absolute bottom-3 right-3 flex flex-col gap-1">
-          <button type="button" onClick={() => zoomFromButton(BUTTON_ZOOM_FACTOR)} className="win98-window-button" aria-label="Zoom in">
+          <button type="button" onClick={handleZoomIn} className="win98-window-button" aria-label="Zoom in">
             +
           </button>
-          <button type="button" onClick={() => zoomFromButton(1 / BUTTON_ZOOM_FACTOR)} className="win98-window-button" aria-label="Zoom out">
+          <button type="button" onClick={handleZoomOut} className="win98-window-button" aria-label="Zoom out">
             −
           </button>
-          <button type="button" onClick={resetView} className="win98-window-button" aria-label="Reset view">
+          <button type="button" onClick={handleReset} className="win98-window-button" aria-label="Reset view">
             <span className="text-xs">▢</span>
           </button>
         </div>

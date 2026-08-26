@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, type CSSProperties } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Navbar, { type HomeTab } from '@/components/Navbar'
 import ContactView from '@/components/ContactView'
@@ -21,7 +22,6 @@ import SolitaireWindow from '@/components/SolitaireWindow'
 import ProjectsWindow from '@/components/ProjectsWindow'
 import ContributorArchive from '@/components/ContributorArchive'
 import ExperienceSection from '@/components/ExperienceSection'
-import WorldMap from '@/components/WorldMap'
 import GithubContributionGraph from '@/components/GithubContributionGraph'
 import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
@@ -32,6 +32,14 @@ import { BOOT_LOG_LINES } from '@/data/bootLog'
 import { EXHIBITION_FRAMES_MAX_TOP_PCT } from '@/data/exhibitionFrames'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
+
+// Lazy-loaded: WorldMap pulls in react-simple-maps/d3-geo plus a ~140KB
+// real-country GeoJSON payload (data/countries.geo.json), and only ever
+// renders once the boot-log sequence finishes — no reason for that weight
+// to sit in the initial bundle. ssr:false because d3-geo's map projection
+// math doesn't need to (and needn't try to) run server-side for a panel
+// that's gated behind client-only animation state anyway.
+const WorldMap = dynamic(() => import('@/components/WorldMap'), { ssr: false })
 
 // What the Blogs window shows: the Explorer-style list (default), or a
 // single post (used when landing on /blogs/[slug] — see that route, which

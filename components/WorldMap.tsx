@@ -62,7 +62,7 @@ export default function WorldMap() {
     // panel — rather than a bare bordered box, so this reads as another
     // self-contained block in the same dossier column instead of a
     // one-off styling choice.
-    <div className="win98-window flex flex-col mt-8">
+    <div className="win98-window flex flex-col mt-3">
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
           <span>Location</span>

@@ -1447,16 +1447,18 @@ export default function HomeClient({
                     {bootPhase === 'done' && (
                     <>
                     {/* mt-4 (spacing after the "$ >" heading above) + pb-3
-                        (spacing before chapter 1 below) — pb-3 is padding,
+                        (spacing before WorldMap below) — pb-3 is padding,
                         not a gap/margin: it's what lets this row's sticky
                         photo keep pinning to the last possible pixel of the
-                        row's own box. mb-32 below it *is* real margin,
-                        deliberately — same tradeoff as the story chapters'
-                        own gap-y-16 (see that section's comment): it opens a
-                        real, doubled-vs-chapters breathing gap before
-                        chapter 1 starts, during which this photo has already
-                        released and chapter 1's image hasn't engaged yet. */}
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-16">
+                        row's own box. mb-6 below it is real margin, kept
+                        small on purpose — WorldMap is the very next thing
+                        in this column (see its own comment below) and per
+                        feedback should read as closely tied to Experience,
+                        not a separate section with its own big breathing
+                        gap. (This used to be mb-16, sized for a "chapter 1"
+                        that doesn't exist in this tab — stale leftover from
+                        wherever that comment was copied from.) */}
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-6">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
                           scroll container while the much taller text column
@@ -1498,7 +1500,7 @@ export default function HomeClient({
                             bullet is themed to match the green accent used
                             throughout this dossier. text-justify for even edges,
                             matching the blog/report reading columns elsewhere. */}
-                        <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col gap-3">
+                        <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col">
                           <li className="win98-terminal-pop" style={{ animationDelay: '140ms' }}>
                             <span
                             className="inline-block text-[#00FF00] bg-black font-bold transition-opacity duration-300"

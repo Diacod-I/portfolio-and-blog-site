@@ -108,6 +108,10 @@ export default async function RootLayout({
             short synthesized WAV, same reasoning as the two preloads
             above: the first character shouldn't stall on a cold fetch. */}
         <link rel="preload" href="/win98/type_key.wav" as="audio" type="audio/wav" />
+        {/* "Data confirmed" chime for the instant the dossier appears once
+            the boot log clears (see HomeClient.tsx's dossierBeepRef) —
+            same preload reasoning as the two audio links above. */}
+        <link rel="preload" href="/win98/dossier_beep.wav" as="audio" type="audio/wav" />
         {/* Edu NSW/ACT Cursive (hidden gallery's polaroid captions, see
             components/ImageExhibition.tsx) — loaded straight from Google
             Fonts' CDN rather than next/font/google like the other four

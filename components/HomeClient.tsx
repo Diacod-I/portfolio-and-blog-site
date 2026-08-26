@@ -21,6 +21,7 @@ import SolitaireWindow from '@/components/SolitaireWindow'
 import ProjectsWindow from '@/components/ProjectsWindow'
 import ContributorArchive from '@/components/ContributorArchive'
 import ExperienceSection from '@/components/ExperienceSection'
+import WorldMap from '@/components/WorldMap'
 import GithubContributionGraph from '@/components/GithubContributionGraph'
 import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
@@ -405,6 +406,16 @@ export default function HomeClient({
     audio.currentTime = 0
     audio.play().catch(() => { /* blocked until a real gesture — see SoundEffects.tsx's own note on this */ })
   }, [])
+  // "Data confirmed" chime for the instant the dossier (photo + bio +
+  // Experience) actually appears — see the bootPhase === 'done' effect
+  // below, right after bootPhase itself is declared. Just one Audio, not a
+  // rotating pool like the two sounds above: this only ever fires once per
+  // boot-log playthrough (not a rapid-fire burst like typing or clicks),
+  // so there's nothing for a pool to protect against here.
+  const dossierBeepRef = useRef<HTMLAudioElement | null>(null)
+  useEffect(() => {
+    dossierBeepRef.current = new Audio('/win98/dossier_beep.wav')
+  }, [])
   // Best-effort visitor IP for the About tab's little "I know your IP"
   // easter egg — fetched client-side from /api/ip (see that route) rather
   // than read server-side in every page.tsx that renders this component,
@@ -480,6 +491,18 @@ export default function HomeClient({
   // useBootSequence for the 'booting' → 'done' lifecycle this plays out,
   // and the JSX below for where each phase actually renders.
   const { phase: bootPhase, visibleLines: bootLogVisibleLines } = useBootSequence(homeQueryDone, BOOT_LOG_LINES.length)
+  // Plays dossierBeepRef the instant bootPhase flips to 'done' — i.e. the
+  // exact frame the boot log cuts away and the dossier row takes over (see
+  // the JSX below) — not on mount, and not on 'idle'/'booting'. Replays
+  // every time the whole query → boot log → dossier sequence does, same as
+  // every other sound tied to this animation.
+  useEffect(() => {
+    if (bootPhase !== 'done') return
+    const audio = dossierBeepRef.current
+    if (!audio) return
+    audio.currentTime = 0
+    audio.play().catch(() => { /* blocked until a real gesture — see SoundEffects.tsx's own note on this */ })
+  }, [bootPhase])
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
   // background layer in the JSX below): each tab's own overflow-y-auto
@@ -1412,16 +1435,17 @@ export default function HomeClient({
                       </div>
                     )}
                     {bootPhase === 'done' && (
-                    // mt-4 (spacing after the "$ >" heading above) + pb-3
-                    // (spacing before chapter 1 below) — pb-3 is padding,
-                    // not a gap/margin: it's what lets this row's sticky
-                    // photo keep pinning to the last possible pixel of the
-                    // row's own box. mb-32 below it *is* real margin,
-                    // deliberately — same tradeoff as the story chapters'
-                    // own gap-y-16 (see that section's comment): it opens a
-                    // real, doubled-vs-chapters breathing gap before
-                    // chapter 1 starts, during which this photo has already
-                    // released and chapter 1's image hasn't engaged yet.
+                    <>
+                    {/* mt-4 (spacing after the "$ >" heading above) + pb-3
+                        (spacing before chapter 1 below) — pb-3 is padding,
+                        not a gap/margin: it's what lets this row's sticky
+                        photo keep pinning to the last possible pixel of the
+                        row's own box. mb-32 below it *is* real margin,
+                        deliberately — same tradeoff as the story chapters'
+                        own gap-y-16 (see that section's comment): it opens a
+                        real, doubled-vs-chapters breathing gap before
+                        chapter 1 starts, during which this photo has already
+                        released and chapter 1's image hasn't engaged yet. */}
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-16">
                       {/* sm:sticky so the photo travels with the scroll up to
                           this offset, then stays pinned near the top of the
@@ -1503,6 +1527,20 @@ export default function HomeClient({
                         </div>
                       </div>
                     </div>
+                    {/* Small decorative world map, same win98-window nested
+                        pattern as ExperienceSection right above — outside
+                        that row's sm:flex-row split (not squeezed into the
+                        text column next to the sticky photo) so it gets the
+                        row's full max-w-2xl width instead. See
+                        data/worldMap.ts's file header for what this data
+                        actually is (a stylized approximation, not real
+                        boundary data — a live fetch for the real thing
+                        didn't pan out). Delayed a bit past Experience's own
+                        stagger. */}
+                    <div className="win98-terminal-pop" style={{ animationDelay: visitorIp ? '490ms' : '420ms' }}>
+                      <WorldMap />
+                    </div>
+                    </>
                     )}
                   </div>
                 </div>

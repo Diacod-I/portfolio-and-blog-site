@@ -223,56 +223,74 @@ function useReplayableTypedQuery(text: string, active: boolean) {
   return { typed, done }
 }
 
-// Per-line stagger for the boot log's win98-terminal-pop reveal (see the
-// JSX below) — kept as a named constant since BOOT_LOG_TOTAL_MS below has
-// to derive from the exact same number, not a copy of it.
+// Interval between the boot log printing one line and the next (see
+// useBootSequence below) — kept as a named constant since BOOT_LOG_TOTAL_MS
+// below has to derive from the exact same number, not a copy of it.
 const BOOT_LOG_LINE_STAGGER_MS = 90
 // How long the last line sits fully visible and readable ("All systems
 // nominal." / "Now accepting visitors.") before the boot log clears —
-// without this it'd disappear the instant the last line finishes popping
-// in, which reads as way too abrupt to actually read anything.
+// without this it'd disappear the instant the last line is printed, which
+// reads as way too abrupt to actually read anything.
 const BOOT_LOG_READ_PAUSE_MS = 900
 // Total time from the boot log's first line appearing to it clearing: the
-// last line's own stagger delay ((BOOT_LOG_LINES.length - 1) *
-// BOOT_LOG_LINE_STAGGER_MS) + that line's own pop-in animation (180ms,
-// win98TerminalPopIn in globals.css) + the read pause above.
+// last line's own print delay ((BOOT_LOG_LINES.length - 1) *
+// BOOT_LOG_LINE_STAGGER_MS) + the read pause above. No per-line animation
+// duration factored in here anymore — see useBootSequence for why.
 const BOOT_LOG_TOTAL_MS =
-  (BOOT_LOG_LINES.length - 1) * BOOT_LOG_LINE_STAGGER_MS + 180 + BOOT_LOG_READ_PAUSE_MS
+  (BOOT_LOG_LINES.length - 1) * BOOT_LOG_LINE_STAGGER_MS + BOOT_LOG_READ_PAUSE_MS
 
 // Drives the boot log's lifecycle once the "$ >" query above finishes
 // typing (`active` is homeQueryDone, not a fresh mount) — this is staged
 // as a one-shot animation, not a permanent section, so it needs its own
-// phase machine rather than a plain "done typing" boolean like the query
-// itself has:
+// state rather than a plain "done typing" boolean like the query itself
+// has. `visibleLines` is how many of BOOT_LOG_LINES have been printed so
+// far — each one is only ever rendered from the instant it's "printed"
+// (no win98-terminal-pop/opacity-fade/scale on these lines specifically):
+// a real terminal doesn't animate a new line into existence, the line
+// just exists the moment it's written, so this doesn't either. `phase`:
 //   'idle'    — query hasn't finished typing yet, nothing renders.
-//   'booting' — lines are popping in (and then sitting readable).
+//   'booting' — lines are being printed one at a time (then sitting
+//               readable once all of them are up).
 //   'done'    — boot log stops rendering entirely, in the same frame it
 //               finishes its read pause — a real terminal clearing the
 //               screen (think `clear`, or a kernel handing off to a
 //               login prompt) doesn't fade, it just cuts — so this cuts
-//               too, no opacity transition. The dossier row (photo + bio
-//               + Experience) takes over the same spot the instant this
-//               flips, gated on this phase in the JSX below.
-// Resets straight back to 'idle' the instant `active` goes false, mirroring
-// useReplayableTypedQuery's own reset-on-deactivate above — so leaving the
-// Home tab and coming back replays the whole sequence (query → boot log →
-// dossier) from scratch rather than snapping straight to 'done' forever.
-function useBootSequence(active: boolean) {
+//               too. The dossier row (photo + bio + Experience) takes
+//               over the same spot the instant this flips, gated on this
+//               phase in the JSX below.
+// Resets straight back to 'idle'/0 the instant `active` goes false,
+// mirroring useReplayableTypedQuery's own reset-on-deactivate above — so
+// leaving the Home tab and coming back replays the whole sequence (query
+// → boot log → dossier) from scratch rather than snapping straight to
+// 'done' forever.
+function useBootSequence(active: boolean, lineCount: number) {
   const [phase, setPhase] = useState<'idle' | 'booting' | 'done'>('idle')
+  const [visibleLines, setVisibleLines] = useState(0)
 
   useEffect(() => {
     if (!active) {
       setPhase('idle')
+      setVisibleLines(0)
       return
     }
     setPhase('booting')
+    // First line is up immediately — a real terminal doesn't sit blank
+    // for one whole stagger interval before printing anything either.
+    let shown = 1
+    setVisibleLines(shown)
+    const printInterval = setInterval(() => {
+      shown++
+      setVisibleLines(shown)
+      if (shown >= lineCount) clearInterval(printInterval)
+    }, BOOT_LOG_LINE_STAGGER_MS)
     const toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS)
     return () => {
+      clearInterval(printInterval)
       clearTimeout(toDone)
     }
-  }, [active])
+  }, [active, lineCount])
 
-  return phase
+  return { phase, visibleLines }
 }
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
@@ -431,7 +449,7 @@ export default function HomeClient({
   // Boot log's own phase, driven off the query above finishing — see
   // useBootSequence for the 'booting' → 'done' lifecycle this plays out,
   // and the JSX below for where each phase actually renders.
-  const bootPhase = useBootSequence(homeQueryDone)
+  const { phase: bootPhase, visibleLines: bootLogVisibleLines } = useBootSequence(homeQueryDone, BOOT_LOG_LINES.length)
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
   // background layer in the JSX below): each tab's own overflow-y-auto
@@ -1332,26 +1350,24 @@ export default function HomeClient({
                         after the query above finishes typing, then clears
                         rather than sticking around: it's staged as part of
                         the same "$ >" animation, not a permanent section.
-                        useBootSequence drives the two phases this reads:
-                        'booting' (lines popping in via the same
-                        win98-terminal-pop stagger every other block on
-                        this tab uses — not a char-by-char typewriter like
-                        the query itself, 14 lines typed one character at a
-                        time would take a while) then straight to 'done' —
-                        no fade in between. A real terminal clearing the
-                        screen cuts, it doesn't cross-fade, so this doesn't
-                        either; at 'done' this block simply stops
-                        rendering and the dossier row further down (gated
-                        on bootPhase === 'done') takes over the same
-                        spot on the very next frame. */}
+                        Lines print one at a time (see bootLogVisibleLines/
+                        useBootSequence) with NO pop/fade/scale animation
+                        on them at all, unlike every other reveal on this
+                        tab (win98-terminal-pop) — a real terminal doesn't
+                        animate a new line into view, the line just exists
+                        the instant it's written, so slicing BOOT_LOG_LINES
+                        down to only what's "printed" so far and rendering
+                        that plainly is what actually reads as terminal
+                        output instead of a UI transition. Once every line
+                        has been printed and had its read pause, 'done'
+                        cuts this block away entirely (no fade — see
+                        useBootSequence) and the dossier row further down
+                        (gated on bootPhase === 'done') takes over the
+                        same spot. */}
                     {bootPhase === 'booting' && (
                       <div className="flex flex-col gap-1 font-mono text-sm sm:text-[15px] mt-4 pb-24">
-                        {BOOT_LOG_LINES.map((line, i) => (
-                          <p
-                            key={line.time}
-                            className="win98-terminal-pop"
-                            style={{ animationDelay: `${i * BOOT_LOG_LINE_STAGGER_MS}ms` }}
-                          >
+                        {BOOT_LOG_LINES.slice(0, bootLogVisibleLines).map((line) => (
+                          <p key={line.time}>
                             <span className="text-[#666]">[{line.time}]</span>{' '}
                             <span className="text-[#ccc]">
                               {line.status === 'warn' ? (

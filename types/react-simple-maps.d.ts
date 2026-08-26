@@ -8,7 +8,9 @@
 // are hand-written from reading the actual shipped source
 // (node_modules/react-simple-maps/dist/index.es.js) rather than copied from
 // memory or guessed, and only cover the pieces WorldMap.tsx actually uses:
-// ComposableMap, Geographies, Geography, Sphere, Graticule, ZoomableGroup.
+// ComposableMap, Geographies, Geography, Sphere, Graticule, Marker.
+// (ZoomableGroup's declaration is left in below in case pan/zoom comes
+// back later, but nothing currently imports it — the map is static now.)
 declare module 'react-simple-maps' {
   import type { ReactNode, RefAttributes, SVGProps } from 'react'
 
@@ -89,6 +91,26 @@ declare module 'react-simple-maps' {
   }
   export const Graticule: React.ForwardRefExoticComponent<
     GraticuleProps & RefAttributes<SVGPathElement>
+  >
+
+  export interface MarkerProps {
+    // Projected via the map's own d3 projection (Marker reads coordinates
+    // straight off MapContext), so children are positioned via a
+    // translate(x, y) that already matches wherever Geography renders that
+    // same [lon, lat] point — no manual projection math needed on our end.
+    coordinates: [number, number]
+    onMouseEnter?: (event: React.MouseEvent<SVGGElement>) => void
+    onMouseLeave?: (event: React.MouseEvent<SVGGElement>) => void
+    onMouseDown?: (event: React.MouseEvent<SVGGElement>) => void
+    onMouseUp?: (event: React.MouseEvent<SVGGElement>) => void
+    onFocus?: (event: React.FocusEvent<SVGGElement>) => void
+    onBlur?: (event: React.FocusEvent<SVGGElement>) => void
+    style?: GeographyStyle
+    className?: string
+    children?: ReactNode
+  }
+  export const Marker: React.ForwardRefExoticComponent<
+    MarkerProps & RefAttributes<SVGGElement>
   >
 
   export interface ZoomPanEventArg {

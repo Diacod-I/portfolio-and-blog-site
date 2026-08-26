@@ -2,13 +2,12 @@
 
 // Small decorative world map for advith.exe's Home tab, sitting right after
 // the Experience section in the dossier column (see HomeClient.tsx) —
-// continents as thin outline-only shapes against the dark background, India
-// alone filled solid in the same blue GithubContributionGraph.tsx's heatmap
-// uses. See data/worldMap.ts's file header for what this data actually is
-// (a hand-drawn stylized approximation, not real GIS boundary data — that
-// was the plan, but every fetch attempt beyond one partial/truncated one
-// either came back incomplete or timed out outright).
-import { CONTINENT_PATHS, INDIA_FILL, INDIA_PATH, WORLD_MAP_VIEWBOX } from '@/data/worldMap'
+// ~65 countries as thin outline-only shapes against the dark background,
+// India alone filled solid in the same blue GithubContributionGraph.tsx's
+// heatmap uses. See data/worldMap.ts's file header for provenance: these are
+// real per-country GeoJSON boundaries (github.com/johan/world.geo.json),
+// simplified and equirectangular-projected, not hand-drawn.
+import { WORLD_PATHS, INDIA_FILL, INDIA_PATH, WORLD_MAP_VIEWBOX } from '@/data/worldMap'
 
 export default function WorldMap() {
   return (
@@ -33,7 +32,7 @@ export default function WorldMap() {
           aria-label="A stylized world map with India highlighted"
           className="w-full h-auto"
         >
-          {CONTINENT_PATHS.map((c) => (
+          {WORLD_PATHS.map((c) => (
             <path key={c.id} d={c.d} fill="none" stroke="#6b7280" strokeWidth={1.2} strokeLinejoin="round" />
           ))}
           <path d={INDIA_PATH} fill={INDIA_FILL} stroke={INDIA_FILL} strokeWidth={1.2} strokeLinejoin="round" />

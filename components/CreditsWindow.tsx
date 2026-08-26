@@ -164,6 +164,63 @@ export default function CreditsWindow() {
           purely for nostalgic, decorative purposes; not affiliated with, endorsed
           by, or sponsored by Disney.
         </li>
+        <li>
+          The Home tab&apos;s hidden &quot;image exhibition&quot; (scroll up past the
+          top of the Home tab) is mostly Advith&apos;s own personal photos, plus a
+          handful of downloaded images mixed in: a black-and-white manga
+          illustration, a &quot;ZA WARUDO&quot; screenshot from JoJo&apos;s Bizarre
+          Adventure, a golden-ratio meme referencing Persona, and a screenshot of
+          Kiryu Kazuma from the Yakuza / Like a Dragon series. These are fan
+          favorites reused for personal, non-commercial, decorative purposes;
+          each remains the property of its original rights holder (respectively
+          unidentified, Hirohiko Araki/LUCKYLAND/Shueisha, Atlus/Sega, and Sega),
+          and this site is not affiliated with, endorsed by, or sponsored by any
+          of them.
+        </li>
+        <li>
+          The Home tab&apos;s faulty-terminal shader backdrop (Home, About, and
+          Contact tabs) and the dither shader backdrop (behind the music player
+          while a track is playing) are ported from{' '}
+          <a href="https://reactbits.dev/" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            React Bits
+          </a>
+          &apos;{' '}
+          <a
+            href="https://reactbits.dev/backgrounds/faulty-terminal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            Faulty Terminal
+          </a>{' '}
+          and{' '}
+          <a href="https://reactbits.dev/backgrounds/dither" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Dither
+          </a>{' '}
+          components (MIT License), adapted to render with{' '}
+          <a href="https://github.com/oframe/ogl" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            ogl
+          </a>{' '}
+          directly instead of their original React Three Fiber implementation.
+        </li>
+        <li>
+          The Home tab&apos;s world map (&quot;Location&quot; panel) renders country
+          boundaries from{' '}
+          <a
+            href="https://github.com/topojson/world-atlas"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            world-atlas
+          </a>
+          &apos;s <code>countries-110m.json</code>, built from{' '}
+          <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Natural Earth
+          </a>{' '}
+          public-domain map data. Fetched directly from a CDN at page-load time,
+          not bundled or redistributed by this site.
+        </li>
         <li>All other icons and images are original or used with permission.</li>
       </ul>
 
@@ -172,6 +229,11 @@ export default function CreditsWindow() {
         <li>
           Inter, JetBrains Mono, and VT323 — served via Google Fonts through
           next/font, each under the SIL Open Font License.
+        </li>
+        <li>
+          Edu NSW ACT Cursive — used for the hidden image exhibition&apos;s
+          handwritten-style polaroid captions, loaded directly from Google
+          Fonts&apos; CDN (also under the SIL Open Font License).
         </li>
       </ul>
 
@@ -260,6 +322,32 @@ export default function CreditsWindow() {
             gray-matter
           </a>{' '}
           (MIT License)
+        </li>
+        <li>
+          <a href="https://github.com/zcreativelabs/react-simple-maps" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            react-simple-maps
+          </a>{' '}
+          (MIT License) — renders the Home tab&apos;s world map.
+        </li>
+        <li>
+          <a href="https://github.com/oframe/ogl" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            ogl
+          </a>{' '}
+          (Unlicense) — the WebGL renderer behind the faulty-terminal and
+          dither shader backdrops (see Visual &amp; Audio Assets above).
+        </li>
+        <li>
+          <a href="https://fontawesome.com/" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Font Awesome
+          </a>{' '}
+          Free — icon set used throughout the site&apos;s UI (code: MIT
+          License; icon designs: CC BY 4.0).
+        </li>
+        <li>
+          <a href="https://vercel.com/analytics" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Vercel Analytics
+          </a>{' '}
+          (MPL-2.0 License) — anonymous page-view analytics.
         </li>
       </ul>
 

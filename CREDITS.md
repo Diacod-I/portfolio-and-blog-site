@@ -56,12 +56,38 @@ licensed.
   Club Penguin and related characters are trademarks of Disney. Used here
   purely for nostalgic, decorative purposes; not affiliated with, endorsed
   by, or sponsored by Disney.
+- The Home tab's hidden "image exhibition" (scroll up past the top of the
+  Home tab) is mostly Advith's own personal photos, plus a handful of
+  downloaded images mixed in: a black-and-white manga illustration, a "ZA
+  WARUDO" screenshot from JoJo's Bizarre Adventure, a golden-ratio meme
+  referencing Persona, and a screenshot of Kiryu Kazuma from the Yakuza /
+  Like a Dragon series. These are fan favorites reused for personal,
+  non-commercial, decorative purposes; each remains the property of its
+  original rights holder (respectively unidentified, Hirohiko
+  Araki/LUCKYLAND/Shueisha, Atlus/Sega, and Sega), and this site is not
+  affiliated with, endorsed by, or sponsored by any of them.
+- The faulty-terminal shader backdrop (Home, About, and Contact tabs) and
+  the dither shader backdrop (behind the music player while a track is
+  playing) are ported from [React Bits](https://reactbits.dev/)'
+  [Faulty Terminal](https://reactbits.dev/backgrounds/faulty-terminal) and
+  [Dither](https://reactbits.dev/backgrounds/dither) components (MIT
+  License), adapted to render with [ogl](https://github.com/oframe/ogl)
+  directly instead of their original React Three Fiber implementation.
+- The Home tab's world map ("Location" panel) renders country boundaries
+  from [world-atlas](https://github.com/topojson/world-atlas)'s
+  `countries-110m.json`, built from
+  [Natural Earth](https://www.naturalearthdata.com/) public-domain map
+  data. Fetched directly from a CDN at page-load time, not bundled or
+  redistributed by this site.
 - All other icons and images are original or used with permission.
 
 ## Fonts
 
 - Inter, JetBrains Mono, and VT323 — served via Google Fonts through
   `next/font`, each under the SIL Open Font License.
+- Edu NSW ACT Cursive — used for the hidden image exhibition's
+  handwritten-style polaroid captions, loaded directly from Google Fonts'
+  CDN (also under the SIL Open Font License).
 
 ## Games
 
@@ -92,6 +118,15 @@ licensed.
 - [MDX.js](https://mdxjs.com/) (MIT License)
 - [Zustand](https://github.com/pmndrs/zustand) (MIT License)
 - [gray-matter](https://github.com/jonschlinkert/gray-matter) (MIT License)
+- [react-simple-maps](https://github.com/zcreativelabs/react-simple-maps)
+  (MIT License) — renders the Home tab's world map.
+- [ogl](https://github.com/oframe/ogl) (Unlicense) — the WebGL renderer
+  behind the faulty-terminal and dither shader backdrops (see Visual &
+  Audio Assets above).
+- [Font Awesome](https://fontawesome.com/) Free — icon set used throughout
+  the site's UI (code: MIT License; icon designs: CC BY 4.0).
+- [Vercel Analytics](https://vercel.com/analytics) (MPL-2.0 License) —
+  anonymous page-view analytics.
 
 ## Source Code
 

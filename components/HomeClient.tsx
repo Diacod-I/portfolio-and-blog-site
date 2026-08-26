@@ -27,7 +27,7 @@ import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
 import highlights from '@/data/highlights'
 import projects from '@/data/projects'
-import { STORY_CHAPTERS } from '@/data/storyChapters'
+import { BOOT_LOG_LINES } from '@/data/bootLog'
 import { EXHIBITION_FRAMES_MAX_TOP_PCT } from '@/data/exhibitionFrames'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
@@ -1362,93 +1362,49 @@ export default function HomeClient({
                       </div>
                     </div>
                     )}
-                    {/* "Story" section — a handful of scrollytelling chapters
-                        continuing straight on from the dossier row above,
-                        same max-w-2xl column so everything stays lined up.
-                        See data/storyChapters.ts for the (currently
-                        placeholder/lorem-ipsum) content and the reasoning
-                        behind each chapter's own sticky image. Gated on
-                        homeQueryDone same as the row above — nothing below
-                        the "$ >" prompt shows until that's finished typing.
-
-                        Each chapter's own pb-3 (inside its row's box) is
-                        what lets its sticky image stay pinned right up to
-                        that row's own end — see the per-chapter comment
-                        below for why that has to be padding rather than
-                        margin/gap. gap-y-16 here, between rows, is a
-                        deliberate exception to that rule: it's real
-                        breathing room the user asked for between chapters,
-                        which does mean each chapter's image releases and
-                        then sits in a brief plain-scroll gap before the
-                        next chapter's image scrolls up far enough to
-                        engage — unlike the zero-gap dossier→chapter-1
-                        handoff right above, which still has none. */}
+                    {/* Boot log — replaces an earlier "Story" section that
+                        used to sit here (a handful of scrollytelling
+                        chapters, data/storyChapters.ts, now deleted): that
+                        one was structured as a literal age-bracket timeline
+                        (birth year → present), which is exactly what this
+                        was built to avoid. This instead reads as a fake
+                        kernel boot log — the "result set" the Home tab's
+                        typed "$ >" query above (HOME_QUERY_TEXT: `select
+                        about from devs where name='Advith Krishnan';`)
+                        returns, continuing straight on from the dossier row
+                        above in the same monospace/terminal voice, just
+                        with no dates attached to any of it. See
+                        data/bootLog.ts for the actual lines and why they're
+                        deliberately generic about employers (the Experience
+                        section right above already names those). Same
+                        win98-terminal-pop stagger every other block on this
+                        tab uses (not a char-by-char typewriter like the "$
+                        >" prompt above — 14 lines typed out one character
+                        at a time would take a while; popping in staggered
+                        reads as "streaming past quickly" instead, which is
+                        closer to what a real boot log looks like anyway),
+                        gated on homeQueryDone same as the row above —
+                        nothing below the "$ >" prompt shows until that's
+                        finished typing. */}
                     {homeQueryDone && (
-                      <div className="flex flex-col gap-y-16">
-                        {STORY_CHAPTERS.map((chapter) => (
-                          <div
-                            key={chapter.id}
-                            className={`flex flex-col items-center gap-6 text-left sm:items-start pb-3 ${
-                              chapter.side === 'right' ? 'sm:flex-row-reverse' : 'sm:flex-row'
-                            }`}
+                      <div className="flex flex-col gap-1 font-mono text-sm sm:text-[15px] pb-24">
+                        {BOOT_LOG_LINES.map((line, i) => (
+                          <p
+                            key={line.time}
+                            className="win98-terminal-pop"
+                            style={{ animationDelay: `${i * 90}ms` }}
                           >
-                            {/* Chapters use sm:top-1/4 rather than the
-                                profile photo's sm:top-4 above: a sticky
-                                element's percentage `top` resolves against
-                                the nearest scrolling ancestor's height —
-                                here, the Home tab's own overflow-y-auto
-                                wrapper, i.e. the inner window itself — so
-                                top-1/2 pins this image's top edge at that
-                                container's vertical midpoint once stuck,
-                                instead of near its top edge. That also
-                                moves the release point: sticky release
-                                happens once holding the image at its `top`
-                                offset would push it past its row's own
-                                bottom edge, so with the offset now at the
-                                middle instead of near the top, the image
-                                releases as soon as scrolling would carry it
-                                to the middle of the inner window, rather
-                                than holding it pinned near the top for the
-                                entire row. */}
-                            <div className="shrink-0 w-full sm:w-56 sm:sticky sm:top-1/4 win98-terminal-pop">
-                              {chapter.image ? (
-                                <div className="relative aspect-[4/3] border-2 border-white overflow-hidden">
-                                  <Image
-                                    src={chapter.image}
-                                    alt=""
-                                    fill
-                                    sizes="(max-width: 640px) 100vw, 224px"
-                                    className="object-cover"
-                                  />
-                                </div>
+                            <span className="text-[#666]">[{line.time}]</span>{' '}
+                            <span className="text-[#ccc]">
+                              {line.status === 'warn' ? (
+                                <span className="text-amber-400">WARNING: {line.message}</span>
                               ) : (
-                                // Placeholder until a real image is dropped
-                                // in — see StoryChapter['image'] in
-                                // data/storyChapters.ts.
-                                <div className="aspect-[4/3] border-2 border-white flex items-center justify-center">
-                                  <span className="text-white/40 text-[10px] font-mono text-center px-2">
-                                    Image placeholder
-                                  </span>
-                                </div>
+                                line.message
                               )}
-                            </div>
-                            <div className="flex-1 min-w-0 flex flex-col gap-3">
-                              <h2 className="text-white text-2xl font-bold win98-terminal-pop" style={{ animationDelay: '70ms' }}>
-                                {chapter.title}
-                              </h2>
-                              {chapter.paragraphs.map((paragraph, i) => (
-                                <p
-                                  key={i}
-                                  className="text-[#ccc] text-md leading-relaxed text-justify win98-terminal-pop"
-                                  style={{ animationDelay: `${140 + i * 70}ms` }}
-                                >
-                                  {paragraph}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
+                            </span>
+                            {line.status === 'ok' && <span className="text-[#00FF00]"> OK</span>}
+                          </p>
                         ))}
-                                        <h1 className="text-center text-white mb-24">Fly high into the sky, even from the lowest pit.</h1>
                       </div>
                     )}
                   </div>

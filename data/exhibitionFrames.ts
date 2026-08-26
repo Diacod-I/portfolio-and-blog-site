@@ -100,7 +100,7 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // downloaded images mixed in among them rather than kept in their own
   // separate cluster (see the swap note below the dark zone). ----
   { id: 'photo-01', leftPct: 10.3, topPct: 48.0, widthPx: 170, heightPx: 159, rotationDeg: -3.1, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo', caption: 'hehehe' },
-  { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'kangaroo' },
+  { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'kangaru' },
   { id: 'photo-03', leftPct: 2.0,  topPct: 27.8, widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: ':)' },
   { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: '/IMG_20190103_081554.jpg', alt: 'A personal photo', caption: 'too loud aaaa' },
   { id: 'photo-05', leftPct: 68.1, topPct: 15.6, widthPx: 170, heightPx: 108, rotationDeg: 1.4,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo', caption: 'love you mom' },

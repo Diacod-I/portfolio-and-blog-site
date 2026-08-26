@@ -228,17 +228,13 @@ function useReplayableTypedQuery(text: string, active: boolean) {
 // to derive from the exact same number, not a copy of it.
 const BOOT_LOG_LINE_STAGGER_MS = 90
 // How long the last line sits fully visible and readable ("All systems
-// nominal." / "Now accepting visitors.") before the boot log starts
-// fading out — without this it'd clear the instant the last line finishes
-// popping in, which reads as way too abrupt to actually read anything.
+// nominal." / "Now accepting visitors.") before the boot log clears —
+// without this it'd disappear the instant the last line finishes popping
+// in, which reads as way too abrupt to actually read anything.
 const BOOT_LOG_READ_PAUSE_MS = 900
-// Duration of the boot log's own opacity fade-out (see the 'exiting' phase
-// below) — matches the transition-opacity duration-300 class on the boot
-// log's wrapper div in the JSX.
-const BOOT_LOG_EXIT_MS = 300
-// Total time from the boot log's first line appearing to it starting its
-// fade-out: the last line's own stagger delay ((BOOT_LOG_LINES.length - 1)
-// * BOOT_LOG_LINE_STAGGER_MS) + that line's own pop-in animation (180ms,
+// Total time from the boot log's first line appearing to it clearing: the
+// last line's own stagger delay ((BOOT_LOG_LINES.length - 1) *
+// BOOT_LOG_LINE_STAGGER_MS) + that line's own pop-in animation (180ms,
 // win98TerminalPopIn in globals.css) + the read pause above.
 const BOOT_LOG_TOTAL_MS =
   (BOOT_LOG_LINES.length - 1) * BOOT_LOG_LINE_STAGGER_MS + 180 + BOOT_LOG_READ_PAUSE_MS
@@ -250,16 +246,19 @@ const BOOT_LOG_TOTAL_MS =
 // itself has:
 //   'idle'    — query hasn't finished typing yet, nothing renders.
 //   'booting' — lines are popping in (and then sitting readable).
-//   'exiting' — brief opacity fade-out (see BOOT_LOG_EXIT_MS above).
-//   'done'    — boot log stops rendering entirely; the dossier row
-//               (photo + bio + Experience) takes over the same spot,
-//               gated on this phase in the JSX below.
+//   'done'    — boot log stops rendering entirely, in the same frame it
+//               finishes its read pause — a real terminal clearing the
+//               screen (think `clear`, or a kernel handing off to a
+//               login prompt) doesn't fade, it just cuts — so this cuts
+//               too, no opacity transition. The dossier row (photo + bio
+//               + Experience) takes over the same spot the instant this
+//               flips, gated on this phase in the JSX below.
 // Resets straight back to 'idle' the instant `active` goes false, mirroring
 // useReplayableTypedQuery's own reset-on-deactivate above — so leaving the
 // Home tab and coming back replays the whole sequence (query → boot log →
 // dossier) from scratch rather than snapping straight to 'done' forever.
 function useBootSequence(active: boolean) {
-  const [phase, setPhase] = useState<'idle' | 'booting' | 'exiting' | 'done'>('idle')
+  const [phase, setPhase] = useState<'idle' | 'booting' | 'done'>('idle')
 
   useEffect(() => {
     if (!active) {
@@ -267,10 +266,8 @@ function useBootSequence(active: boolean) {
       return
     }
     setPhase('booting')
-    const toExiting = setTimeout(() => setPhase('exiting'), BOOT_LOG_TOTAL_MS)
-    const toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS + BOOT_LOG_EXIT_MS)
+    const toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS)
     return () => {
-      clearTimeout(toExiting)
       clearTimeout(toDone)
     }
   }, [active])
@@ -432,8 +429,8 @@ export default function HomeClient({
   const homeQueryActive = homeTab === 'home' && advithOpen
   const { typed: homeQueryTyped, done: homeQueryDone } = useReplayableTypedQuery(HOME_QUERY_TEXT, homeQueryActive)
   // Boot log's own phase, driven off the query above finishing — see
-  // useBootSequence for the 'booting' → 'exiting' → 'done' lifecycle this
-  // plays out, and the JSX below for where each phase actually renders.
+  // useBootSequence for the 'booting' → 'done' lifecycle this plays out,
+  // and the JSX below for where each phase actually renders.
   const bootPhase = useBootSequence(homeQueryDone)
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
@@ -1321,7 +1318,7 @@ export default function HomeClient({
                         bootPhase === 'done'. Nothing here pops in
                         simultaneously with anything else the way it used
                         to — it's a strict sequence: type query → boot log
-                        plays → boot log fades out → dossier appears. */}
+                        plays → boot log cuts to clear → dossier appears. */}
                     <h1 className="text-white text-lg font-bold text-left font-mono">
                         $ &gt; {homeQueryTyped}
                         {!homeQueryDone && (
@@ -1335,23 +1332,20 @@ export default function HomeClient({
                         after the query above finishes typing, then clears
                         rather than sticking around: it's staged as part of
                         the same "$ >" animation, not a permanent section.
-                        useBootSequence drives the three phases this reads:
-                        'booting' (lines popping in, same win98-terminal-pop
-                        stagger every other block on this tab uses — not a
-                        char-by-char typewriter like the query itself, 14
-                        lines typed one character at a time would take a
-                        while), 'exiting' (a brief opacity fade via the
-                        transition-opacity classes below, so it doesn't just
-                        vanish on the frame the last line's read-pause ends),
-                        then 'done', at which point this whole block stops
-                        rendering and the dossier row further down (gated on
-                        bootPhase === 'done') takes over the same spot. */}
-                    {(bootPhase === 'booting' || bootPhase === 'exiting') && (
-                      <div
-                        className={`flex flex-col gap-1 font-mono text-sm sm:text-[15px] mt-4 pb-24 transition-opacity duration-300 ${
-                          bootPhase === 'exiting' ? 'opacity-0' : 'opacity-100'
-                        }`}
-                      >
+                        useBootSequence drives the two phases this reads:
+                        'booting' (lines popping in via the same
+                        win98-terminal-pop stagger every other block on
+                        this tab uses — not a char-by-char typewriter like
+                        the query itself, 14 lines typed one character at a
+                        time would take a while) then straight to 'done' —
+                        no fade in between. A real terminal clearing the
+                        screen cuts, it doesn't cross-fade, so this doesn't
+                        either; at 'done' this block simply stops
+                        rendering and the dossier row further down (gated
+                        on bootPhase === 'done') takes over the same
+                        spot on the very next frame. */}
+                    {bootPhase === 'booting' && (
+                      <div className="flex flex-col gap-1 font-mono text-sm sm:text-[15px] mt-4 pb-24">
                         {BOOT_LOG_LINES.map((line, i) => (
                           <p
                             key={line.time}

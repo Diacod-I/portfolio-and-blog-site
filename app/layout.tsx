@@ -103,6 +103,11 @@ export default async function RootLayout({
       <head>
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
         <link rel="preload" href="/win98/click.mp3" as="audio" type="audio/mpeg" />
+        {/* Keystroke tick for the Home tab's typed "$ >" query (see
+            HomeClient.tsx's playTypeSound / useReplayableTypedQuery) — a
+            short synthesized WAV, same reasoning as the two preloads
+            above: the first character shouldn't stall on a cold fetch. */}
+        <link rel="preload" href="/win98/type_key.wav" as="audio" type="audio/wav" />
         {/* Edu NSW/ACT Cursive (hidden gallery's polaroid captions, see
             components/ImageExhibition.tsx) — loaded straight from Google
             Fonts' CDN rather than next/font/google like the other four

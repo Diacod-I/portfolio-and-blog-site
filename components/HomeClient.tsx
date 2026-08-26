@@ -197,10 +197,17 @@ const EASTER_EGG_TEXT_STYLE: CSSProperties = {
 // retyped — the opposite of what's wanted here now that only the Home
 // tab's query is left and it's meant to replay every time that tab opens
 // (see homeQueryActive's own comment at the call site below for what
-// "opens" means exactly).
-function useReplayableTypedQuery(text: string, active: boolean) {
+// "opens" means exactly). `onChar`, if given, fires once per character
+// typed (not once per render) — the call site uses this to play a
+// keystroke sound (see playTypeSound below) without this hook needing to
+// know anything about audio itself. Read via a ref, not a plain effect
+// dependency, so passing a fresh inline callback on every render doesn't
+// restart the typing interval.
+function useReplayableTypedQuery(text: string, active: boolean, onChar?: () => void) {
   const [typed, setTyped] = useState('')
   const [done, setDone] = useState(false)
+  const onCharRef = useRef(onChar)
+  onCharRef.current = onChar
 
   useEffect(() => {
     if (!active) {
@@ -212,6 +219,7 @@ function useReplayableTypedQuery(text: string, active: boolean) {
     const interval = setInterval(() => {
       i++
       setTyped(text.slice(0, i))
+      onCharRef.current?.()
       if (i >= text.length) {
         clearInterval(interval)
         setDone(true)
@@ -375,6 +383,28 @@ export default function HomeClient({
     audio.currentTime = 0
     audio.play().catch(() => { /* blocked until a real gesture — opening an app already is one */ })
   }, [])
+  // Keystroke sound for the Home tab's typed "$ >" query (see
+  // useReplayableTypedQuery's onChar param and the HOME_QUERY_TEXT call
+  // site below) — a short synthesized tick, same "rotating pool, not one
+  // shared Audio" pattern as the glitch sound above and SoundEffects.tsx's
+  // click pool: characters type every TYPED_QUERY_CHAR_MS (40ms), faster
+  // than the ~22ms clip fully plays out plus JS/audio-engine overhead, so
+  // a single shared Audio element would occasionally cut its own previous
+  // play() off mid-tick. 8 slots is more than the click pool's 4 since
+  // typing fires far more often in a short burst than clicks do.
+  const typeSoundPoolRef = useRef<HTMLAudioElement[]>([])
+  const typeSoundIndexRef = useRef(0)
+  useEffect(() => {
+    typeSoundPoolRef.current = Array.from({ length: 8 }, () => new Audio('/win98/type_key.wav'))
+  }, [])
+  const playTypeSound = useCallback(() => {
+    const pool = typeSoundPoolRef.current
+    if (pool.length === 0) return
+    const audio = pool[typeSoundIndexRef.current]
+    typeSoundIndexRef.current = (typeSoundIndexRef.current + 1) % pool.length
+    audio.currentTime = 0
+    audio.play().catch(() => { /* blocked until a real gesture — see SoundEffects.tsx's own note on this */ })
+  }, [])
   // Best-effort visitor IP for the About tab's little "I know your IP"
   // easter egg — fetched client-side from /api/ip (see that route) rather
   // than read server-side in every page.tsx that renders this component,
@@ -445,7 +475,7 @@ export default function HomeClient({
   // on/to the Home tab always replays the animation from scratch.
   const advithOpen = wins.advith.status !== 'closed'
   const homeQueryActive = homeTab === 'home' && advithOpen
-  const { typed: homeQueryTyped, done: homeQueryDone } = useReplayableTypedQuery(HOME_QUERY_TEXT, homeQueryActive)
+  const { typed: homeQueryTyped, done: homeQueryDone } = useReplayableTypedQuery(HOME_QUERY_TEXT, homeQueryActive, playTypeSound)
   // Boot log's own phase, driven off the query above finishing — see
   // useBootSequence for the 'booting' → 'done' lifecycle this plays out,
   // and the JSX below for where each phase actually renders.

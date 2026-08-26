@@ -1512,8 +1512,11 @@ export default function HomeClient({
                           </li>
                           <li className="win98-terminal-pop" style={{ animationDelay: '210ms' }}> Delves into kernels, compilers, ML backends, i.e. the <span
                                   className="text-[#00FF00] bg-black px-2 font-bold"
-                                  style={{ letterSpacing: '0.5px' }}
+                               style={{ letterSpacing: '0.5px' }}
                                 >software beneath the software.</span>
+                          </li>
+                          <li className="win98-terminal-pop" style={{ animationDelay: '210ms' }}>
+                            Listens to <a href="https://www.youtube.com/watch?v=Uoox9fpmDP0&themeRefresh=1" target="blank" rel="noopener noreferrer" className="text-white"><u>Duvet by Bôa</u></a> a little too much... 
                           </li>
                           {visitorIp && (
                             <li className="win98-terminal-pop" style={{ animationDelay: '350ms' }}>

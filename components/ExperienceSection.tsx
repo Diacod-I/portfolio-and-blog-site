@@ -13,7 +13,7 @@ import experience from '@/data/experience'
 
 export default function ExperienceSection() {
   return (
-    <div className="win98-window flex flex-col mt-8">
+    <div className="win98-window flex flex-col mt-4">
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
           <span>Experience</span>

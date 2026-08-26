@@ -192,7 +192,8 @@
   .win98-loader-marquee,
   .win98-loader-marquee-glitch,
   .win98-glitch-text,
-  .win98-new-tag-pulse {
+  .win98-new-tag-pulse,
+  .win98-rainbow-wavy {
     animation: none !important;
   }
   .win98-loader-pop,
@@ -236,6 +237,33 @@
 }
 .win98-error-shake {
   animation: win98ErrorShake 0.4s ease-in-out;
+}
+
+/* "terminal prompt" in the Home tab's last scroll-up-protest easter-egg
+   line (see RainbowWavyText in HomeClient.tsx) — each letter is its own
+   span with a staggered animation-delay, so both keyframes below ripple
+   across the phrase instead of the whole phrase bobbing/recoloring in
+   lockstep. display: inline-block is required for translateY to apply at
+   all on an inline element; font-style italic is static (not animated). */
+@keyframes win98RainbowWave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.2em); }
+}
+@keyframes win98RainbowColor {
+  0% { color: #ff3b3b; }
+  16.6% { color: #ff9f1c; }
+  33.3% { color: #ffe135; }
+  50% { color: #4ade80; }
+  66.6% { color: #38bdf8; }
+  83.3% { color: #a855f7; }
+  100% { color: #ff3b3b; }
+}
+.win98-rainbow-wavy {
+  display: inline-block;
+  font-style: italic;
+  animation:
+    win98RainbowWave 1.4s ease-in-out infinite,
+    win98RainbowColor 2.8s linear infinite;
 }
 .animate-gradient {
   background-size: 400% 400%;

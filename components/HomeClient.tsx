@@ -199,6 +199,26 @@ const EASTER_EGG_TEXT_STYLE: CSSProperties = {
   color: 'color-mix(in srgb, white calc((1 - var(--reveal-progress, 0)) * 100%), black calc(var(--reveal-progress, 0) * 100%))',
 }
 
+// Wavy/italic/rainbow treatment for "terminal prompt" in the last easter-egg
+// protest line below (see win98-rainbow-wavy, win98RainbowWave, and
+// win98RainbowColor in globals.css) — one <span> per character, each with
+// its own animation-delay, so the bob and the color cycle both ripple
+// across the phrase letter by letter instead of the whole thing moving and
+// recoloring in lockstep. Overrides EASTER_EGG_TEXT_STYLE's scroll-driven
+// color-mix (see win98RainbowColor) on purpose — this phrase should stay
+// rainbow regardless of how far the "protest" has faded in.
+function RainbowWavyText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split('').map((ch, i) => (
+        <span key={i} className="win98-rainbow-wavy" style={{ animationDelay: `${i * 70}ms` }}>
+          {ch === ' ' ? ' ' : ch}
+        </span>
+      ))}
+    </>
+  )
+}
+
 // Types `text` out character by character every time `active` transitions
 // from false to true — and resets back to blank the moment `active` goes
 // false, so the *next* time it becomes active it types from scratch again
@@ -1370,7 +1390,7 @@ export default function HomeClient({
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>No... wait...</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>This is.. not possible....</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>What are you doing??</h1>
-                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>Huh? Why are you scrolling up?</h1>
+                <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>Huh? How are you able to scroll beyond the <RainbowWavyText text="terminal prompt" />?</h1>
                 <div ref={homeContentStartRef} className="min-h-full flex flex-col items-center justify-center">
                   {/* Both the heading and the photo+bio row share this same
                       max-w-2xl w-full column so "Database Query" lines up
@@ -1503,7 +1523,7 @@ export default function HomeClient({
                         <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col">
                           <li className="win98-terminal-pop" style={{ animationDelay: '140ms' }}>
                             <span
-                            className="inline-block text-[#00FF00] bg-black font-bold transition-opacity duration-300"
+                            className="inline-block text-black bg-white font-bold transition-opacity duration-300"
                             style={{ letterSpacing: '0.5px' }}
                           >
                             &nbsp;{displayText.trim()}&nbsp;

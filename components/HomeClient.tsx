@@ -223,6 +223,61 @@ function useReplayableTypedQuery(text: string, active: boolean) {
   return { typed, done }
 }
 
+// Per-line stagger for the boot log's win98-terminal-pop reveal (see the
+// JSX below) — kept as a named constant since BOOT_LOG_TOTAL_MS below has
+// to derive from the exact same number, not a copy of it.
+const BOOT_LOG_LINE_STAGGER_MS = 90
+// How long the last line sits fully visible and readable ("All systems
+// nominal." / "Now accepting visitors.") before the boot log starts
+// fading out — without this it'd clear the instant the last line finishes
+// popping in, which reads as way too abrupt to actually read anything.
+const BOOT_LOG_READ_PAUSE_MS = 900
+// Duration of the boot log's own opacity fade-out (see the 'exiting' phase
+// below) — matches the transition-opacity duration-300 class on the boot
+// log's wrapper div in the JSX.
+const BOOT_LOG_EXIT_MS = 300
+// Total time from the boot log's first line appearing to it starting its
+// fade-out: the last line's own stagger delay ((BOOT_LOG_LINES.length - 1)
+// * BOOT_LOG_LINE_STAGGER_MS) + that line's own pop-in animation (180ms,
+// win98TerminalPopIn in globals.css) + the read pause above.
+const BOOT_LOG_TOTAL_MS =
+  (BOOT_LOG_LINES.length - 1) * BOOT_LOG_LINE_STAGGER_MS + 180 + BOOT_LOG_READ_PAUSE_MS
+
+// Drives the boot log's lifecycle once the "$ >" query above finishes
+// typing (`active` is homeQueryDone, not a fresh mount) — this is staged
+// as a one-shot animation, not a permanent section, so it needs its own
+// phase machine rather than a plain "done typing" boolean like the query
+// itself has:
+//   'idle'    — query hasn't finished typing yet, nothing renders.
+//   'booting' — lines are popping in (and then sitting readable).
+//   'exiting' — brief opacity fade-out (see BOOT_LOG_EXIT_MS above).
+//   'done'    — boot log stops rendering entirely; the dossier row
+//               (photo + bio + Experience) takes over the same spot,
+//               gated on this phase in the JSX below.
+// Resets straight back to 'idle' the instant `active` goes false, mirroring
+// useReplayableTypedQuery's own reset-on-deactivate above — so leaving the
+// Home tab and coming back replays the whole sequence (query → boot log →
+// dossier) from scratch rather than snapping straight to 'done' forever.
+function useBootSequence(active: boolean) {
+  const [phase, setPhase] = useState<'idle' | 'booting' | 'exiting' | 'done'>('idle')
+
+  useEffect(() => {
+    if (!active) {
+      setPhase('idle')
+      return
+    }
+    setPhase('booting')
+    const toExiting = setTimeout(() => setPhase('exiting'), BOOT_LOG_TOTAL_MS)
+    const toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS + BOOT_LOG_EXIT_MS)
+    return () => {
+      clearTimeout(toExiting)
+      clearTimeout(toDone)
+    }
+  }, [active])
+
+  return phase
+}
+
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
 // but 'credits' never gets a <DesktopIcon /> rendered — see the JSX below.
 // It's launched from the taskbar's "Credits" link, not pinned to the desktop.
@@ -376,6 +431,10 @@ export default function HomeClient({
   const advithOpen = wins.advith.status !== 'closed'
   const homeQueryActive = homeTab === 'home' && advithOpen
   const { typed: homeQueryTyped, done: homeQueryDone } = useReplayableTypedQuery(HOME_QUERY_TEXT, homeQueryActive)
+  // Boot log's own phase, driven off the query above finishing — see
+  // useBootSequence for the 'booting' → 'exiting' → 'done' lifecycle this
+  // plays out, and the JSX below for where each phase actually renders.
+  const bootPhase = useBootSequence(homeQueryDone)
 
   // Scroll-linked parallax for the faulty-terminal backdrop (see the
   // background layer in the JSX below): each tab's own overflow-y-auto
@@ -1254,12 +1313,15 @@ export default function HomeClient({
                     {/* "$ >" prompt is always there, static — only the query
                         after it types out (see homeQueryTyped/homeQueryDone
                         above), with a blinking block cursor while it's still
-                        typing. The result row below only mounts once it's
-                        done (see the homeQueryDone && below), each line
-                        popping in on its own stagger — see the
-                        win98-terminal-pop class in globals.css — like a
-                        shell printing a command's output line by line,
-                        rather than the whole block fading in as one. */}
+                        typing. Once that's done, the boot log plays as this
+                        query's "result set" — see useBootSequence and the
+                        boot-log block just below — and only once *that*
+                        finishes and clears does the dossier row (photo +
+                        bio + Experience) actually mount, gated on
+                        bootPhase === 'done'. Nothing here pops in
+                        simultaneously with anything else the way it used
+                        to — it's a strict sequence: type query → boot log
+                        plays → boot log fades out → dossier appears. */}
                     <h1 className="text-white text-lg font-bold text-left font-mono">
                         $ &gt; {homeQueryTyped}
                         {!homeQueryDone && (
@@ -1269,7 +1331,47 @@ export default function HomeClient({
                           />
                         )}
                     </h1>
-                    {homeQueryDone && (
+                    {/* Boot log (see data/bootLog.ts) — plays once, right
+                        after the query above finishes typing, then clears
+                        rather than sticking around: it's staged as part of
+                        the same "$ >" animation, not a permanent section.
+                        useBootSequence drives the three phases this reads:
+                        'booting' (lines popping in, same win98-terminal-pop
+                        stagger every other block on this tab uses — not a
+                        char-by-char typewriter like the query itself, 14
+                        lines typed one character at a time would take a
+                        while), 'exiting' (a brief opacity fade via the
+                        transition-opacity classes below, so it doesn't just
+                        vanish on the frame the last line's read-pause ends),
+                        then 'done', at which point this whole block stops
+                        rendering and the dossier row further down (gated on
+                        bootPhase === 'done') takes over the same spot. */}
+                    {(bootPhase === 'booting' || bootPhase === 'exiting') && (
+                      <div
+                        className={`flex flex-col gap-1 font-mono text-sm sm:text-[15px] mt-4 pb-24 transition-opacity duration-300 ${
+                          bootPhase === 'exiting' ? 'opacity-0' : 'opacity-100'
+                        }`}
+                      >
+                        {BOOT_LOG_LINES.map((line, i) => (
+                          <p
+                            key={line.time}
+                            className="win98-terminal-pop"
+                            style={{ animationDelay: `${i * BOOT_LOG_LINE_STAGGER_MS}ms` }}
+                          >
+                            <span className="text-[#666]">[{line.time}]</span>{' '}
+                            <span className="text-[#ccc]">
+                              {line.status === 'warn' ? (
+                                <span className="text-amber-400">WARNING: {line.message}</span>
+                              ) : (
+                                line.message
+                              )}
+                            </span>
+                            {line.status === 'ok' && <span className="text-[#00FF00]"> OK</span>}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    {bootPhase === 'done' && (
                     // mt-4 (spacing after the "$ >" heading above) + pb-3
                     // (spacing before chapter 1 below) — pb-3 is padding,
                     // not a gap/margin: it's what lets this row's sticky
@@ -1361,51 +1463,6 @@ export default function HomeClient({
                         </div>
                       </div>
                     </div>
-                    )}
-                    {/* Boot log — replaces an earlier "Story" section that
-                        used to sit here (a handful of scrollytelling
-                        chapters, data/storyChapters.ts, now deleted): that
-                        one was structured as a literal age-bracket timeline
-                        (birth year → present), which is exactly what this
-                        was built to avoid. This instead reads as a fake
-                        kernel boot log — the "result set" the Home tab's
-                        typed "$ >" query above (HOME_QUERY_TEXT: `select
-                        about from devs where name='Advith Krishnan';`)
-                        returns, continuing straight on from the dossier row
-                        above in the same monospace/terminal voice, just
-                        with no dates attached to any of it. See
-                        data/bootLog.ts for the actual lines and why they're
-                        deliberately generic about employers (the Experience
-                        section right above already names those). Same
-                        win98-terminal-pop stagger every other block on this
-                        tab uses (not a char-by-char typewriter like the "$
-                        >" prompt above — 14 lines typed out one character
-                        at a time would take a while; popping in staggered
-                        reads as "streaming past quickly" instead, which is
-                        closer to what a real boot log looks like anyway),
-                        gated on homeQueryDone same as the row above —
-                        nothing below the "$ >" prompt shows until that's
-                        finished typing. */}
-                    {homeQueryDone && (
-                      <div className="flex flex-col gap-1 font-mono text-sm sm:text-[15px] pb-24">
-                        {BOOT_LOG_LINES.map((line, i) => (
-                          <p
-                            key={line.time}
-                            className="win98-terminal-pop"
-                            style={{ animationDelay: `${i * 90}ms` }}
-                          >
-                            <span className="text-[#666]">[{line.time}]</span>{' '}
-                            <span className="text-[#ccc]">
-                              {line.status === 'warn' ? (
-                                <span className="text-amber-400">WARNING: {line.message}</span>
-                              ) : (
-                                line.message
-                              )}
-                            </span>
-                            {line.status === 'ok' && <span className="text-[#00FF00]"> OK</span>}
-                          </p>
-                        ))}
-                      </div>
                     )}
                   </div>
                 </div>

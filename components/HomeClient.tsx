@@ -33,12 +33,14 @@ import { EXHIBITION_FRAMES_MAX_TOP_PCT } from '@/data/exhibitionFrames'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 
-// Lazy-loaded: WorldMap pulls in react-simple-maps/d3-geo plus a ~140KB
-// real-country GeoJSON payload (data/countries.geo.json), and only ever
+// Lazy-loaded: WorldMap pulls in react-simple-maps/d3-geo, and only ever
 // renders once the boot-log sequence finishes — no reason for that weight
-// to sit in the initial bundle. ssr:false because d3-geo's map projection
-// math doesn't need to (and needn't try to) run server-side for a panel
-// that's gated behind client-only animation state anyway.
+// to sit in the initial bundle. (Its country geometry is a world-atlas
+// TopoJSON file fetched by react-simple-maps itself at runtime, not a local
+// bundled payload — see the comment atop WorldMap.tsx.) ssr:false because
+// d3-geo's map projection math doesn't need to (and needn't try to) run
+// server-side for a panel that's gated behind client-only animation state
+// anyway.
 const WorldMap = dynamic(() => import('@/components/WorldMap'), { ssr: false })
 
 // What the Blogs window shows: the Explorer-style list (default), or a

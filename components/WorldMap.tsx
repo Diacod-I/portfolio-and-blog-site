@@ -11,15 +11,27 @@
 // wheel/pinch zoom (via ZoomableGroup); this file just wires it up and
 // fills in India.
 //
-// Country geometry comes from data/countries.geo.json — a real GeoJSON
-// FeatureCollection (not hand-projected), see that file's neighbor
-// data/worldMap.ts for provenance. Loaded as a lazy dynamic import from
-// HomeClient.tsx (see that file) since the JSON payload is ~140KB and this
-// panel only renders once the boot-log sequence finishes.
+// Country geometry: this used to be a GeoJSON file I hand-assembled by
+// fetching ~66 countries one at a time and merging them myself (see git
+// history for data/countries.geo.json, now removed). That still looked
+// broken after switching to react-simple-maps, and reading the library's
+// own source explains why — react-simple-maps only runs antimeridian-safe,
+// consistently-wound geometry reconstruction (via topojson-client) when it's
+// handed real TopoJSON; a plain merged GeoJSON FeatureCollection like mine
+// gets used as-is, so any winding-order or antimeridian-crossing quirks in
+// the source data (very easy to introduce by hand for wide-spanning
+// countries like Russia, Canada, the US) render as visibly broken shapes.
+// So instead of assembling geometry myself, this now points at world-atlas's
+// countries-110m.json — the pre-built, properly-wound TopoJSON dataset most
+// react-simple-maps examples are built around. Passed as a URL string,
+// react-simple-maps fetches and parses it itself at runtime in the browser
+// (see fetchGeographies in the library source), so there's no local JSON
+// payload to bundle at all.
 import { useState } from 'react'
 import { ComposableMap, Geographies, Geography, Graticule, Sphere, ZoomableGroup } from 'react-simple-maps'
 import { INDIA_FILL } from '@/data/worldMap'
-import countriesGeo from '@/data/countries.geo.json'
+
+const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 const MIN_ZOOM = 1
 const MAX_ZOOM = 8
@@ -75,7 +87,7 @@ export default function WorldMap() {
           >
             <Sphere id="rsm-sphere" fill="transparent" stroke="#3a3a3a" strokeWidth={0.5} />
             <Graticule stroke="#2a2a2a" strokeWidth={0.5} />
-            <Geographies geography={countriesGeo}>
+            <Geographies geography={GEO_URL}>
               {({ geographies }) =>
                 geographies.map((geo) => {
                   const isIndia = geo.properties?.name === 'India'

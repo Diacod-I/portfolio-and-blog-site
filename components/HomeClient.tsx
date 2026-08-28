@@ -426,15 +426,21 @@ export default function HomeClient({
   // Minesweeper's explosion and Solitaire's win chime (see those files'
   // own playExplosion/playWinChime — a filtered noise burst, here with a
   // soft low sine "thump" underneath), tuned duller/quieter but bumped
-  // higher-pitched three times now per feedback (900Hz -> 1400Hz ->
-  // 2200Hz -> 3400Hz lowpass cutoff; 170Hz -> 320Hz -> 520Hz -> 850Hz
-  // sine). The noise burst's
-  // lowpass (no sweep — the burst is only 35ms, too short for a sweep to
-  // be audible) is what actually removes the bright high-frequency
-  // "click" content a sharp key sound has, leaving the rounded, muffled
-  // "thock" of a quiet ergonomic keyboard instead of a mechanical/
-  // typewriter clack — raising both cutoffs brightens the pitch without
-  // reintroducing that sharpness, since the sharpness comes mainly from
+  // higher-pitched four times now per feedback: lowpass cutoff went
+  // 900Hz -> 1400Hz -> 2200Hz -> 3400Hz across the first three rounds,
+  // then held there for this fourth one — the noise burst's lowpass (no
+  // sweep — the burst is only 35ms, too short for a sweep to be audible)
+  // is what actually removes the bright high-frequency "click" content a
+  // sharp key sound has, so pushing it higher again risked reintroducing
+  // that sharpness rather than just raising pitch. Instead this round
+  // only raises the sine "thump" (170Hz -> 320Hz -> 520Hz -> 850Hz ->
+  // 1500Hz), which is a plain tone with no transient/click content of its
+  // own to sharpen — the rounded, muffled "thock" of a quiet ergonomic
+  // keyboard (vs. a mechanical/typewriter clack) comes from the noise
+  // burst staying capped, not from the sine staying low, so raising just
+  // the sine keeps brightening it without that risk. If this still isn't
+  // high enough, the sine can keep climbing the same way; the noise
+  // cutoff is the one dial to leave alone.
   // the noise burst's transient/duration, not from pitch alone.
   //
   // One AudioContext, created lazily on the first keystroke and reused
@@ -483,7 +489,7 @@ export default function HomeClient({
       const osc = ctx.createOscillator()
       const oscGain = ctx.createGain()
       osc.type = 'sine'
-      osc.frequency.setValueAtTime(850, now)
+      osc.frequency.setValueAtTime(1500, now)
       oscGain.gain.setValueAtTime(0.1, now)
       oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05)
       osc.connect(oscGain).connect(ctx.destination)

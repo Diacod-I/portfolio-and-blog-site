@@ -4,7 +4,7 @@
 // The registry version currently depends on React Three Fiber 9 (React 19),
 // so this uses the project's existing OGL renderer instead.
 
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { Mesh, Program, Renderer, Triangle } from 'ogl'
 
 type DitherBackgroundProps = {
@@ -15,6 +15,29 @@ type DitherBackgroundProps = {
   colorNum?: number
   pixelSize?: number
 }
+
+// Hoisted out of the default parameter list below — a literal array/object
+// used as a default *parameter* value is a brand-new reference every single
+// time the function is invoked, even when the caller never explicitly
+// passes waveColor at all. MusicPlayer.tsx's <PlayerChrome> renders this
+// component as `<DitherBackground />` with zero props, but PlayerChrome
+// itself re-renders continuously while a track plays (the mp3 <audio>
+// element's onTimeUpdate fires roughly every 250ms, and the YouTube-mode
+// path polls every 400ms) — so without hoisting this, DitherBackground's
+// own function body re-ran on every one of those ticks, `waveColor` came
+// out as a "new" array each time, and since it sits in the effect's
+// dependency array below, that meant the *entire* WebGL context (Renderer,
+// Program, Mesh, ResizeObserver, canvas) was being torn down and rebuilt
+// from scratch several times a second for as long as any song kept
+// playing. That's the kind of continuous allocate/GC churn that shows up
+// exactly as described: climbing memory and visible lag, worse in Chrome
+// than Safari, worse the longer/more actively you're using the tab. The
+// `memo()` wrap below stops PlayerChrome's re-renders from reaching this
+// component's props at all (they're literally unchanged, referentially,
+// on every re-render now), which is the primary fix; hoisting the default
+// here is a second, independent guard so the same class of bug can't
+// silently come back if memo is ever removed or bypassed later.
+const DEFAULT_WAVE_COLOR: [number, number, number] = [0.34, 0.35, 0.38]
 
 const vertexShader = `
   attribute vec2 position;
@@ -111,9 +134,9 @@ const fragmentShader = `
   }
 `
 
-export default function DitherBackground({
+function DitherBackground({
   // Neutral charcoal keeps the animation understated beneath player controls.
-  waveColor = [0.34, 0.35, 0.38],
+  waveColor = DEFAULT_WAVE_COLOR,
   waveSpeed = 0.05,
   waveFrequency = 3,
   waveAmplitude = 0.3,
@@ -162,9 +185,24 @@ export default function DitherBackground({
       renderer.render({ scene: mesh })
       animationFrame = requestAnimationFrame(render)
     }
+    // Don't burn GPU/CPU rendering a shader nobody can see — pause the loop
+    // while the tab itself is backgrounded (switching to another app/space,
+    // not just scrolling this one out of view) and pick back up the instant
+    // it's visible again. This only touches the render loop, so a track
+    // left playing in a hidden tab keeps playing audio as normal; it just
+    // stops repainting a background no one's looking at.
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        cancelAnimationFrame(animationFrame)
+      } else {
+        animationFrame = requestAnimationFrame(render)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
     animationFrame = requestAnimationFrame(render)
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
       cancelAnimationFrame(animationFrame)
       observer.disconnect()
       gl.canvas.remove()
@@ -174,3 +212,9 @@ export default function DitherBackground({
 
   return <div ref={containerRef} className="absolute inset-0 opacity-85" aria-hidden />
 }
+
+// See DEFAULT_WAVE_COLOR's comment above for why this matters here
+// specifically: MusicPlayer.tsx's <PlayerChrome> re-renders continuously
+// while a track plays (onTimeUpdate/polling), and without memo() every one
+// of those re-renders would reach this component and re-run its effect.
+export default memo(DitherBackground)

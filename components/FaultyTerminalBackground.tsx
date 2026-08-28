@@ -494,7 +494,27 @@ const FaultyTerminalBackground = forwardRef<FaultyTerminalBackgroundHandle, Faul
     ctn.appendChild(gl.canvas)
     if (mouseReact) ctn.addEventListener('mousemove', handleMouseMove)
 
+    // This backdrop sits behind the Home/About/Contact tabs of the one
+    // persistent <HomeClient> instance (see AppShellHost.tsx) — meaning
+    // once it's mounted, this per-frame glitch/scanline shader would
+    // otherwise keep rendering forever, including while the whole tab is
+    // backgrounded (switched away to another app/space and back), which is
+    // pure wasted GPU/CPU work nobody's looking at. Pausing on
+    // visibilitychange and resuming on return should noticeably help the
+    // "gets laggier the more you switch away and back" symptom, since the
+    // loop simply isn't running at all while hidden instead of quietly
+    // accumulating cost in the background.
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        cancelAnimationFrame(rafRef.current)
+      } else {
+        rafRef.current = requestAnimationFrame(update)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
       cancelAnimationFrame(rafRef.current)
       observer.disconnect()
       if (mouseReact) ctn.removeEventListener('mousemove', handleMouseMove)

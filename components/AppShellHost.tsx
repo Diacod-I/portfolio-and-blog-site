@@ -12,6 +12,14 @@
 // rendering of blogsView/reportView for how it applies those without
 // needing a fresh mount.
 //
+// One exception to "HomeClient always mounts immediately": a cold landing
+// on '/' specifically renders <PowerOnGate> instead, first — see that
+// component for the full reasoning (short version: browsers block
+// autoplaying audio until a real user gesture, and '/' is the one route
+// where HomeClient's Home tab can start its auto-playing typing/boot-log/
+// chime sequence with zero gesture yet this page load). Every other
+// route here still mounts HomeClient immediately, unchanged.
+//
 // Three route shapes handled here:
 //  - SHELL_ROUTES ('/', '/about', '/contact', '/blogs', '/credits') — no
 //    per-page content needed, just forceOpenApp/initialHomeTab derived
@@ -52,8 +60,10 @@
 // so this doesn't need its own data-fetching, and so none of these pages
 // need to fetch them just to pass along to a <HomeClient> they no longer
 // render themselves.
+import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import HomeClient, { type BlogsView, type ReportView } from '@/components/HomeClient'
+import PowerOnGate from '@/components/PowerOnGate'
 import { useRouteContentStore } from '@/lib/store/routeContentStore'
 import type { AppId } from '@/lib/store/windowStore'
 import type { HomeTab } from '@/components/Navbar'
@@ -99,6 +109,33 @@ export default function AppShellHost({ notes, featured, children }: AppShellHost
   // unrelated re-render.
   const blogPost = useRouteContentStore((s) => s.blogPost)
   const report = useRouteContentStore((s) => s.report)
+
+  // See PowerOnGate.tsx for the full reasoning — short version: '/' is the
+  // only route nothing auto-opens on (every other shell route force-opens
+  // straight into content — see deriveShellView below), so it's the only
+  // place a cold load can end up replaying HomeClient's auto-playing Home
+  // tab sequence (typing sound, boot log, dossier chime) with zero user
+  // gesture yet this page load, which browsers silently block. Lazy
+  // useState initializer: only evaluated once, on this component's actual
+  // mount (which only happens on a real navigation/reload — AppShellHost
+  // itself persists across client-side nav within the root layout), so
+  // this captures "was '/' the very first route this session actually
+  // loaded" and nothing later (like clicking Home from another tab, which
+  // is itself already a real gesture) re-triggers it.
+  const [showPowerOnGate, setShowPowerOnGate] = useState(() => pathname === '/')
+  if (showPowerOnGate) {
+    return (
+      <>
+        {/* Invisible per-page content (e.g. '/'s Person JSON-LD script —
+            see app/page.tsx) still renders even behind the gate: it's not
+            part of the visible UI the gate is blocking, and search-engine
+            crawlers generally don't perform the click needed to get past
+            it, so this shouldn't be hidden behind that interaction. */}
+        {children}
+        <PowerOnGate onStart={() => setShowPowerOnGate(false)} />
+      </>
+    )
+  }
 
   if (isBlogPostRoute(pathname)) {
     const blogsView: BlogsView = blogPost

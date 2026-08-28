@@ -193,12 +193,21 @@
   .win98-loader-marquee-glitch,
   .win98-glitch-text,
   .win98-new-tag-pulse,
-  .win98-rainbow-wavy {
+  .win98-rainbow-wavy,
+  .win98-grub-blink {
     animation: none !important;
   }
   .win98-loader-pop,
   .win98-loader-glitch {
     animation: none !important;
+  }
+  /* win98-rainbow-bg's background-image is a static property, not part of
+     the animation, so it stays visible either way — this just freezes the
+     scroll position at a defined frame instead of whatever position it
+     happened to be at when the animation was cut. */
+  .win98-rainbow-bg {
+    animation: none !important;
+    background-position: 0% 50% !important;
   }
   /* Unlike the two rules above, .win98-terminal-pop's and
      .win98-instant-pop's *base* state (not just their keyframes) is
@@ -266,6 +275,43 @@
   animation:
     win98RainbowWave 1.4s ease-in-out infinite,
     win98RainbowColor 2.8s linear infinite;
+}
+
+/* PowerOnGate.tsx's boot-menu entry: a gentle dim-pulse on the selection
+   highlight — real GRUB's bar is fully static, but per feedback that read
+   as a little too inert, so this is a much milder version of the old
+   full color-inversion blink that used to live here (removed, then asked
+   back for as "slightly blinking"). Only the highlight's brightness
+   pulses; text stays black at both ends so it's never briefly unreadable
+   the way a full swap-to-black-bg would be. steps(1, end) matches this
+   site's other "hard cut" terminal-style timing (see win98-instant-pop)
+   instead of an easing curve. */
+@keyframes win98GrubBlink {
+  0%, 49% { background-color: #c0c0c0; }
+  50%, 100% { background-color: #9a9a9a; }
+}
+.win98-grub-blink {
+  animation: win98GrubBlink 1.2s steps(1, end) infinite;
+}
+
+/* PowerOnGate.tsx's "Press Enter to boot..." line: a looping horizontal
+   rainbow sweep behind the text (the text itself stays plain black, see
+   the component's own comment on this span). The gradient repeats the
+   same color sequence twice back to back so animating background-position
+   from 0% to 200% loops seamlessly with no visible seam/jump. */
+@keyframes win98RainbowBgWave {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.win98-rainbow-bg {
+  background-image: linear-gradient(
+    90deg,
+    #ff3b3b, #ff9f1c, #ffe135, #4ade80, #38bdf8, #a855f7,
+    #ff3b3b, #ff9f1c, #ffe135, #4ade80, #38bdf8, #a855f7
+  );
+  background-size: 200% 100%;
+  animation: win98RainbowBgWave 3s linear infinite;
+  color: #000;
 }
 .animate-gradient {
   background-size: 400% 400%;

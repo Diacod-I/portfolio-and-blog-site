@@ -146,18 +146,22 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
               trademark note this borrows the same disclosure pattern
               from (the Windows 98 homage above it). */}
           <div className="w-full max-w-xl">
-            <p className="text-sm sm:text-base mb-2">GNU GRUB&nbsp;&nbsp;version 2.06</p>
+            <p className="text-sm sm:text-base mb-2">Not GNU GRUB&nbsp;&nbsp;version 2.06</p>
             <div className="border border-[#c0c0c0]">
               {/* A real <button>, not a styled div — native Enter/Space
                   handling for free, and it matches SoundEffects.tsx's own
                   INTERACTIVE_SELECTOR (button, ...), so selecting it also
                   produces the site's normal click sound right alongside
-                  the boot chime above. */}
+                  the boot chime above. win98-grub-blink adds a slight,
+                  gentle dim-pulse to the highlight (see globals.css) — per
+                  feedback, real GRUB's fully static bar read as a little
+                  too inert; text stays black throughout so it's never hard
+                  to read mid-pulse. */}
               <button
                 type="button"
                 onClick={handleSelect}
                 autoFocus
-                className="w-full text-left px-3 py-1 text-sm sm:text-base bg-[#c0c0c0] text-black"
+                className="win98-grub-blink w-full text-left px-3 py-1 text-sm sm:text-base bg-[#c0c0c0] text-black"
               >
                 Advith-OS
               </button>
@@ -174,8 +178,17 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
             </div>
             <p className="text-xs sm:text-sm mt-4 leading-relaxed">
               Use the ↑ and ↓ keys to select which entry is highlighted.
-              <br />
-              Press enter to boot the selected OS.
+            </p>
+            {/* Broken out of the paragraph above into its own line so the
+                waving-rainbow treatment applies to just this instruction,
+                not the arrow-key one above it. win98-rainbow-bg animates
+                the BACKGROUND only (a looping horizontal gradient scroll);
+                the text itself stays plain black the whole time, same as
+                the arrow-key line, so it's still easy to read. */}
+            <p className="text-xs sm:text-sm mt-1 leading-relaxed">
+              <span className="win98-rainbow-bg inline-block px-1 font-semibold">
+                Press Enter to boot the selected OS.
+              </span>
             </p>
           </div>
         </div>

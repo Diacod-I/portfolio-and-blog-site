@@ -31,6 +31,19 @@ export default function CreditsWindow() {
           non-commercial fan project and is not affiliated with, endorsed by, or
           sponsored by Microsoft.
         </li>
+        <li>
+          The site&apos;s &quot;power on&quot; screen (shown once, before the desktop
+          loads) is a visual homage to the{' '}
+          <a href="https://www.gnu.org/software/grub/" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            GNU GRUB
+          </a>{' '}
+          boot menu. GRUB is free software from the GNU Project; this is an
+          independent, non-commercial fan recreation of its look and is not
+          affiliated with, endorsed by, or sponsored by the GNU Project or the Free
+          Software Foundation. Its &quot;Advith-OS&quot; entry doesn&apos;t actually
+          boot an operating system — selecting it plays a startup chime and reveals
+          this site&apos;s own desktop.
+        </li>
       </ul>
 
       <h3 className={h3Class}>Visual &amp; Audio Assets</h3>

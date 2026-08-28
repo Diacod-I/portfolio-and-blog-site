@@ -27,13 +27,13 @@
 // autoplay" case by case, and it guarantees every sound effect on the
 // site works from the very first real interaction onward.
 //
-// Styled as a bootloader menu (single selectable entry, like a GRUB menu
-// with only one OS installed) rather than a win98 dialog — per feedback,
-// this reads as "an actual operating system starting up" instead of a
-// generic "click to enable sound" prompt, and it's the one moment on the
-// site that's genuinely "before" the win98 desktop exists yet. Two
-// phases:
-//   'menu'    — black screen, one blinking menu entry, nothing else.
+// Styled to match the real GRUB2 boot menu as closely as CSS reasonably
+// allows (see the 'menu' phase's own comment below for the specifics) —
+// per feedback, a generic "click to enable sound" dialog didn't read as
+// "an actual operating system starting up" the way an actual bootloader
+// screen does, and it's the one moment on the site that's genuinely
+// "before" the win98 desktop exists yet. Two phases:
+//   'menu'    — black screen, one selectable menu entry, nothing else.
 //   'booting' — plays a synthesized startup chime (same one-off-
 //               AudioContext pattern as Minesweeper's explosion — see
 //               that file — rather than the reused-context pattern
@@ -133,33 +133,49 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
         style={{ opacity: fadeOut ? 0 : 1, transitionDuration: `${BOOT_FADE_MS}ms` }}
       />
       {phase === 'menu' && (
-        <div className="absolute inset-0 flex items-center justify-center font-mono text-white select-none px-4">
-          <div className="w-full max-w-sm">
-            <p className="text-[10px] sm:text-xs text-[#888] mb-3 tracking-wide">
-              ADVITH-OS BOOTLOADER
-            </p>
-            <div className="border border-white">
+        <div className="absolute inset-0 flex items-center justify-center font-mono text-[#c0c0c0] select-none px-4">
+          {/* Laid out to match real GRUB2's default text menu as closely
+              as CSS reasonably allows: "GNU GRUB  version X.XX" above a
+              bordered box, the one real entry highlighted with a static
+              (not blinking — real GRUB doesn't blink its selection)
+              inverted bar, and the box padded out with blank rows to the
+              same tall, mostly-empty shape GRUB's box has even with only
+              one or two entries installed, followed by the exact
+              "Use the arrow keys..." instructions GRUB itself shows. See
+              CreditsWindow.tsx's Design & Inspiration section for the
+              trademark note this borrows the same disclosure pattern
+              from (the Windows 98 homage above it). */}
+          <div className="w-full max-w-xl">
+            <p className="text-sm sm:text-base mb-2">GNU GRUB&nbsp;&nbsp;version 2.06</p>
+            <div className="border border-[#c0c0c0]">
               {/* A real <button>, not a styled div — native Enter/Space
                   handling for free, and it matches SoundEffects.tsx's own
                   INTERACTIVE_SELECTOR (button, ...), so selecting it also
                   produces the site's normal click sound right alongside
-                  the boot chime above. win98-grub-blink (see globals.css)
-                  is the blinking selected-entry look; bg-white/text-black
-                  below are that same look's *static* base, so disabling
-                  the animation under prefers-reduced-motion (see that
-                  file) still leaves a fully legible, just non-blinking,
-                  highlighted entry rather than an unstyled one. */}
+                  the boot chime above. */}
               <button
                 type="button"
                 onClick={handleSelect}
                 autoFocus
-                className="win98-grub-blink w-full text-left px-3 py-2 text-sm sm:text-base bg-white text-black"
+                className="w-full text-left px-3 py-1 text-sm sm:text-base bg-[#c0c0c0] text-black"
               >
                 Advith-OS
               </button>
+              {/* Blank filler rows — real GRUB's box is a fixed height
+                  (room for far more entries than most machines actually
+                  have installed), not sized tightly around however many
+                  entries exist. aria-hidden since there's nothing here
+                  for a screen reader to announce. */}
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="px-3 py-1 text-sm sm:text-base" aria-hidden="true">
+                  &nbsp;
+                </div>
+              ))}
             </div>
-            <p className="text-[10px] sm:text-xs text-[#888] mt-3 leading-relaxed">
-              Press ENTER or click the entry above to boot.
+            <p className="text-xs sm:text-sm mt-4 leading-relaxed">
+              Use the ↑ and ↓ keys to select which entry is highlighted.
+              <br />
+              Press enter to boot the selected OS.
             </p>
           </div>
         </div>

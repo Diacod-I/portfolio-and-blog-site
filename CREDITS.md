@@ -13,6 +13,14 @@ licensed.
   and Windows 98 are trademarks of Microsoft Corporation. This is an
   independent, non-commercial fan project and is not affiliated with,
   endorsed by, or sponsored by Microsoft.
+- The site's "power on" screen (shown once, before the desktop loads) is
+  a visual homage to the [GNU GRUB](https://www.gnu.org/software/grub/)
+  boot menu. GRUB is free software from the GNU Project; this is an
+  independent, non-commercial fan recreation of its look and is not
+  affiliated with, endorsed by, or sponsored by the GNU Project or the
+  Free Software Foundation. Its "Advith-OS" entry doesn't actually boot
+  an operating system — selecting it plays a startup chime and reveals
+  this site's own desktop.
 
 ## Visual & Audio Assets
 

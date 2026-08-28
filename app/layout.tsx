@@ -103,11 +103,11 @@ export default async function RootLayout({
       <head>
         <link rel="preload" href="/win98/windows_error_sound.mp3" as="audio" type="audio/mpeg" />
         <link rel="preload" href="/win98/click.mp3" as="audio" type="audio/mpeg" />
-        {/* Keystroke tick for the Home tab's typed "$ >" query (see
-            HomeClient.tsx's playTypeSound / useReplayableTypedQuery) — a
-            short synthesized WAV, same reasoning as the two preloads
-            above: the first character shouldn't stall on a cold fetch. */}
-        <link rel="preload" href="/win98/type_key.wav" as="audio" type="audio/wav" />
+        {/* No preload link for the Home tab's typed "$ >" query keystroke
+            sound (see HomeClient.tsx's playTypeSound) — it used to be a
+            sample here (type_key.wav) but is now synthesized on the fly
+            with the Web Audio API, same as Minesweeper's explosion and
+            Solitaire's win chime, so there's no file left to preload. */}
         {/* "Data confirmed" chime for the instant the dossier appears once
             the boot log clears (see HomeClient.tsx's dossierBeepRef) —
             same preload reasoning as the two audio links above. */}

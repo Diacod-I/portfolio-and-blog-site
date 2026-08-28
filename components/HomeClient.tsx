@@ -420,25 +420,74 @@ export default function HomeClient({
   }, [])
   // Keystroke sound for the Home tab's typed "$ >" query (see
   // useReplayableTypedQuery's onChar param and the HOME_QUERY_TEXT call
-  // site below) — a short synthesized tick, same "rotating pool, not one
-  // shared Audio" pattern as the glitch sound above and SoundEffects.tsx's
-  // click pool: characters type every TYPED_QUERY_CHAR_MS (40ms), faster
-  // than the ~22ms clip fully plays out plus JS/audio-engine overhead, so
-  // a single shared Audio element would occasionally cut its own previous
-  // play() off mid-tick. 8 slots is more than the click pool's 4 since
-  // typing fires far more often in a short burst than clicks do.
-  const typeSoundPoolRef = useRef<HTMLAudioElement[]>([])
-  const typeSoundIndexRef = useRef(0)
-  useEffect(() => {
-    typeSoundPoolRef.current = Array.from({ length: 8 }, () => new Audio('/win98/type_key.wav'))
-  }, [])
+  // site below). Used to be a sample (type_key.wav) played through a
+  // rotating <audio> pool — per feedback that read as too sharp/clicky,
+  // so this is now synthesized instead: same Web Audio technique as
+  // Minesweeper's explosion and Solitaire's win chime (see those files'
+  // own playExplosion/playWinChime — a filtered noise burst, here with a
+  // soft low sine "thump" underneath), tuned duller and quieter. The
+  // noise burst runs through a tight lowpass (900Hz, no sweep — the burst
+  // is only 35ms, too short for a sweep to be audible) which is what
+  // actually removes the bright high-frequency "click" content a sharp
+  // key sound has, leaving the rounded, muffled "thock" of a quiet
+  // ergonomic keyboard instead of a mechanical/typewriter clack.
+  //
+  // One AudioContext, created lazily on the first keystroke and reused
+  // for every keystroke after — NOT a fresh context per call the way
+  // Minesweeper's one-off explosion does. Typing fires this far more
+  // often than any other sound on the site (~every 40ms during a query),
+  // and constructing an AudioContext isn't free; reusing one and just
+  // creating fresh, cheap oscillator/buffer-source nodes per keystroke
+  // (the normal Web Audio pattern for repeated short sounds — those nodes
+  // are meant to be built and discarded per play) avoids reintroducing
+  // exactly the kind of main-thread cost the FaultyTerminalBackground/
+  // ImageExhibition memoization above was fixing.
+  const typeAudioCtxRef = useRef<AudioContext | null>(null)
   const playTypeSound = useCallback(() => {
-    const pool = typeSoundPoolRef.current
-    if (pool.length === 0) return
-    const audio = pool[typeSoundIndexRef.current]
-    typeSoundIndexRef.current = (typeSoundIndexRef.current + 1) % pool.length
-    audio.currentTime = 0
-    audio.play().catch(() => { /* blocked until a real gesture — see SoundEffects.tsx's own note on this */ })
+    try {
+      const AC =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      const ctx = typeAudioCtxRef.current ?? (typeAudioCtxRef.current = new AC())
+      // Autoplay policy suspends a freshly-created context until a real
+      // user gesture too (same restriction as <audio>.play() elsewhere on
+      // this site — see SoundEffects.tsx) — resume() is a no-op once
+      // already running, and this call itself doesn't need to be awaited:
+      // if it's still suspended, the nodes below simply produce no sound,
+      // same silent-fallback behavior as every other blocked sound here.
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+      const now = ctx.currentTime
+      const dur = 0.035
+
+      const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
+      const data = buffer.getChannelData(0)
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / data.length)
+      }
+      const noise = ctx.createBufferSource()
+      noise.buffer = buffer
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'lowpass'
+      filter.frequency.setValueAtTime(900, now)
+      const noiseGain = ctx.createGain()
+      noiseGain.gain.setValueAtTime(0.16, now)
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + dur)
+      noise.connect(filter).connect(noiseGain).connect(ctx.destination)
+      noise.start(now)
+
+      const osc = ctx.createOscillator()
+      const oscGain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(170, now)
+      oscGain.gain.setValueAtTime(0.1, now)
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05)
+      osc.connect(oscGain).connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.06)
+    } catch {
+      /* Web Audio unavailable/blocked — lose silently, same as every
+         other sound on this site. */
+    }
   }, [])
   // "Data confirmed" chime for the instant the dossier (photo + bio +
   // Experience) actually appears — see the bootPhase === 'done' effect

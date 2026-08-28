@@ -95,8 +95,9 @@ export default function CreditsWindow() {
           required).
         </li>
         <li>
-          The Solitaire win chime and Minesweeper explosion are synthesized in
-          the browser with the Web Audio API — no recorded samples.
+          The Solitaire win chime, Minesweeper explosion, and the Home tab&apos;s
+          typed-query keystroke sound are all synthesized in the browser with
+          the Web Audio API — no recorded samples.
         </li>
         <li>
           Prince of Persia desktop icon sourced via{' '}

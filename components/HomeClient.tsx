@@ -495,7 +495,15 @@ export default function HomeClient({
       click.connect(clickFilter).connect(clickGain).connect(ctx.destination)
       click.start(now)
 
-      // "body" — the duller tone underneath the click, same as before.
+      // "body" — the duller tone underneath the click. Per feedback this
+      // used to carry an unwanted resonant bass undertone (described as
+      // "sounds like a tabla") — a lowpass alone only caps the TOP of the
+      // spectrum, so a wideband noise burst still keeps its full sub-bass
+      // content underneath, and the ear reads that leftover low-end boom
+      // as a separate drum-like tone. Added a highpass at 350Hz in series
+      // (noise -> highpass -> lowpass) to cut that sub-bass out entirely,
+      // leaving just the mid-range "thock" the lowpass was already meant
+      // to isolate, with nothing booming underneath it.
       const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
       const data = buffer.getChannelData(0)
       for (let i = 0; i < data.length; i++) {
@@ -503,13 +511,16 @@ export default function HomeClient({
       }
       const noise = ctx.createBufferSource()
       noise.buffer = buffer
+      const highpass = ctx.createBiquadFilter()
+      highpass.type = 'highpass'
+      highpass.frequency.setValueAtTime(350, now)
       const filter = ctx.createBiquadFilter()
       filter.type = 'lowpass'
       filter.frequency.setValueAtTime(3400, now)
       const noiseGain = ctx.createGain()
       noiseGain.gain.setValueAtTime(0.16, now)
       noiseGain.gain.exponentialRampToValueAtTime(0.001, now + dur)
-      noise.connect(filter).connect(noiseGain).connect(ctx.destination)
+      noise.connect(highpass).connect(filter).connect(noiseGain).connect(ctx.destination)
       noise.start(now)
 
       // "thump" — the sine tone, same as before.

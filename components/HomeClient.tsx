@@ -425,12 +425,16 @@ export default function HomeClient({
   // so this is now synthesized instead: same Web Audio technique as
   // Minesweeper's explosion and Solitaire's win chime (see those files'
   // own playExplosion/playWinChime — a filtered noise burst, here with a
-  // soft low sine "thump" underneath), tuned duller and quieter. The
-  // noise burst runs through a tight lowpass (900Hz, no sweep — the burst
-  // is only 35ms, too short for a sweep to be audible) which is what
-  // actually removes the bright high-frequency "click" content a sharp
-  // key sound has, leaving the rounded, muffled "thock" of a quiet
-  // ergonomic keyboard instead of a mechanical/typewriter clack.
+  // soft low sine "thump" underneath), tuned duller/quieter but a bit
+  // higher-pitched per a follow-up tweak. The noise burst runs through a
+  // lowpass (1400Hz, no sweep — the burst is only 35ms, too short for a
+  // sweep to be audible) which is what actually removes the bright
+  // high-frequency "click" content a sharp key sound has, leaving the
+  // rounded, muffled "thock" of a quiet ergonomic keyboard instead of a
+  // mechanical/typewriter clack — raising this cutoff (was 900Hz) and the
+  // sine's own pitch (was 170Hz, now 320Hz) brightened it up without
+  // reintroducing that sharpness, since sharpness here comes mainly from
+  // the noise burst's transient/duration, not from pitch alone.
   //
   // One AudioContext, created lazily on the first keystroke and reused
   // for every keystroke after — NOT a fresh context per call the way
@@ -468,7 +472,7 @@ export default function HomeClient({
       noise.buffer = buffer
       const filter = ctx.createBiquadFilter()
       filter.type = 'lowpass'
-      filter.frequency.setValueAtTime(900, now)
+      filter.frequency.setValueAtTime(1400, now)
       const noiseGain = ctx.createGain()
       noiseGain.gain.setValueAtTime(0.16, now)
       noiseGain.gain.exponentialRampToValueAtTime(0.001, now + dur)
@@ -478,7 +482,7 @@ export default function HomeClient({
       const osc = ctx.createOscillator()
       const oscGain = ctx.createGain()
       osc.type = 'sine'
-      osc.frequency.setValueAtTime(170, now)
+      osc.frequency.setValueAtTime(320, now)
       oscGain.gain.setValueAtTime(0.1, now)
       oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05)
       osc.connect(oscGain).connect(ctx.destination)

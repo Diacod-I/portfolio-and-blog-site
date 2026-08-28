@@ -183,15 +183,16 @@ export default function CreditsWindow() {
         <li>
           The Home tab&apos;s hidden &quot;image exhibition&quot; (scroll up past the
           top of the Home tab) is mostly Advith&apos;s own personal photos, plus a
-          handful of downloaded images mixed in: a black-and-white manga
-          illustration, a &quot;ZA WARUDO&quot; screenshot from JoJo&apos;s Bizarre
-          Adventure, a golden-ratio meme referencing Persona, and a screenshot of
-          Kiryu Kazuma from the Yakuza / Like a Dragon series. These are fan
-          favorites reused for personal, non-commercial, decorative purposes;
-          each remains the property of its original rights holder (respectively
-          unidentified, Hirohiko Araki/LUCKYLAND/Shueisha, Atlus/Sega, and Sega),
-          and this site is not affiliated with, endorsed by, or sponsored by any
-          of them.
+          handful of downloaded images mixed in: a black-and-white illustration
+          of All Might from My Hero Academia, a &quot;ZA WARUDO&quot; screenshot
+          from JoJo&apos;s Bizarre Adventure, a golden-ratio meme referencing
+          Persona, and a screenshot of Kiryu Kazuma from the Yakuza / Like a
+          Dragon series. These are fan favorites reused for personal,
+          non-commercial, decorative purposes; each remains the property of its
+          original rights holder (respectively Kohei Horikoshi/Shueisha,
+          Hirohiko Araki/LUCKYLAND/Shueisha, Atlus/Sega, and Sega), and this
+          site is not affiliated with, endorsed by, or sponsored by any of
+          them.
         </li>
         <li>
           The Home tab&apos;s faulty-terminal shader backdrop (Home, About, and

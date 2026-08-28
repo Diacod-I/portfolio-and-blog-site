@@ -122,7 +122,7 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   { id: 'photo-30', leftPct: 36.1, topPct: 36.0, widthPx: 170, heightPx: 128, rotationDeg: -4.4, src: '/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg', alt: 'A personal photo', caption: 'roses are red or some shit' },
   { id: 'photo-31', leftPct: 75.6, topPct: 35.8, widthPx: 128, heightPx: 170, rotationDeg: -1.2, src: '/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg', alt: 'A personal photo', caption: 'pookie phase (ongoing)' },
   { id: 'photo-32', leftPct: 46.4, topPct: 12.3, widthPx: 128, heightPx: 170, rotationDeg: -2.2, src: '/E71A0C45-4BA0-42AB-8B15-D2EBFA7A2AB9_1_105_c.jpeg', alt: 'A personal photo', caption: 'touch grass' },
-  { id: 'photo-33', leftPct: 33.3, topPct: 43.5, widthPx: 110, heightPx: 170, rotationDeg: -4.5, src: '/8eqko4.png', alt: 'A black-and-white manga illustration', caption: 'goat' },
+  { id: 'photo-33', leftPct: 33.3, topPct: 43.5, widthPx: 110, heightPx: 170, rotationDeg: -4.5, src: '/8eqko4.png', alt: 'A black-and-white illustration of All Might from My Hero Academia', caption: 'goat' },
   { id: 'photo-34', leftPct: 35.4, topPct: 61.5, widthPx: 170, heightPx: 128, rotationDeg: 2.0,  src: '/hqdefault.jpg', alt: 'An anime screenshot', caption: 'za warudo!!!!' },
   { id: 'photo-35', leftPct: 14.3, topPct: 39.3, widthPx: 135, heightPx: 170, rotationDeg: -2.5, src: '/images.jpeg', alt: 'An anime screenshot with a golden-ratio overlay', caption: 'the persona ratio' },
   { id: 'photo-36', leftPct: 0.9,  topPct: 12.8, widthPx: 170, heightPx: 96,  rotationDeg: 3.2,  src: '/maxresdefault.jpg', alt: 'A video game screenshot', caption: 'kiryu kazuma-san' },

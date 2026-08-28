@@ -112,6 +112,16 @@ export default async function RootLayout({
             the boot log clears (see HomeClient.tsx's dossierBeepRef) —
             same preload reasoning as the two audio links above. */}
         <link rel="preload" href="/win98/dossier_beep.wav" as="audio" type="audio/wav" />
+        {/* Desktop wallpaper — PowerOnGate.tsx only mounts the element that
+            actually shows this image once the boot chime plays (its
+            'booting' phase), so without this preload the browser wouldn't
+            start fetching it until that exact moment, causing a visible
+            stutter/pop-in partway through the fade. Preloading here means
+            the fetch has already completed (or is well underway) long
+            before the user even clicks the boot menu entry, so by the time
+            PowerOnGate's div appears it's just an instant decode-from-cache
+            + paint, not a network round trip. */}
+        <link rel="preload" href="/win98/windows_98_wallpaper.webp" as="image" type="image/webp" />
         {/* Edu NSW/ACT Cursive (hidden gallery's polaroid captions, see
             components/ImageExhibition.tsx) — loaded straight from Google
             Fonts' CDN rather than next/font/google like the other four

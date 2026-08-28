@@ -201,14 +201,6 @@
   .win98-loader-glitch {
     animation: none !important;
   }
-  /* win98-rainbow-bg's background-image is a static property, not part of
-     the animation, so it stays visible either way — this just freezes the
-     scroll position at a defined frame instead of whatever position it
-     happened to be at when the animation was cut. */
-  .win98-rainbow-bg {
-    animation: none !important;
-    background-position: 0% 50% !important;
-  }
   /* Unlike the two rules above, .win98-terminal-pop's and
      .win98-instant-pop's *base* state (not just their keyframes) is
      opacity: 0 — both rely on the animation's forwards fill to ever
@@ -294,25 +286,6 @@
   animation: win98GrubBlink 1.2s steps(1, end) infinite;
 }
 
-/* PowerOnGate.tsx's "Press Enter to boot..." line: a looping horizontal
-   rainbow sweep behind the text (the text itself stays plain black, see
-   the component's own comment on this span). The gradient repeats the
-   same color sequence twice back to back so animating background-position
-   from 0% to 200% loops seamlessly with no visible seam/jump. */
-@keyframes win98RainbowBgWave {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-.win98-rainbow-bg {
-  background-image: linear-gradient(
-    90deg,
-    #ff3b3b, #ff9f1c, #ffe135, #4ade80, #38bdf8, #a855f7,
-    #ff3b3b, #ff9f1c, #ffe135, #4ade80, #38bdf8, #a855f7
-  );
-  background-size: 200% 100%;
-  animation: win98RainbowBgWave 3s linear infinite;
-  color: #000;
-}
 .animate-gradient {
   background-size: 400% 400%;
   animation: gradientFlow 3s ease infinite;

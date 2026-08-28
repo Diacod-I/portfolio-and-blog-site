@@ -179,16 +179,11 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
             <p className="text-xs sm:text-sm mt-4 leading-relaxed">
               Use the ↑ and ↓ keys to select which entry is highlighted.
             </p>
-            {/* Broken out of the paragraph above into its own line so the
-                waving-rainbow treatment applies to just this instruction,
-                not the arrow-key one above it. win98-rainbow-bg animates
-                the BACKGROUND only (a looping horizontal gradient scroll);
-                the text itself stays plain black the whole time, same as
-                the arrow-key line, so it's still easy to read. */}
-            <p className="text-xs sm:text-sm mt-1 leading-relaxed">
-              <span className="win98-rainbow-bg inline-block px-1 font-semibold">
-                Press Enter to boot the selected OS.
-              </span>
+            {/* Kept on its own line (separate from the arrow-key
+                instruction above) but no longer has the rainbow
+                background — just plain white text now. */}
+            <p className="text-xs sm:text-sm mt-1 leading-relaxed text-white">
+              Press Enter to boot the selected OS.
             </p>
           </div>
         </div>

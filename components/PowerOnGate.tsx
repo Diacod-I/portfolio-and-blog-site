@@ -45,7 +45,7 @@
 //               unmounts for good, handing off to the real HomeClient
 //               (which renders that exact same wallpaper — see its own
 //               backgroundImage — so there's no visual jump at handoff).
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 type PowerOnGateProps = {
   onStart: () => void
@@ -96,11 +96,28 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
   // straight to its end state before the browser paints the start of it.
   const [fadeOut, setFadeOut] = useState(false)
 
-  const handleSelect = () => {
+  const handleSelect = useCallback(() => {
     if (phase !== 'menu') return
     playBootChime()
     setPhase('booting')
-  }
+  }, [phase])
+
+  // The button itself already has autoFocus, so real GRUB-style Enter
+  // handling mostly happens for free (a focused native <button> fires a
+  // click on Enter) — but this listens on the window too, so Enter boots
+  // the entry even if focus ever ended up elsewhere (e.g. a stray click on
+  // the page background before the keypress). Only attached during 'menu'
+  // — the effect re-runs and detaches it the instant phase flips away.
+  useEffect(() => {
+    if (phase !== 'menu') return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter') return
+      e.preventDefault()
+      handleSelect()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [phase, handleSelect])
 
   useEffect(() => {
     if (phase !== 'booting') return

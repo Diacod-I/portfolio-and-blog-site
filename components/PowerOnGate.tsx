@@ -105,8 +105,12 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
 
   const handleSelect = useCallback(() => {
     if (phase !== 'menu') return
-    playBootChime()
     setPhase('booting')
+    // Chime plays from the effect below, once BOOT_DELAY_MS has elapsed,
+    // in lockstep with the wallpaper starting to fade in — not here — so
+    // the sound and the visual reveal actually happen together instead of
+    // the chime firing (and mostly finishing its decay) during the silent
+    // black-screen pause that comes first.
   }, [phase])
 
   // The button itself already has autoFocus, so real GRUB-style Enter
@@ -128,14 +132,23 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
 
   useEffect(() => {
     if (phase !== 'booting') return
-    // Screen stays solid black for BOOT_DELAY_MS after the chime before the
-    // reveal fade even starts, then the fade itself takes BOOT_FADE_MS —
-    // onStart() fires once both have elapsed, so HomeClient takes over
-    // right as the fade visually finishes.
-    const toFade = setTimeout(() => setFadeOut(true), BOOT_DELAY_MS)
+    // Screen stays solid black (and silent) for BOOT_DELAY_MS after the
+    // entry is selected, then the chime and the reveal fade both start in
+    // the same tick, then the fade itself takes BOOT_FADE_MS — onStart()
+    // fires once both have elapsed, so HomeClient takes over right as the
+    // fade visually finishes. Delaying the chime this way (rather than
+    // playing it immediately on selection) is still well within the
+    // page's user-activation window — the selecting click/Enter press is
+    // itself the qualifying gesture, and that "this document has had a
+    // real user gesture" flag is what unblocks AudioContext playback, not
+    // strict millisecond-level synchronicity with the gesture itself.
+    const toReveal = setTimeout(() => {
+      playBootChime()
+      setFadeOut(true)
+    }, BOOT_DELAY_MS)
     const toStart = setTimeout(onStart, BOOT_DELAY_MS + BOOT_FADE_MS)
     return () => {
-      clearTimeout(toFade)
+      clearTimeout(toReveal)
       clearTimeout(toStart)
     }
   }, [phase, onStart])

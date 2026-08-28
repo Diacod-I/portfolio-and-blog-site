@@ -426,8 +426,9 @@ export default function HomeClient({
   // Minesweeper's explosion and Solitaire's win chime (see those files'
   // own playExplosion/playWinChime — a filtered noise burst, here with a
   // soft low sine "thump" underneath), tuned duller/quieter but bumped
-  // higher-pitched twice now per feedback (900Hz -> 1400Hz -> 2200Hz
-  // lowpass cutoff; 170Hz -> 320Hz -> 520Hz sine). The noise burst's
+  // higher-pitched three times now per feedback (900Hz -> 1400Hz ->
+  // 2200Hz -> 3400Hz lowpass cutoff; 170Hz -> 320Hz -> 520Hz -> 850Hz
+  // sine). The noise burst's
   // lowpass (no sweep — the burst is only 35ms, too short for a sweep to
   // be audible) is what actually removes the bright high-frequency
   // "click" content a sharp key sound has, leaving the rounded, muffled
@@ -472,7 +473,7 @@ export default function HomeClient({
       noise.buffer = buffer
       const filter = ctx.createBiquadFilter()
       filter.type = 'lowpass'
-      filter.frequency.setValueAtTime(2200, now)
+      filter.frequency.setValueAtTime(3400, now)
       const noiseGain = ctx.createGain()
       noiseGain.gain.setValueAtTime(0.16, now)
       noiseGain.gain.exponentialRampToValueAtTime(0.001, now + dur)
@@ -482,7 +483,7 @@ export default function HomeClient({
       const osc = ctx.createOscillator()
       const oscGain = ctx.createGain()
       osc.type = 'sine'
-      osc.frequency.setValueAtTime(520, now)
+      osc.frequency.setValueAtTime(850, now)
       oscGain.gain.setValueAtTime(0.1, now)
       oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05)
       osc.connect(oscGain).connect(ctx.destination)

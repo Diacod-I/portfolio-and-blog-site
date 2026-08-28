@@ -137,11 +137,15 @@ const randomGlitchSpawnPos = () => ({
 // character by character — see useReplayableTypedQuery below — after
 // which the tab's content pops in line by line (see the
 // win98-terminal-pop class in globals.css and the homeQueryDone-gated
-// blocks in the JSX). The "$ >" prompt itself is always shown, static —
-// only the query text after it types. Logs and Contact used to have
-// their own queries here too (gh_logs / contact_info) — removed, but
-// each tab keeps an empty "$ >" -sized spacer where that line used to be
-// (see the JSX) so the rest of each tab's layout doesn't shift up.
+// blocks in the JSX; the Home tab's own dossier row uses the very
+// similar win98-instant-pop instead — same per-element stagger, but a
+// hard cut rather than a fade+scale, matching the boot log right above
+// it — see that class's own comment in globals.css). The "$ >" prompt
+// itself is always shown, static — only the query text after it types.
+// Logs and Contact used to have their own queries here too (gh_logs /
+// contact_info) — removed, but each tab keeps an empty "$ >" -sized
+// spacer where that line used to be (see the JSX) so the rest of each
+// tab's layout doesn't shift up.
 const HOME_QUERY_TEXT = 'select about from devs where name=\'Advith Krishnan\';'
 const TYPED_QUERY_CHAR_MS = 40
 
@@ -1435,10 +1439,9 @@ export default function HomeClient({
                         the same "$ >" animation, not a permanent section.
                         Lines print one at a time (see bootLogVisibleLines/
                         useBootSequence) with NO pop/fade/scale animation
-                        on them at all, unlike every other reveal on this
-                        tab (win98-terminal-pop) — a real terminal doesn't
-                        animate a new line into view, the line just exists
-                        the instant it's written, so slicing BOOT_LOG_LINES
+                        on them at all — a real terminal doesn't animate a
+                        new line into view, the line just exists the
+                        instant it's written, so slicing BOOT_LOG_LINES
                         down to only what's "printed" so far and rendering
                         that plainly is what actually reads as terminal
                         output instead of a UI transition. Once every line
@@ -1446,7 +1449,13 @@ export default function HomeClient({
                         cuts this block away entirely (no fade — see
                         useBootSequence) and the dossier row further down
                         (gated on bootPhase === 'done') takes over the
-                        same spot. */}
+                        same spot — per feedback, that row now reads as a
+                        continuation of this same "instant cut" character
+                        rather than a contrast to it: win98-instant-pop
+                        (see globals.css) staggers it in with the same
+                        per-element animation-delay win98-terminal-pop
+                        used to, just without that class's fade+scale
+                        ramp. */}
                     {bootPhase === 'booting' && (
                       <div className="flex flex-col gap-1 font-mono text-sm sm:text-[15px] mt-4 pb-24">
                         {BOOT_LOG_LINES.slice(0, bootLogVisibleLines).map((line) => (
@@ -1493,7 +1502,7 @@ export default function HomeClient({
                           column) — only enabled at sm: and up, matching the
                           row/column breakpoint above. */}
                       <div
-                        className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-2 win98-terminal-pop"
+                        className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-2 win98-instant-pop"
                         style={{ animationDelay: '0ms' }}
                       >
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
@@ -1508,7 +1517,7 @@ export default function HomeClient({
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col gap-3">
-                        <p className="text-white text-2xl font-bold win98-terminal-pop" style={{ animationDelay: '70ms' }}>
+                        <p className="text-white text-2xl font-bold win98-instant-pop" style={{ animationDelay: '70ms' }}>
                           (#ID_6392) Advith Krishnan
                         </p>
                         {/* Bio copy: deliberately not a resume rehash — the goal is
@@ -1521,7 +1530,7 @@ export default function HomeClient({
                             throughout this dossier. text-justify for even edges,
                             matching the blog/report reading columns elsewhere. */}
                         <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col">
-                          <li className="win98-terminal-pop" style={{ animationDelay: '140ms' }}>
+                          <li className="win98-instant-pop" style={{ animationDelay: '140ms' }}>
                             <span
                             className="inline-block text-black bg-white font-bold transition-opacity duration-300"
                             style={{ letterSpacing: '0.5px' }}
@@ -1530,16 +1539,16 @@ export default function HomeClient({
                           </span>
                           &nbsp;who works on cool stuff.
                           </li>
-                          <li className="win98-terminal-pop" style={{ animationDelay: '210ms' }}> Delves into kernels, compilers, ML backends, i.e. the <span
+                          <li className="win98-instant-pop" style={{ animationDelay: '210ms' }}> Delves into kernels, compilers, ML backends, i.e. the <span
                                   className="text-[#00FF00] bg-black px-2 font-bold"
                                style={{ letterSpacing: '0.5px' }}
                                 >software beneath the software.</span>
                           </li>
-                          <li className="win98-terminal-pop" style={{ animationDelay: '210ms' }}>
+                          <li className="win98-instant-pop" style={{ animationDelay: '210ms' }}>
                             Listens to <a href="https://www.youtube.com/watch?v=Uoox9fpmDP0&themeRefresh=1" target="blank" rel="noopener noreferrer" className="text-white"><u>Duvet by Bôa</u></a> a little too much... 
                           </li>
                           {visitorIp && (
-                            <li className="win98-terminal-pop" style={{ animationDelay: '350ms' }}>
+                            <li className="win98-instant-pop" style={{ animationDelay: '350ms' }}>
                               Knows your IP address is{' '}
                               <span
                                 className="inline-block text-[#00FF00] bg-black px-2 font-bold"
@@ -1557,7 +1566,7 @@ export default function HomeClient({
                             in the stagger sequence, delayed a bit further
                             when the IP line is also showing so it doesn't
                             overlap that line's own pop-in. */}
-                        <div className="win98-terminal-pop" style={{ animationDelay: visitorIp ? '420ms' : '350ms' }}>
+                        <div className="win98-instant-pop" style={{ animationDelay: visitorIp ? '420ms' : '350ms' }}>
                         <ExperienceSection />
                         </div>
                       </div>
@@ -1572,7 +1581,7 @@ export default function HomeClient({
                         boundary data — a live fetch for the real thing
                         didn't pan out). Delayed a bit past Experience's own
                         stagger. */}
-                    <div className="win98-terminal-pop" style={{ animationDelay: visitorIp ? '490ms' : '420ms' }}>
+                    <div className="win98-instant-pop" style={{ animationDelay: visitorIp ? '490ms' : '420ms' }}>
                       <WorldMap />
                     </div>
                     </>

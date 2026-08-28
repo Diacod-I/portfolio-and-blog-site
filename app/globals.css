@@ -200,11 +200,13 @@
   .win98-loader-glitch {
     animation: none !important;
   }
-  /* Unlike the two rules above, .win98-terminal-pop's *base* state (not
-     just its keyframe) is opacity: 0 — it relies on the animation's
-     forwards fill to ever become visible. Disabling the animation without
-     also forcing it visible here would leave it permanently hidden. */
-  .win98-terminal-pop {
+  /* Unlike the two rules above, .win98-terminal-pop's and
+     .win98-instant-pop's *base* state (not just their keyframes) is
+     opacity: 0 — both rely on the animation's forwards fill to ever
+     become visible. Disabling the animation without also forcing it
+     visible here would leave it permanently hidden. */
+  .win98-terminal-pop,
+  .win98-instant-pop {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
@@ -335,15 +337,19 @@
   animation: win98LoaderMarquee 0.5s steps(6, end) infinite;
 }
 
-/* Home tab's "terminal output" reveal (see HomeClient.tsx): once the "$ >"
-   query finishes typing, the profile row's lines snap in one after another
-   (via increasing animation-delay per element) instead of the whole block
-   fading in together — reads like a shell printing a command's output line
-   by line. steps(2, end) instead of a smooth easing curve keeps each pop
-   crisp/instant rather than a soft fade; the slight overshoot at 60% (scale
+/* Logs tab's ("about" internally — see Navbar.tsx) "terminal output"
+   reveal (see HomeClient.tsx): once mounted, the Contributor
+   Activity/report-archive lines snap in one after another (via increasing
+   animation-delay per element) instead of the whole block fading in
+   together — reads like a shell printing a command's output line by line.
+   steps(2, end) instead of a smooth easing curve keeps each pop crisp/
+   instant rather than a soft fade; the slight overshoot at 60% (scale
    1.01) is what gives it a "pop" rather than a plain cut-in. forwards fill
    mode locks in the visible end state once each line's animation finishes,
-   since the base state below is opacity: 0. */
+   since the base state below is opacity: 0. (The Home tab's own dossier
+   row used to share this class too, but per feedback now uses
+   win98-instant-pop below instead — an even harder cut, no fade or scale
+   at all.) */
 @keyframes win98TerminalPopIn {
   0% { opacity: 0; transform: translateY(4px) scale(0.98); }
   60% { opacity: 1; transform: translateY(0) scale(1.01); }
@@ -352,6 +358,27 @@
 .win98-terminal-pop {
   opacity: 0;
   animation: win98TerminalPopIn 180ms steps(2, end) forwards;
+}
+
+/* Home tab's dossier row (photo + bio + Experience + world map — see
+   HomeClient.tsx, gated on bootPhase === 'done') reveal. This row sits
+   directly below the boot log, which prints each line with NO animation
+   at all — it just exists the instant it's written (see that block's own
+   comment in HomeClient.tsx) — so per feedback this row should read as a
+   continuation of that same instant-cut character instead of contrasting
+   with it via win98-terminal-pop's fade+scale. Same mechanism as that
+   class otherwise (opacity: 0 base state, per-element animation-delay
+   staggers when each piece cuts in, forwards fill locks in the visible
+   end state) — only the keyframe itself changes, from a 180ms fade+scale
+   ramp down to a 1ms opacity flip. steps(1, end) plus a near-zero
+   duration means there's no interpolation to see: each element is either
+   fully hidden or fully visible, nothing in between. */
+@keyframes win98InstantPopIn {
+  to { opacity: 1; }
+}
+.win98-instant-pop {
+  opacity: 0;
+  animation: win98InstantPopIn 1ms steps(1, end) forwards;
 }
 
 /* "NEW" badge on recent blog posts (see ExplorerBlogList.tsx's isNew()) —

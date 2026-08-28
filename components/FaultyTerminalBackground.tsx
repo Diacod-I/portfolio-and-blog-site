@@ -21,7 +21,7 @@
 // referentially stable across renders on its own, so the effect only reruns
 // when a real config value changes.
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useCallback } from 'react'
+import { forwardRef, memo, useEffect, useImperativeHandle, useRef, useCallback } from 'react'
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl'
 
 const vertexShader = `
@@ -523,4 +523,17 @@ const FaultyTerminalBackground = forwardRef<FaultyTerminalBackgroundHandle, Faul
 
 FaultyTerminalBackground.displayName = 'FaultyTerminalBackground'
 
-export default FaultyTerminalBackground
+// memo() matters here specifically: HomeClient.tsx re-renders very often
+// (every ~40ms while the "$ >" query types, every 90ms while the boot log
+// prints, and continuously in the background from the About-role morph
+// ticker regardless of which tab is active — see that component's
+// roleIndex effect) and this component's own props (brightness={0.3}, plus
+// a stable ref) never change across any of that. Without memo, every one
+// of those ticks still re-runs this whole function body and asks React to
+// reconcile its output — cheap on desktop, but real, measurable work
+// competing for the same main thread as the WebGL render loop itself, and
+// exactly the kind of thing that reads as "slow typing" on a phone's
+// weaker CPU even though the typing interval's own timing is unchanged.
+// (The WebGL rendering itself runs on requestAnimationFrame independent of
+// React re-renders either way — this only cuts the wasted React-side work.)
+export default memo(FaultyTerminalBackground)

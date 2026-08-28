@@ -31,10 +31,19 @@
 // kept over object-contain mainly so a fraction-of-a-pixel rounding
 // mismatch between the box's integer px size and the photo's exact ratio
 // fills the box cleanly instead of leaving a hairline letterbox gap.
+import { memo } from 'react'
 import Image from 'next/image'
 import { EXHIBITION_FRAMES } from '@/data/exhibitionFrames'
 
-export default function ImageExhibition() {
+// memo()'d for the same reason as FaultyTerminalBackground (see that
+// file's own comment): this renders unconditionally alongside the Home
+// tab's "$ >" typed query and boot log, both of which re-render the whole
+// HomeClient tree every 40-90ms while they play. This component takes no
+// props at all, so it can never have a real reason to re-render from its
+// parent — without memo, React still walks and diffs its ~30 <Image>
+// frames on every one of those ticks anyway, for no visual benefit, which
+// is real main-thread work a phone's CPU feels a lot more than a laptop's.
+function ImageExhibition() {
   return (
     <div className="absolute inset-0 pointer-events-none" aria-hidden>
       {EXHIBITION_FRAMES.map((frame) => {
@@ -94,3 +103,5 @@ export default function ImageExhibition() {
     </div>
   )
 }
+
+export default memo(ImageExhibition)

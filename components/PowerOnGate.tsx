@@ -51,9 +51,16 @@ type PowerOnGateProps = {
   onStart: () => void
 }
 
-// How long the wallpaper-reveal fade takes once the entry is selected —
-// onStart() fires this long after, not immediately, so the fade is
-// actually visible before HomeClient takes over.
+// A brief pause after selecting the entry — chime plays, screen stays
+// black a beat longer, THEN the wallpaper starts revealing — instead of
+// the reveal beginning the instant it's selected. Echoes the pause real
+// hardware/firmware takes before a boot splash actually shows up.
+const BOOT_DELAY_MS = 1000
+
+// How long the wallpaper-reveal fade itself takes, once it starts (i.e.
+// after BOOT_DELAY_MS has already elapsed) — onStart() fires this long
+// after the fade begins, not immediately, so the fade is actually visible
+// before HomeClient takes over.
 const BOOT_FADE_MS = 1600
 
 // Warm ascending major chord (C4/E4/G4/C5), synthesized rather than a
@@ -121,10 +128,14 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
 
   useEffect(() => {
     if (phase !== 'booting') return
-    const raf = requestAnimationFrame(() => setFadeOut(true))
-    const toStart = setTimeout(onStart, BOOT_FADE_MS)
+    // Screen stays solid black for BOOT_DELAY_MS after the chime before the
+    // reveal fade even starts, then the fade itself takes BOOT_FADE_MS —
+    // onStart() fires once both have elapsed, so HomeClient takes over
+    // right as the fade visually finishes.
+    const toFade = setTimeout(() => setFadeOut(true), BOOT_DELAY_MS)
+    const toStart = setTimeout(onStart, BOOT_DELAY_MS + BOOT_FADE_MS)
     return () => {
-      cancelAnimationFrame(raf)
+      clearTimeout(toFade)
       clearTimeout(toStart)
     }
   }, [phase, onStart])

@@ -425,23 +425,23 @@ export default function HomeClient({
   // so this is now synthesized instead: same Web Audio technique as
   // Minesweeper's explosion and Solitaire's win chime (see those files'
   // own playExplosion/playWinChime — a filtered noise burst, here with a
-  // soft low sine "thump" underneath), tuned duller/quieter but bumped
-  // higher-pitched four times now per feedback: lowpass cutoff went
-  // 900Hz -> 1400Hz -> 2200Hz -> 3400Hz across the first three rounds,
-  // then held there for this fourth one — the noise burst's lowpass (no
-  // sweep — the burst is only 35ms, too short for a sweep to be audible)
-  // is what actually removes the bright high-frequency "click" content a
-  // sharp key sound has, so pushing it higher again risked reintroducing
-  // that sharpness rather than just raising pitch. Instead this round
-  // only raises the sine "thump" (170Hz -> 320Hz -> 520Hz -> 850Hz ->
-  // 1500Hz), which is a plain tone with no transient/click content of its
-  // own to sharpen — the rounded, muffled "thock" of a quiet ergonomic
-  // keyboard (vs. a mechanical/typewriter clack) comes from the noise
-  // burst staying capped, not from the sine staying low, so raising just
-  // the sine keeps brightening it without that risk. If this still isn't
-  // high enough, the sine can keep climbing the same way; the noise
-  // cutoff is the one dial to leave alone.
-  // the noise burst's transient/duration, not from pitch alone.
+  // soft low sine "thump" underneath), pitch-tuned across five rounds of
+  // feedback: lowpass cutoff 900Hz -> 1400Hz -> 2200Hz -> 3400Hz (held
+  // there since round 3, since pushing it further risked reintroducing
+  // the original sample's sharp/clicky quality), sine 170Hz -> 320Hz ->
+  // 520Hz -> 850Hz -> 1500Hz.
+  //
+  // This round keeps both of those frequencies exactly as they were (per
+  // request) but adds a third layer — a `click` burst — so the sound
+  // reads more like an actual key being pressed rather than one smooth
+  // blip: a real key has a short, sharp *attack* (the switch/membrane
+  // making contact) on top of a duller *body* tone, not just one
+  // homogeneous sound. `click` below is that attack: ~6ms of noise
+  // through a resonant BANDPASS centered on the same 3400Hz the body's
+  // lowpass already uses (so it's not a new pitch, just a sharper-edged
+  // texture at the existing one), gone almost as fast as it starts. The
+  // original noise burst (now `body`) and the sine (`thump`) are
+  // unchanged below — this is a layer added on top, not a replacement.
   //
   // One AudioContext, created lazily on the first keystroke and reused
   // for every keystroke after — NOT a fresh context per call the way
@@ -470,6 +470,32 @@ export default function HomeClient({
       const now = ctx.currentTime
       const dur = 0.035
 
+      // "click" — the sharp attack of the key making contact. Very short
+      // (6ms) and gone almost instantly, through a bandpass (not lowpass
+      // like `body` below) so it's a narrow, resonant tick centered right
+      // on 3400Hz rather than everything below it — that narrowness plus
+      // the fast decay is what reads as a percussive "click" instead of a
+      // wash of noise, and a high Q makes the filter ring slightly at its
+      // center frequency, closer to a real switch's tactile snap.
+      const clickDur = 0.006
+      const clickBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * clickDur), ctx.sampleRate)
+      const clickData = clickBuffer.getChannelData(0)
+      for (let i = 0; i < clickData.length; i++) {
+        clickData[i] = Math.random() * 2 - 1
+      }
+      const click = ctx.createBufferSource()
+      click.buffer = clickBuffer
+      const clickFilter = ctx.createBiquadFilter()
+      clickFilter.type = 'bandpass'
+      clickFilter.frequency.setValueAtTime(3400, now)
+      clickFilter.Q.setValueAtTime(6, now)
+      const clickGain = ctx.createGain()
+      clickGain.gain.setValueAtTime(0.22, now)
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + clickDur)
+      click.connect(clickFilter).connect(clickGain).connect(ctx.destination)
+      click.start(now)
+
+      // "body" — the duller tone underneath the click, same as before.
       const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
       const data = buffer.getChannelData(0)
       for (let i = 0; i < data.length; i++) {
@@ -486,6 +512,7 @@ export default function HomeClient({
       noise.connect(filter).connect(noiseGain).connect(ctx.destination)
       noise.start(now)
 
+      // "thump" — the sine tone, same as before.
       const osc = ctx.createOscillator()
       const oscGain = ctx.createGain()
       osc.type = 'sine'

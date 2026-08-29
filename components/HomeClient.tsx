@@ -1618,15 +1618,6 @@ export default function HomeClient({
                 >
                   <ImageExhibition compact={galleryCompact} />
                 </div>
-                {/* Sits right at the bottom of the "dark zone" (see
-                    data/exhibitionFrames.ts) — the first thing actually
-                    reached scrolling up into the hidden zone from the
-                    protest lines below, right as things are just starting
-                    to get dark/strange. "The only way is up" doubles as a
-                    literal nod to the scroll direction that got you here. */}
-                <p className="text-center mb-16 text-lg sm:text-xl font-light italic" style={EASTER_EGG_TEXT_STYLE}>
-                  The only way is up. Give it your all.
-                </p>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>AHHH!! YOUR POWER OF LOVE AND HOPE IS TOO STRONG!!!</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>DON'T SCROLL UP!!!</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>YOU CAN'T DO THAT!!</h1>
@@ -1757,7 +1748,7 @@ export default function HomeClient({
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col gap-3">
-                        <p className="text-white text-2xl font-bold win98-instant-pop" style={{ animationDelay: '70ms' }}>
+                        <p className="text-white text-2xl font-bold win98-instant-pop" style={{ animationDelay: '0ms' }}>
                           (#ID_6392) Advith Krishnan
                         </p>
                         {/* Bio copy: deliberately not a resume rehash — the goal is
@@ -1770,7 +1761,7 @@ export default function HomeClient({
                             throughout this dossier. text-justify for even edges,
                             matching the blog/report reading columns elsewhere. */}
                         <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col">
-                          <li className="win98-instant-pop" style={{ animationDelay: '140ms' }}>
+                          <li className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
                             <span
                             className="inline-block text-black bg-white font-bold transition-opacity duration-300"
                             style={{ letterSpacing: '0.5px' }}
@@ -1779,16 +1770,16 @@ export default function HomeClient({
                           </span>
                           &nbsp;who works on cool stuff.
                           </li>
-                          <li className="win98-instant-pop" style={{ animationDelay: '210ms' }}> Delves into kernels, compilers, ML backends, i.e. the <span
+                          <li className="win98-instant-pop" style={{ animationDelay: '0ms' }}> Delves into kernels, compilers, ML backends, i.e. the <span
                                   className="text-[#00FF00] bg-black px-2 font-bold"
                                style={{ letterSpacing: '0.5px' }}
                                 >software beneath the software.</span>
                           </li>
-                          <li className="win98-instant-pop" style={{ animationDelay: '210ms' }}>
-                            Listens to <a href="https://www.youtube.com/watch?v=Uoox9fpmDP0&themeRefresh=1" target="blank" rel="noopener noreferrer" className="text-white"><u>Duvet by Bôa</u></a> a little too much... 
+                          <li className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
+                            Listens to <a href="https://www.youtube.com/watch?v=Uoox9fpmDP0&themeRefresh=1" target="blank" rel="noopener noreferrer" className="text-white"><u>Duvet by Bôa</u></a> a little too much...
                           </li>
                           {visitorIp && (
-                            <li className="win98-instant-pop" style={{ animationDelay: '350ms' }}>
+                            <li className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
                               Knows your IP address is{' '}
                               <span
                                 className="inline-block text-[#00FF00] bg-black px-2 font-bold"
@@ -1802,11 +1793,16 @@ export default function HomeClient({
                         {/* Compact work-history timeline, below the bio list
                             per this content column — see
                             components/ExperienceSection.tsx and
-                            data/experience.ts for the actual entries. Last
-                            in the stagger sequence, delayed a bit further
-                            when the IP line is also showing so it doesn't
-                            overlap that line's own pop-in. */}
-                        <div className="win98-instant-pop" style={{ animationDelay: visitorIp ? '420ms' : '350ms' }}>
+                            data/experience.ts for the actual entries. Used
+                            to be last in a staggered pop-in sequence with
+                            its own delay (further delayed again when the IP
+                            line was also showing) — per feedback the whole
+                            dossier (bio/Experience/Location) now pops in
+                            together in one beat instead of trickling in
+                            piece by piece, so every win98-instant-pop in
+                            this block shares the same '0ms' delay now, this
+                            one included. */}
+                        <div className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
                         <ExperienceSection />
                         </div>
                       </div>
@@ -1819,11 +1815,23 @@ export default function HomeClient({
                         data/worldMap.ts's file header for what this data
                         actually is (a stylized approximation, not real
                         boundary data — a live fetch for the real thing
-                        didn't pan out). Delayed a bit past Experience's own
-                        stagger. */}
-                    <div className="win98-instant-pop" style={{ animationDelay: visitorIp ? '490ms' : '420ms' }}>
+                        didn't pan out). Same '0ms' delay as everything else
+                        in this block now — see the comment on
+                        ExperienceSection's wrapper just above. */}
+                    <div className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
                       <WorldMap />
                     </div>
+                    {/* Per feedback, moved down here from the hidden
+                        easter-egg zone above (it used to sit right after
+                        the gallery, styled with the scroll-linked
+                        EASTER_EGG_TEXT_STYLE) — now a plain, calm closing
+                        line right under Location, in the dossier's own
+                        white-on-dark palette instead of the reveal-zone's
+                        color-mix (there's no scroll-driven background
+                        dissolve happening down here to track). */}
+                    <p className="text-center mt-6 text-white/70 text-base sm:text-lg font-light italic">
+                      The only way is up. Give it your all.
+                    </p>
                     </>
                     )}
                   </div>

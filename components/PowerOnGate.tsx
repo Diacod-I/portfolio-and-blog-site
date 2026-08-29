@@ -32,7 +32,14 @@
 // per feedback, a generic "click to enable sound" dialog didn't read as
 // "an actual operating system starting up" the way an actual bootloader
 // screen does, and it's the one moment on the site that's genuinely
-// "before" the win98 desktop exists yet. Two phases:
+// "before" the win98 desktop exists yet. Three phases:
+//   'splash'  — the very first thing shown: a small device logo (see
+//               PixelLogo below) and a loading bar filling left to right,
+//               same idea as a real machine's manufacturer logo + progress
+//               bar before it ever gets to a boot menu (think the Apple
+//               logo + progress bar on a Mac). Purely timed — no
+//               interaction, nothing to click — and hands off to 'menu'
+//               automatically once SPLASH_DURATION_MS elapses.
 //   'menu'    — black screen, one selectable menu entry, nothing else.
 //   'booting' — plays a synthesized startup chime (same one-off-
 //               AudioContext pattern as Minesweeper's explosion — see
@@ -51,6 +58,11 @@ type PowerOnGateProps = {
   onStart: () => void
 }
 
+// How long the 'splash' phase (logo + loading bar) sits before handing
+// off to 'menu' — long enough for the loading bar to read as an actual
+// fill, not just a flash.
+const SPLASH_DURATION_MS = 2200
+
 // A brief pause after selecting the entry — chime plays, screen stays
 // black a beat longer, THEN the wallpaper starts revealing — instead of
 // the reveal beginning the instant it's selected. Echoes the pause real
@@ -62,6 +74,39 @@ const BOOT_DELAY_MS = 1000
 // after the fade begins, not immediately, so the fade is actually visible
 // before HomeClient takes over.
 const BOOT_FADE_MS = 1600
+
+// Small pixel-art ">_" mark for the 'splash' phase — a blocky terminal
+// chevron-and-cursor glyph rather than a literal "device" logo, since
+// there's no real hardware brand to reference here; ties back to the same
+// "$ >" prompt/blinking-cursor motif HomeClient's Home tab types out (see
+// HOME_QUERY_TEXT and the cursor block right after it), so the one moment
+// "before" the desktop exists still reads as the same machine. Same
+// grid-of-SVG-rects technique as HomeClient.tsx's PixelHeart — 'X' cells
+// draw the chevron in the boot menu's own #c0c0c0 gray, 'O' cells draw the
+// cursor bar in the same green (#00FF00) HomeClient's own typing cursor
+// and boot log "OK" status use.
+const PIXEL_LOGO_ROWS = [
+  '.........',
+  'XX.......',
+  '..XX.....',
+  '....XX...',
+  '..XX.....',
+  'XX.......',
+  '.........',
+  '...OOOOO.',
+]
+function PixelLogo() {
+  return (
+    <svg viewBox="0 0 9 8" width={72} height={64} shapeRendering="crispEdges" aria-hidden="true">
+      {PIXEL_LOGO_ROWS.flatMap((row, y) =>
+        row.split('').map((cell, x) => {
+          if (cell === '.') return null
+          return <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={cell === 'O' ? '#00FF00' : '#c0c0c0'} />
+        })
+      )}
+    </svg>
+  )
+}
 
 // Warm ascending major chord (C4/E4/G4/C5), synthesized rather than a
 // recorded sample — same reasoning and technique as Minesweeper's
@@ -96,12 +141,21 @@ function playBootChime() {
 }
 
 export default function PowerOnGate({ onStart }: PowerOnGateProps) {
-  const [phase, setPhase] = useState<'menu' | 'booting'>('menu')
+  const [phase, setPhase] = useState<'splash' | 'menu' | 'booting'>('splash')
   // Starts true (opaque black, hiding the wallpaper beneath) and flips to
   // false one frame after entering 'booting' — the delay is what makes
   // the opacity change an actual observed transition instead of skipping
   // straight to its end state before the browser paints the start of it.
   const [fadeOut, setFadeOut] = useState(false)
+
+  // Purely timed hand-off from 'splash' to 'menu' — no interaction gates
+  // this, same as a real machine's logo/progress-bar screen before it
+  // reaches a boot menu.
+  useEffect(() => {
+    if (phase !== 'splash') return
+    const toMenu = setTimeout(() => setPhase('menu'), SPLASH_DURATION_MS)
+    return () => clearTimeout(toMenu)
+  }, [phase])
 
   const handleSelect = useCallback(() => {
     if (phase !== 'menu') return
@@ -173,6 +227,20 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
         className="absolute inset-0 bg-black transition-opacity ease-out"
         style={{ opacity: fadeOut ? 0 : 1, transitionDuration: `${BOOT_FADE_MS}ms` }}
       />
+      {phase === 'splash' && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 select-none">
+          <PixelLogo />
+          {/* Sunken win98-bezel-style bar (matches this site's other
+              "loading" chrome, e.g. WindowsLoader's own progress track) —
+              the fill is a single CSS animation timed to SPLASH_DURATION_MS
+              (see win98-boot-loading-fill in globals.css), not JS-driven
+              width state, so there's nothing to keep in sync with the
+              setTimeout above beyond both reading the same duration. */}
+          <div className="w-40 h-2.5 border border-[#808080] bg-black p-[1px]">
+            <div className="win98-boot-loading-fill h-full bg-[#c0c0c0]" style={{ animationDuration: `${SPLASH_DURATION_MS}ms` }} />
+          </div>
+        </div>
+      )}
       {phase === 'menu' && (
         <div className="absolute inset-0 flex items-center justify-center font-mono text-[#c0c0c0] select-none px-4">
           {/* Laid out to match real GRUB2's default text menu as closely

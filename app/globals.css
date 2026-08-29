@@ -198,6 +198,16 @@
   .win98-pixel-heart-beat {
     animation: none !important;
   }
+  /* Unlike the rules above, win98-boot-loading-fill's *base* width is 0%
+     (see its keyframe) — disabling the animation without also forcing it
+     full would leave the bar looking permanently empty instead of just
+     skipping the fill motion. PowerOnGate.tsx's own setTimeout still
+     advances past 'splash' after SPLASH_DURATION_MS regardless of this
+     setting, so the screen doesn't hang here either way. */
+  .win98-boot-loading-fill {
+    animation: none !important;
+    width: 100% !important;
+  }
   .win98-loader-pop,
   .win98-loader-glitch {
     animation: none !important;
@@ -283,6 +293,20 @@
 .win98-pixel-heart-beat {
   animation: win98HeartBeat 1.4s ease-in-out infinite;
   transform-origin: center;
+}
+
+/* PowerOnGate.tsx's 'splash' phase — the loading bar under the pixel logo
+   filling left to right exactly once, not looping. Duration is set
+   per-instance via the animationDuration inline style (kept in sync with
+   SPLASH_DURATION_MS there) rather than hardcoded here. */
+@keyframes win98BootLoadingFill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+.win98-boot-loading-fill {
+  animation-name: win98BootLoadingFill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }
 
 /* PowerOnGate.tsx's boot-menu entry: a gentle dim-pulse on the selection

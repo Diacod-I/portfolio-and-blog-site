@@ -185,7 +185,11 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   { id: 'photo-17', leftPct: 13.2, topPct: 56.0, widthPx: 170, heightPx: 128, rotationDeg: 0.3,  src: frame17, alt: 'A personal photo', caption: 'do I need to explain?' },
   { id: 'photo-18', leftPct: 63.8, topPct: 59.8, widthPx: 170, heightPx: 128, rotationDeg: 1.0,  src: frame18, alt: 'A personal photo', caption: 'angy doodle' },
   { id: 'photo-19', leftPct: 60.5, topPct: 47.5, widthPx: 128, heightPx: 170, rotationDeg: -3.2, src: frame19, alt: 'A personal photo', caption: 'good morning' },
-  { id: 'photo-20', leftPct: 24.8, topPct: 12.5, widthPx: 170, heightPx: 146, rotationDeg: 2.5,  src: frame20, alt: 'A personal photo', caption: 'worht it?' },
+  // Moved to the left of photo-04 ('too loud aaaa', leftPct 31.4-50.0,
+  // topPct 22.0) per request — same topPct so the two read as a row, and
+  // a ~2pct gap so they sit side by side without touching (same corridor-
+  // fitting reasoning as photo-03/photo-10 elsewhere in this file).
+  { id: 'photo-20', leftPct: 10.8, topPct: 22.0, widthPx: 170, heightPx: 146, rotationDeg: 2.5,  src: frame20, alt: 'A personal photo', caption: 'worht it?' },
   { id: 'photo-21', leftPct: 44.1, topPct: 1.2,  widthPx: 119, heightPx: 170, rotationDeg: -1.7, src: frame21, alt: 'A personal photo', caption: 'portrait made with love <3' },
   { id: 'photo-22', leftPct: 62.7, topPct: 22.8, widthPx: 128, heightPx: 170, rotationDeg: 2.2,  src: frame22, alt: 'A personal photo', caption: 'browsing' },
   // Relocated from its old (16.0, 5.8) spot for the same reason as
@@ -206,7 +210,10 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   { id: 'photo-33', leftPct: 33.3, topPct: 43.5, widthPx: 110, heightPx: 170, rotationDeg: -4.5, src: frame33, alt: 'A black-and-white illustration of All Might from My Hero Academia', caption: 'goat' },
   { id: 'photo-34', leftPct: 35.4, topPct: 61.5, widthPx: 170, heightPx: 128, rotationDeg: 2.0,  src: frame34, alt: 'An anime screenshot', caption: 'za warudo!!!!' },
   { id: 'photo-35', leftPct: 14.3, topPct: 39.3, widthPx: 135, heightPx: 170, rotationDeg: -2.5, src: frame35, alt: 'An anime screenshot with a golden-ratio overlay', caption: 'the persona ratio' },
-  { id: 'photo-36', leftPct: 0.9,  topPct: 12.8, widthPx: 170, heightPx: 96,  rotationDeg: 3.2,  src: frame36, alt: 'A video game screenshot', caption: 'kiryu kazuma-san' },
+  // Moved to the left of photo-32 ('touch grass', leftPct 46.4-59.2,
+  // topPct 12.3) per request — same topPct/gap reasoning as photo-20
+  // above.
+  { id: 'photo-36', leftPct: 25.8, topPct: 12.3, widthPx: 170, heightPx: 96,  rotationDeg: 3.2,  src: frame36, alt: 'A video game screenshot', caption: 'kiryu kazuma-san' },
 
   // ---- Dark zone: sparse — 4 personal photos (moved out of the light
   // zone above), not the 4 downloaded/meme images that used to live down

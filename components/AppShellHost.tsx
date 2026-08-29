@@ -62,13 +62,34 @@
 // render themselves.
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
-import HomeClient, { type BlogsView, type ReportView } from '@/components/HomeClient'
+import dynamic from 'next/dynamic'
+import type { BlogsView, ReportView } from '@/components/HomeClient'
 import PowerOnGate from '@/components/PowerOnGate'
 import { useRouteContentStore } from '@/lib/store/routeContentStore'
 import type { AppId } from '@/lib/store/windowStore'
 import type { HomeTab } from '@/components/Navbar'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
+
+// Dynamically imported (not `import HomeClient from ...` at the top)
+// specifically so a cold landing on '/' isn't held up by it: HomeClient is
+// a large file that statically pulls in a lot of weight (ogl WebGL
+// background, framer-motion, react-simple-maps, FontAwesome, date-fns...),
+// and on '/' it isn't even mounted until PowerOnGate's onStart fires (see
+// showPowerOnGate below) — the boot sequence renders PowerOnGate alone.
+// Without this, that whole dependency graph still had to be part of the
+// same bundle PowerOnGate's own first paint waited on, even though none of
+// it is on screen yet. next/dynamic (default ssr:true, unchanged here)
+// splits HomeClient into its own chunk that the browser fetches
+// separately — PowerOnGate's chunk stays small and can hydrate and start
+// its boot timers without waiting on HomeClient's to finish downloading/
+// parsing, and the other routes below that mount HomeClient immediately
+// still get it server-rendered exactly as before (ssr:true keeps that),
+// just as a separate chunk on the client. This was flagged directly by
+// Lighthouse's "reduce unused JavaScript" audit: on a fresh '/' load, a lot
+// of the flagged unused bytes were HomeClient's own bundled code sitting
+// there unused during the boot gate.
+const HomeClient = dynamic(() => import('@/components/HomeClient'))
 
 const SHELL_ROUTES = new Set(['/', '/about', '/contact', '/blogs', '/credits'])
 

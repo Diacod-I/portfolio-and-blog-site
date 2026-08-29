@@ -39,6 +39,13 @@ const nextConfig = {
     // keep your formats + cache TTL
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,
+    // Next 16 only allows next/image `quality` values listed here (default
+    // is just [75]) — 70 and 85 are GalleryWindow.tsx's thumbnail-rail and
+    // main-viewer qualities respectively (see that file), 75 is every other
+    // next/image on the site that doesn't pass a `quality` prop at all (its
+    // own default). Keep this in sync if a new quality value gets used
+    // anywhere else.
+    qualities: [70, 75, 85],
   },
   async headers() {
     return [

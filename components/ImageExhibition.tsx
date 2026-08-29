@@ -31,93 +31,54 @@
 // kept over object-contain mainly so a fraction-of-a-pixel rounding
 // mismatch between the box's integer px size and the photo's exact ratio
 // fills the box cleanly instead of leaving a hairline letterbox gap.
+//
+// `scale` (see HomeClient.tsx's galleryScale for how it's computed) keeps
+// this exact scattered layout from clipping past the container's right
+// edge on a narrow phone or a resized-down desktop window, WITHOUT
+// switching to a different layout: every frame's `left`/`top` are already
+// percentages of the container (responsive on their own), but
+// widthPx/heightPx are fixed pixels sized against an assumed ~1000px-wide
+// desktop window — below that width, a frame near the right edge can run
+// past the container entirely. Multiplying each frame's *rendered* size
+// by `scale` (via a CSS transform, not by recomputing widthPx/heightPx)
+// shrinks it uniformly around its own leftPct/topPct anchor point
+// (transformOrigin: 'top left'), so `leftPct% + widthPx*scale` stays
+// proportional to the container's actual current width at any size — see
+// galleryScale's own comment in HomeClient.tsx for the exact math. A
+// previous version of this switched to a plain vertical stack below a
+// fixed breakpoint instead — per feedback that lost the "spread of
+// photos" gallery-wall look this is supposed to have, so scaling the same
+// layout down replaced it instead of introducing a second, different one.
 import { memo } from 'react'
 import Image from 'next/image'
 import { EXHIBITION_FRAMES } from '@/data/exhibitionFrames'
 
-// Sorted ascending by topPct once, at module scope — only used by the
-// `compact` stacked layout below, but computed here rather than inline in
-// the render so it isn't re-sorted on every render. Ascending (not the
-// data file's own declaration order) so the stack reads top-to-bottom the
-// same way the desktop absolute layout reads bottom-to-top-of-container:
-// the frame with the smallest topPct (closest to the top of the zone,
-// reached LAST when scrolling up — see data/exhibitionFrames.ts's own
-// comment on EXHIBITION_FRAMES_MAX_TOP_PCT) renders first/highest in the
-// stack, and the largest-topPct ("dark zone") frames end up last/lowest —
-// right next to the "bottom of the dark zone" quote in HomeClient.tsx —
-// preserving the same scroll-discovery order in both layouts.
-const STACKED_FRAMES = [...EXHIBITION_FRAMES].sort((a, b) => a.topPct - b.topPct)
+type ImageExhibitionProps = {
+  /** 1 at/above the ~1000px design width this layout was hand-placed
+   *  against (data/exhibitionFrames.ts's own header); below that, the
+   *  fraction of the design width the container is actually rendering
+   *  at — see the file header above and HomeClient.tsx's galleryScale. */
+  scale: number
+}
 
 // memo()'d for the same reason as FaultyTerminalBackground (see that
 // file's own comment): this renders unconditionally alongside the Home
 // tab's "$ >" typed query and boot log, both of which re-render the whole
-// HomeClient tree every 40-90ms while they play. `compact` is the one
-// prop this takes — see HomeClient.tsx's galleryCompact — and only
-// changes on an actual container resize, so this still essentially never
-// re-renders from its parent in practice; memo's default shallow prop
-// comparison handles a single boolean prop fine.
-function ImageExhibition({ compact }: { compact: boolean }) {
-  // Compact layout (narrow phone viewport OR a desktop window resized
-  // down small — see galleryCompact's own comment in HomeClient.tsx for
-  // why this is a measured-container check, not a viewport media query):
-  // the frames below are positioned by percentage of the container's
-  // width but sized in fixed pixels, hand-tuned against an assumed
-  // ~1000px-wide desktop window (see data/exhibitionFrames.ts's header) —
-  // well below that width, some frames' leftPct + widthPx runs straight
-  // past the container's right edge, clipped off entirely. Rather than
-  // trying to rescale/re-pack ~30 hand-placed positions for every possible
-  // narrow width, this switches to a completely different, much simpler
-  // layout instead: a single vertical column, one frame per row, normal
-  // document flow (no absolute/left/top at all, so there's nothing left
-  // to overflow), centered, with real vertical gaps between frames so
-  // they read as a tidy stack rather than the cluttered/overlapping mess
-  // simply shrinking the same absolute layout down would produce. Slight
-  // rotation is kept per frame for character — small enough at these
-  // amounts (under 5deg) that it doesn't meaningfully affect a centered
-  // column's effective width the way the desktop scatter's large leftPct
-  // spread would.
-  if (compact) {
-    return (
-      <div className="relative w-full flex flex-col items-center gap-10 px-4 py-10" aria-hidden>
-        {STACKED_FRAMES.map((frame) => {
-          if (!frame.src) {
-            return (
-              <div
-                key={frame.id}
-                className="border-2 border-black flex items-center justify-center shrink-0"
-                style={{ width: frame.widthPx, height: frame.heightPx, transform: `rotate(${frame.rotationDeg}deg)` }}
-              >
-                <span className="text-black/40 text-[10px] font-mono text-center px-2">Image placeholder</span>
-              </div>
-            )
-          }
-          return (
-            <div
-              key={frame.id}
-              className="bg-white pt-2 px-2 pb-1.5 shadow-[0_3px_10px_rgba(0,0,0,0.5)] shrink-0"
-              style={{ width: frame.widthPx + 16, transform: `rotate(${frame.rotationDeg}deg)` }}
-            >
-              <div className="relative overflow-hidden bg-black" style={{ width: frame.widthPx, height: frame.heightPx }}>
-                <Image src={frame.src} alt={frame.alt ?? ''} fill sizes="170px" className="object-cover" />
-              </div>
-              {frame.caption && (
-                <p
-                  className="text-center text-neutral-800 mt-2 leading-tight"
-                  style={{ fontFamily: "'Edu NSW ACT Cursive', cursive", fontSize: 18 }}
-                >
-                  {frame.caption}
-                </p>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
+// HomeClient tree every 40-90ms while they play. `scale` is the one prop
+// this takes, and only changes on an actual container resize (rounded to
+// 2dp in HomeClient.tsx specifically to avoid spamming this with
+// sub-pixel changes during a resize drag), so this still essentially
+// never re-renders from its parent in practice; memo's default shallow
+// prop comparison handles a single number prop fine.
+function ImageExhibition({ scale }: ImageExhibitionProps) {
   return (
     <div className="absolute inset-0 pointer-events-none" aria-hidden>
       {EXHIBITION_FRAMES.map((frame) => {
+        // scale() before rotate() so both apply around the same
+        // transformOrigin (top left, i.e. the leftPct/topPct anchor
+        // point) — shrinking a frame never moves where it's anchored,
+        // only how far it extends right/down from there.
+        const transform = `scale(${scale}) rotate(${frame.rotationDeg}deg)`
         if (!frame.src) {
           return (
             <div
@@ -128,7 +89,8 @@ function ImageExhibition({ compact }: { compact: boolean }) {
                 top: `${frame.topPct}%`,
                 width: frame.widthPx,
                 height: frame.heightPx,
-                transform: `rotate(${frame.rotationDeg}deg)`,
+                transform,
+                transformOrigin: 'top left',
               }}
             >
               <span className="text-black/40 text-[10px] font-mono text-center px-2">
@@ -145,7 +107,8 @@ function ImageExhibition({ compact }: { compact: boolean }) {
               left: `${frame.leftPct}%`,
               top: `${frame.topPct}%`,
               width: frame.widthPx + 16,
-              transform: `rotate(${frame.rotationDeg}deg)`,
+              transform,
+              transformOrigin: 'top left',
             }}
           >
             <div

@@ -204,7 +204,7 @@ const EASTER_EGG_TEXT_STYLE: CSSProperties = {
 }
 
 // Small beating pixel-art heart for the "end of the easter egg" message
-// (see the JSX around galleryCompact further down). Drawn as a grid of
+// (see the JSX around galleryScale further down). Drawn as a grid of
 // SVG <rect>s (crisp/blocky edges, matching the win98/pixel-art aesthetic
 // used throughout the site) rather than a smooth vector heart — each
 // character in PIXEL_HEART_ROWS below is one cell of a 7-wide by 6-tall
@@ -847,30 +847,43 @@ export default function HomeClient({
     return () => cancelAnimationFrame(raf)
   }, [homeTab, advithOpen])
 
-  // Drives both the gallery wrapper div's height/overflow below AND
-  // ImageExhibition's own layout (see the `compact` prop passed to it) —
-  // true whenever homeScrollRef's own rendered width drops below 640px
-  // (same breakpoint this site uses elsewhere for "mobile", e.g.
-  // Win98Window.tsx/PrinceOfPersiaWindow.tsx's own matchMedia checks), but
-  // measured via ResizeObserver on the actual container instead of a
+  // Feeds ImageExhibition's own `scale` prop (see that file) — the fix for
+  // "photos clipped on the right edge / cluttered on phone or a minimized
+  // window", take two. The first attempt at this switched to a completely
+  // different vertical-stack layout below a fixed breakpoint — per
+  // feedback that lost the actual "gallery wall" look the scattered
+  // frames are supposed to have, so this instead keeps the exact same
+  // absolutely-positioned scattered layout at every width and just scales
+  // it down uniformly to fit.
+  //
+  // Why this actually fixes the overflow (not just shrinks it): each
+  // frame's `left`/`top` are percentages of the container's own width/
+  // height (already responsive on their own), but `widthPx`/`heightPx` are
+  // FIXED pixels, hand-tuned against an assumed ~1000px-wide desktop
+  // window (see data/exhibitionFrames.ts's own header) — a frame at
+  // leftPct 81.3% with a 178px-wide polaroid overflows the instant the
+  // container is narrower than roughly leftPct% + 178px, i.e. well under
+  // 1000px already. Scaling every frame's rendered size by
+  // `min(1, containerWidth / GALLERY_DESIGN_WIDTH)` keeps `leftPct% +
+  // widthPx * scale` proportional to the container's actual current width
+  // for ANY width, not just above/below one hardcoded threshold — the
+  // math: rightEdge = leftPct*W + widthPx*(W/1000) = W*(leftPct +
+  // widthPx/1000), which is always <= W as long as it was <= 1000 in the
+  // original design (which it was, by construction of the packing script
+  // that placed these frames in the first place).
+  //
+  // Measured via ResizeObserver on the actual container instead of a
   // matchMedia viewport check, deliberately — a real phone viewport isn't
   // the only way this container can end up narrow: advith.exe's own
   // window can be dragged down small on a wide desktop viewport too (see
   // GalleryWindow.tsx/MinesweeperWindow.tsx's own ResizeObserver-based
   // "measure my actual container, not the viewport" pattern), and a
-  // matchMedia check would completely miss that case. This is the fix for
-  // "photos clipped on the right edge / cluttered on phone or a minimized
-  // window": the gallery's frames (see ImageExhibition.tsx) are
-  // positioned by percentage of this container's width but sized in fixed
-  // pixels, hand-tuned against an assumed ~1000px-wide desktop window
-  // (see data/exhibitionFrames.ts's own header) — well below that, some
-  // frames' leftPct + widthPx runs past the container's right edge
-  // entirely. Below the threshold, ImageExhibition switches to a plain
-  // vertical stack instead (no absolute percent math at all, so nothing
-  // to overflow), and the wrapper div below drops its fixed 380vh
-  // height/overflow-hidden to fit that stack's own natural height instead
-  // of clipping it.
-  const [galleryCompact, setGalleryCompact] = useState(false)
+  // matchMedia check would completely miss that case. Rounded to 2
+  // decimal places so continuous sub-pixel width changes during an active
+  // window resize don't spam ImageExhibition with a slightly-different
+  // scale prop (and re-render) on every single ResizeObserver tick.
+  const GALLERY_DESIGN_WIDTH = 1000
+  const [galleryScale, setGalleryScale] = useState(1)
   useEffect(() => {
     // homeScrollRef only exists while the Home tab's own branch is
     // mounted (each tab is a conditionally-rendered DOM subtree, not a
@@ -883,7 +896,8 @@ export default function HomeClient({
     const el = homeScrollRef.current
     if (!el) return
     const observer = new ResizeObserver(([entry]) => {
-      setGalleryCompact(entry.contentRect.width < 640)
+      const raw = Math.min(1, entry.contentRect.width / GALLERY_DESIGN_WIDTH)
+      setGalleryScale(Math.round(raw * 100) / 100)
     })
     observer.observe(el)
     return () => observer.disconnect()
@@ -1568,18 +1582,12 @@ export default function HomeClient({
                     are percentages of *this* div's own height (see
                     data/exhibitionFrames.ts), so this margin sits
                     entirely outside that math instead of just spreading
-                    the frames themselves further apart.
-
-                    On a narrow/compact container (see galleryCompact
-                    above) this drops the fixed 380vh height and
-                    overflow-hidden entirely — ImageExhibition switches to
-                    a plain vertical stack there instead of the
-                    absolute/percentage scatter, and that stack's own
-                    natural height (which can run well past 380vh once
-                    every frame is a full-width block instead of a
-                    scattered ~170px square) needs room to actually exist
-                    in, not get clipped by a leftover fixed height meant
-                    for the desktop layout. */}
+                    the frames themselves further apart. Height/overflow
+                    here stay fixed at every width now — see galleryScale
+                    above for why: frames scale down to fit a narrow
+                    container instead of switching to a different layout,
+                    so this div's own box never needs to change shape to
+                    accommodate them. */}
                 {/* Marks the true top of the whole hidden zone — reached
                     only once every frame below has been scrolled past,
                     i.e. the actual end of this easter egg. Deliberately
@@ -1603,20 +1611,14 @@ export default function HomeClient({
                     above). PixelHeart is the small beating red heart — see
                     that component further up this file. */}
                 <p
-                  className="text-center mb-12 text-lg sm:text-xl font-light italic flex items-center justify-center gap-3"
+                  className="text-center mb-12 text-lg sm:text-xl font-light flex items-center justify-center gap-3"
                   style={EASTER_EGG_TEXT_STYLE}
                 >
                   Breathe. Live life to the fullest. It&apos;ll all work out.
                   <PixelHeart />
                 </p>
-                <div
-                  className={
-                    galleryCompact
-                      ? 'relative w-full overflow-visible mb-16'
-                      : 'relative w-full min-h-[380vh] mb-[40vh] overflow-hidden'
-                  }
-                >
-                  <ImageExhibition compact={galleryCompact} />
+                <div className="relative w-full min-h-[380vh] mb-[40vh] overflow-hidden">
+                  <ImageExhibition scale={galleryScale} />
                 </div>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>AHHH!! YOUR POWER OF LOVE AND HOPE IS TOO STRONG!!!</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>DON'T SCROLL UP!!!</h1>
@@ -1829,7 +1831,7 @@ export default function HomeClient({
                         white-on-dark palette instead of the reveal-zone's
                         color-mix (there's no scroll-driven background
                         dissolve happening down here to track). */}
-                    <p className="text-center mt-6 text-white/70 text-base sm:text-lg font-light italic">
+                    <p className="text-center mt-6 text-white/70 text-base sm:text-lg font-light">
                       The only way is up. Give it your all.
                     </p>
                     </>

@@ -248,7 +248,7 @@ const EASTER_EGG_TEXT_STYLE: CSSProperties = {
 const PIXEL_HEART_ROWS = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...']
 function PixelHeart() {
   return (
-    <span className="inline-block win98-pixel-heart-beat" aria-hidden="true">
+    <span className="inline-block align-middle win98-pixel-heart-beat" aria-hidden="true">
       <svg viewBox="0 0 7 6" width={21} height={18} shapeRendering="crispEdges">
         {PIXEL_HEART_ROWS.flatMap((row, y) =>
           row
@@ -1440,6 +1440,23 @@ export default function HomeClient({
           // terminal backdrop showing around it — still, this caps how
           // large that gets.
           maxSize={{ w: 1100, h: 760 }}
+          // Floor for manual drag-resizing on desktop — per feedback, the
+          // Home tab's hidden image-exhibition gallery (see
+          // ImageExhibition.tsx's `scale` prop and galleryScale above)
+          // still read as cluttered once the window was dragged down well
+          // below its own default width, even though the scattered
+          // frames scale down to avoid literally overflowing at any
+          // width. Rather than trying to make an arbitrarily narrow
+          // scattered "gallery wall" layout look uncluttered, this just
+          // stops the window from ever getting that narrow via the resize
+          // handles in the first place — set equal to defaultSize.w (not
+          // some other number) so the window's own default opening width
+          // doubles as its floor, with nothing narrower ever reachable by
+          // dragging. Only affects desktop's drag-resize path (see
+          // Win98Window.tsx's own comment on minSize) — mobile (<640px)
+          // never uses minSize at all, it always renders from
+          // defaultInset instead, so this doesn't constrain phones.
+          minSize={{ w: 860, h: 240 }}
           // advith.exe now auto-maximizes on first open like every other
           // app (see SKIP_AUTO_MAXIMIZE in windowStore.ts) — cardOffset
           // below only matters for wherever it restores to after the user
@@ -1644,10 +1661,16 @@ export default function HomeClient({
                     w-fit + mx-auto so the white box hugs just the text
                     (plus padding) instead of stretching edge to edge.
                     PixelHeart is the small beating red heart — see that
-                    component further up this file. */}
-                <p className="text-center mb-12 mx-auto w-fit bg-white text-black px-4 py-2 text-lg sm:text-xl font-light flex items-center justify-center gap-3">
-                  Breathe. Live life to the fullest. It&apos;ll all work out.
-                  <PixelHeart />
+                    component further up this file; it used to sit in a
+                    flex row alongside the (possibly multi-line) text,
+                    which put it centered against the whole paragraph's
+                    height rather than actually next to the last word. Not
+                    flex anymore — PixelHeart's own span is inline-block,
+                    so as a plain inline child here it just flows as part
+                    of the text itself, landing right after "out." at the
+                    end of whichever line that happens to wrap to. */}
+                <p className="text-center mb-12 mx-auto w-fit bg-white text-black px-4 py-2 text-lg sm:text-xl font-light">
+                  Breathe. Live life to the fullest. It&apos;ll all work out. <PixelHeart />
                 </p>
                 <div className="relative w-full min-h-[380vh] mb-[40vh] overflow-hidden">
                   <ImageExhibition scale={galleryScale} />

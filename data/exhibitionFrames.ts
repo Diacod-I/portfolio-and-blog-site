@@ -147,12 +147,12 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // separate cluster (see the swap note below the dark zone). ----
   { id: 'photo-01', leftPct: 10.3, topPct: 48.0, widthPx: 170, heightPx: 159, rotationDeg: -3.1, src: frame01, alt: 'A personal photo', caption: 'hehehe' },
   { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: frame02, alt: 'A personal photo', caption: 'kangaru' },
-  // Moved below 'love you mom' (photo-05, leftPct 70.0-88.6, topPct
-  // 2.0-7.2) per request, alongside photo-10 just below — side by side
-  // rather than stacked, since both are already ~7.2% tall themselves and
-  // stacking them would barely fit the open corridor between photo-05
-  // above and photo-22 below (topPct 7.2 to 22.8) with no real gap.
-  { id: 'photo-03', leftPct: 85.0, topPct: 9.5,  widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: frame03, alt: 'A personal photo', caption: ':)' },
+  // Moved to the left of photo-36 ('kiryu kazuma-san', leftPct 25.8-44.4,
+  // topPct 12.3) per request — same topPct/gap reasoning as photo-20 and
+  // photo-36's own moves elsewhere in this file. (Previously placed below
+  // 'love you mom' alongside photo-10 — see photo-10's own comment for
+  // that history.)
+  { id: 'photo-03', leftPct: 15.5, topPct: 12.3, widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: frame03, alt: 'A personal photo', caption: ':)' },
   { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: frame04, alt: 'A personal photo', caption: 'too loud aaaa' },
   // photo-05/photo-21/photo-37 below are the top row now — the first
   // three frames reached once someone's scrolled all the way up past
@@ -177,8 +177,11 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   { id: 'photo-07', leftPct: 81.3, topPct: 26.8, widthPx: 128, heightPx: 170, rotationDeg: -1.8, src: frame07, alt: 'A personal photo', caption: 'first startup idea' },
   { id: 'photo-08', leftPct: 38.2, topPct: 29.5, widthPx: 170, heightPx: 65,  rotationDeg: 1.9,  src: frame08, alt: 'A personal photo', caption: 'this is Pachi' },
   { id: 'photo-09', leftPct: 42.1, topPct: 53.4, widthPx: 127, heightPx: 170, rotationDeg: 2.0,  src: frame09, alt: 'A personal photo', caption: 'prolly a fractal' },
-  // Moved below 'love you mom' per request — see photo-03's comment just
-  // above for the shared reasoning (same corridor, side by side).
+  // Moved below 'love you mom' (photo-05, leftPct 70.0-88.6, topPct
+  // 2.0-7.2) per an earlier request, into the open corridor between
+  // photo-05 above and photo-22 below (topPct 7.2 to 22.8) — originally
+  // placed side by side here with photo-03, which has since moved
+  // elsewhere (see photo-03's own comment).
   { id: 'photo-10', leftPct: 66.0, topPct: 9.5,  widthPx: 144, heightPx: 170, rotationDeg: -4.5, src: frame10, alt: 'A personal photo', caption: 'magic go brrr' },
   { id: 'photo-12', leftPct: 78.7, topPct: 43.6, widthPx: 162, heightPx: 170, rotationDeg: 0.5,  src: frame12, alt: 'A personal photo', caption: 'gotta grind' },
   { id: 'photo-16', leftPct: 78.5, topPct: 53.3, widthPx: 170, heightPx: 128, rotationDeg: -1.6, src: frame16, alt: 'A personal photo', caption: 'if you know, you know' },
@@ -202,7 +205,7 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // source, so 170px-wide/128px-tall like several other landscape shots
   // here (same "cap the longer side at 170" sizing every other frame
   // uses, see this file's header).
-  { id: 'photo-37', leftPct: 12.0, topPct: 1.0,  widthPx: 170, heightPx: 128, rotationDeg: -3.0, src: frame37, alt: 'A personal photo of two people laughing together', caption: 'we soo cute!!' },
+  { id: 'photo-37', leftPct: 18.0, topPct: 1.0,  widthPx: 170, heightPx: 128, rotationDeg: -3.0, src: frame37, alt: 'A personal photo of two people laughing together', caption: 'we soo cute!!' },
   { id: 'photo-24', leftPct: 14.5, topPct: 30.2, widthPx: 128, heightPx: 170, rotationDeg: -0.4, src: frame24, alt: 'A personal photo', caption: 'whiteboarding' },
   { id: 'photo-30', leftPct: 36.1, topPct: 36.0, widthPx: 170, heightPx: 128, rotationDeg: -4.4, src: frame30, alt: 'A personal photo', caption: 'roses are red or some shit' },
   { id: 'photo-31', leftPct: 75.6, topPct: 35.8, widthPx: 128, heightPx: 170, rotationDeg: -1.2, src: frame31, alt: 'A personal photo', caption: 'pookie phase (ongoing)' },

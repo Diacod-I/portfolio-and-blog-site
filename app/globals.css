@@ -445,24 +445,27 @@
 }
 
 /* Home tab's dossier row (photo + bio + Experience + world map — see
-   HomeClient.tsx, gated on bootPhase === 'done') reveal. This row sits
-   directly below the boot log, which prints each line with NO animation
-   at all — it just exists the instant it's written (see that block's own
-   comment in HomeClient.tsx) — so per feedback this row should read as a
-   continuation of that same instant-cut character instead of contrasting
-   with it via win98-terminal-pop's fade+scale. Same mechanism as that
-   class otherwise (opacity: 0 base state, per-element animation-delay
-   staggers when each piece cuts in, forwards fill locks in the visible
-   end state) — only the keyframe itself changes, from a 180ms fade+scale
-   ramp down to a 1ms opacity flip. steps(1, end) plus a near-zero
-   duration means there's no interpolation to see: each element is either
-   fully hidden or fully visible, nothing in between. */
+   HomeClient.tsx, gated on bootPhase === 'done') reveal, right below the
+   typed "select about from devs..." query (HOME_QUERY_TEXT). Despite the
+   class name (kept as-is so every call site in HomeClient.tsx didn't need
+   renaming), this is no longer an instant, no-fade cut — it used to be a
+   1ms steps(1) opacity flip specifically so this row read as a
+   continuation of the boot log's own instant-cut lines right above it,
+   but per later feedback that read as too abrupt once the query finished
+   typing — a plain "appears with no transition at all" snap felt off.
+   Now a plain, gentle opacity fade — no scale/translate on top of it
+   (that's win98-terminal-pop's job elsewhere), just a fade, since a
+   "little" fade was all that was asked for. Every element sharing this
+   class currently uses the same 0ms animation-delay (see HomeClient.tsx —
+   the whole row was deliberately made to appear together, not staggered
+   piece by piece), so this fades the entire row in as one group. */
 @keyframes win98InstantPopIn {
+  from { opacity: 0; }
   to { opacity: 1; }
 }
 .win98-instant-pop {
   opacity: 0;
-  animation: win98InstantPopIn 1ms steps(1, end) forwards;
+  animation: win98InstantPopIn 350ms ease-out forwards;
 }
 
 /* "NEW" badge on recent blog posts (see ExplorerBlogList.tsx's isNew()) —

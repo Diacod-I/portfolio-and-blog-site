@@ -172,10 +172,11 @@ const randomGlitchSpawnPos = () => ({
 // character by character — see useReplayableTypedQuery below — after
 // which the tab's content pops in line by line (see the
 // win98-terminal-pop class in globals.css and the homeQueryDone-gated
-// blocks in the JSX; the Home tab's own dossier row uses the very
-// similar win98-instant-pop instead — same per-element stagger, but a
-// hard cut rather than a fade+scale, matching the boot log right above
-// it — see that class's own comment in globals.css). The "$ >" prompt
+// blocks in the JSX; the Home tab's own dossier row uses the similarly-
+// named win98-instant-pop instead — a plain fade (no scale/translate on
+// top), all its elements sharing the same '0ms' delay so the whole row
+// fades in together rather than piece by piece — see that class's own
+// comment in globals.css). The "$ >" prompt
 // itself is always shown, static — only the query text after it types.
 // Logs and Contact used to have their own queries here too (gh_logs /
 // contact_info) — removed, but each tab keeps an empty "$ >" -sized
@@ -1765,13 +1766,12 @@ export default function HomeClient({
                         cuts this block away entirely (no fade — see
                         useBootSequence) and the dossier row further down
                         (gated on bootPhase === 'done') takes over the
-                        same spot — per feedback, that row now reads as a
-                        continuation of this same "instant cut" character
-                        rather than a contrast to it: win98-instant-pop
-                        (see globals.css) staggers it in with the same
-                        per-element animation-delay win98-terminal-pop
-                        used to, just without that class's fade+scale
-                        ramp. */}
+                        same spot, fading in as one group via
+                        win98-instant-pop (see globals.css) — every
+                        element in that row shares the same '0ms'
+                        animation-delay, per earlier feedback that it
+                        should appear together rather than piece by
+                        piece. */}
                     {bootPhase === 'booting' && (
                       <div className="flex flex-col gap-1 font-mono text-sm sm:text-[15px] mt-4 pb-24">
                         {BOOT_LOG_LINES.slice(0, bootLogVisibleLines).map((line) => (

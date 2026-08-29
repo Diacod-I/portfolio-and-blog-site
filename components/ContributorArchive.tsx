@@ -188,7 +188,13 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                             <img src="/win98/notes.webp" alt="" className="w-3.5 h-3.5 shrink-0" />
                             <span className="block text-sm font-bold truncate min-w-0">{entry.note.title}</span>
                           </span>
-                          <span className="flex items-start justify-between gap-2 min-w-0 flex-wrap">
+                          {/* min-h-5 reserves the same vertical space a
+                              TagChip would take even when this entry has no
+                              repos/tags at all — without it, a tagless row
+                              (nothing rendered on the right) came out visibly
+                              shorter than every row next to it that did have
+                              a chip. */}
+                          <span className="flex items-start justify-between gap-2 min-w-0 flex-wrap min-h-5">
                             <span className="text-[10px] text-[#444] font-bold truncate">
                               {format(new Date(entry.note.date), 'MMM dd, yyyy')}
                             </span>
@@ -222,7 +228,12 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                             <img src="/win98/internet.webp" alt="" className="w-3.5 h-3.5 shrink-0" />
                             <span className="block text-sm font-bold truncate min-w-0">{entry.report.title}</span>
                           </span>
-                          <span className="flex items-start justify-between gap-2 min-w-0 flex-wrap">
+                          {/* Same min-h-5 as the internal-report branch
+                              above, for the same reason — kept here too so
+                              this row stays consistent even if an external
+                              writeup is ever added with an empty tags
+                              array. */}
+                          <span className="flex items-start justify-between gap-2 min-w-0 flex-wrap min-h-5">
                             <span className="text-[10px] text-[#444] font-bold truncate">
                               {format(new Date(entry.report.date), 'MMM dd, yyyy')}
                             </span>

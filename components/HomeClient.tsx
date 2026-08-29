@@ -41,7 +41,38 @@ import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 // d3-geo's map projection math doesn't need to (and needn't try to) run
 // server-side for a panel that's gated behind client-only animation state
 // anyway.
-const WorldMap = dynamic(() => import('@/components/WorldMap'), { ssr: false })
+//
+// `loading` fallback added per feedback that Location visibly lagged
+// behind the rest of the dossier once everything else started popping in
+// together (see the win98-instant-pop animationDelay changes elsewhere in
+// this file) — without one, next/dynamic renders nothing at all until
+// BOTH the WorldMap chunk has loaded AND its own GEO_URL topojson fetch
+// (see WorldMap.tsx) has resolved, so the whole "Location" panel used to
+// just be an empty gap for a beat while everything around it had already
+// appeared. This fallback mirrors WorldMap's own win98-window shell
+// exactly (same classes, same 960:500 aspect ratio) so the real content
+// swaps in without any layout jump — it's the *fetch* that's still not
+// instant, but now the panel itself, its title, and a "loading" state
+// show up in the very same beat as everything else, which is what
+// actually reads as "slow" or not. See app/layout.tsx for a
+// complementary <link rel="preload"> on GEO_URL itself, kicking off that
+// fetch as early as page load instead of only once this component
+// mounts.
+const WorldMap = dynamic(() => import('@/components/WorldMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="win98-window flex flex-col mt-3">
+      <div className="win98-titlebar">
+        <div className="flex items-center gap-2">
+          <span>Location</span>
+        </div>
+      </div>
+      <div className="bg-[#1f1f1f] border-2 p-2 flex items-center justify-center" style={{ aspectRatio: '960 / 500' }}>
+        <span className="text-neutral-500 text-xs font-mono">Loading map...</span>
+      </div>
+    </div>
+  ),
+})
 
 // What the Blogs window shows: the Explorer-style list (default), or a
 // single post (used when landing on /blogs/[slug] — see that route, which
@@ -1602,18 +1633,19 @@ export default function HomeClient({
                     this inside the absolutely-positioned gallery would
                     visually collide with them; as a sibling it just pushes
                     the whole gallery down by its own height instead, with
-                    nothing to overlap. Uses the same EASTER_EGG_TEXT_STYLE
-                    color-mix as the protest lines so it's legible against
-                    whatever the faulty-terminal background looks like up
-                    here (by this point it's had the most scroll distance
-                    of anywhere in the zone to finish dissolving to its
-                    light/pink look — see EASTER_EGG_FULL_REVEAL_FRACTION
-                    above). PixelHeart is the small beating red heart — see
-                    that component further up this file. */}
-                <p
-                  className="text-center mb-12 text-lg sm:text-xl font-light flex items-center justify-center gap-3"
-                  style={EASTER_EGG_TEXT_STYLE}
-                >
+                    nothing to overlap. Solid white background + black text
+                    per feedback — this used to reuse the same
+                    EASTER_EGG_TEXT_STYLE color-mix the protest lines use
+                    (needed there since that text sits directly over the
+                    dissolving faulty-terminal shader with no background of
+                    its own), but an explicit opaque background makes that
+                    unnecessary here: it's legible against literally
+                    anything behind it now, dissolving background or not.
+                    w-fit + mx-auto so the white box hugs just the text
+                    (plus padding) instead of stretching edge to edge.
+                    PixelHeart is the small beating red heart — see that
+                    component further up this file. */}
+                <p className="text-center mb-12 mx-auto w-fit bg-white text-black px-4 py-2 text-lg sm:text-xl font-light flex items-center justify-center gap-3">
                   Breathe. Live life to the fullest. It&apos;ll all work out.
                   <PixelHeart />
                 </p>
@@ -1827,11 +1859,12 @@ export default function HomeClient({
                         easter-egg zone above (it used to sit right after
                         the gallery, styled with the scroll-linked
                         EASTER_EGG_TEXT_STYLE) — now a plain, calm closing
-                        line right under Location, in the dossier's own
-                        white-on-dark palette instead of the reveal-zone's
-                        color-mix (there's no scroll-driven background
-                        dissolve happening down here to track). */}
-                    <p className="text-center mt-6 text-white/70 text-base sm:text-lg font-light">
+                        line right under Location. Solid black background +
+                        white text per feedback (mirrors the "Breathe..."
+                        quote's own white-bg/black-text treatment above,
+                        inverted) — w-fit + mx-auto so the black box hugs
+                        just the text instead of stretching edge to edge. */}
+                    <p className="text-center mt-6 mx-auto w-fit bg-black text-white px-4 py-2 text-base sm:text-lg font-light">
                       The only way is up. Give it your all.
                     </p>
                     </>

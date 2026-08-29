@@ -201,9 +201,14 @@
   /* Unlike the rules above, win98-boot-loading-fill's *base* width is 0%
      (see its keyframe) — disabling the animation without also forcing it
      full would leave the bar looking permanently empty instead of just
-     skipping the fill motion. PowerOnGate.tsx's own setTimeout still
-     advances past 'splash' after SPLASH_DURATION_MS regardless of this
-     setting, so the screen doesn't hang here either way. */
+     skipping the fill motion. PowerOnGate.tsx's own setTimeouts (not
+     gated by this media query at all) still advance past 'splash' after
+     LOGO_ALONE_MS + SPLASH_LOADING_MS regardless of this setting, so the
+     screen doesn't hang here either way — the bar's outer track still
+     fades in via its own opacity transition once showLoadingBar flips
+     (a separate, much smaller transition this rule doesn't touch), it's
+     specifically the *fill* that's forced to its end state instead of
+     animating. */
   .win98-boot-loading-fill {
     animation: none !important;
     width: 100% !important;
@@ -296,9 +301,10 @@
 }
 
 /* PowerOnGate.tsx's 'splash' phase — the loading bar under the pixel logo
-   filling left to right exactly once, not looping. Duration is set
-   per-instance via the animationDuration inline style (kept in sync with
-   SPLASH_DURATION_MS there) rather than hardcoded here. */
+   (shown only once the logo's had a beat alone on screen — see
+   showLoadingBar there) filling left to right exactly once, not looping.
+   Duration is set per-instance via the animationDuration inline style
+   (kept in sync with SPLASH_LOADING_MS there) rather than hardcoded here. */
 @keyframes win98BootLoadingFill {
   0% { width: 0%; }
   100% { width: 100%; }

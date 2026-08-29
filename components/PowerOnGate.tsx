@@ -33,13 +33,15 @@
 // "an actual operating system starting up" the way an actual bootloader
 // screen does, and it's the one moment on the site that's genuinely
 // "before" the win98 desktop exists yet. Three phases:
-//   'splash'  — the very first thing shown: a small device logo (see
-//               PixelLogo below) and a loading bar filling left to right,
-//               same idea as a real machine's manufacturer logo + progress
-//               bar before it ever gets to a boot menu (think the Apple
-//               logo + progress bar on a Mac). Purely timed — no
+//   'splash'  — the very first thing shown, itself two beats: a small
+//               device logo (see PixelLogo below) sits alone on screen
+//               for LOGO_ALONE_MS, then a loading bar fades in below it
+//               and fills left to right over SPLASH_LOADING_MS — same
+//               idea as a real machine's manufacturer logo appearing
+//               before its progress bar does (think the Apple logo, then
+//               the progress bar, on a Mac). Purely timed — no
 //               interaction, nothing to click — and hands off to 'menu'
-//               automatically once SPLASH_DURATION_MS elapses.
+//               automatically once both beats have elapsed.
 //   'menu'    — black screen, one selectable menu entry, nothing else.
 //   'booting' — plays a synthesized startup chime (same one-off-
 //               AudioContext pattern as Minesweeper's explosion — see
@@ -58,10 +60,18 @@ type PowerOnGateProps = {
   onStart: () => void
 }
 
-// How long the 'splash' phase (logo + loading bar) sits before handing
-// off to 'menu' — long enough for the loading bar to read as an actual
-// fill, not just a flash.
-const SPLASH_DURATION_MS = 2200
+// 'splash' now has two beats, not one: the logo sits alone first (no
+// loading bar yet — see showLoadingBar below), then the loading bar fades
+// in and starts its fill. Per feedback, showing both from the very first
+// frame didn't read as an actual boot sequence — a real device shows its
+// logo for a beat before a progress indicator even appears.
+const LOGO_ALONE_MS = 1000
+// How long the loading bar's own fill takes, once it starts (i.e. after
+// LOGO_ALONE_MS has already elapsed) — long enough to read as an actual
+// fill, not just a flash. 'splash' hands off to 'menu' this long after the
+// bar starts, so LOGO_ALONE_MS + SPLASH_LOADING_MS is the total time spent
+// on 'splash'.
+const SPLASH_LOADING_MS = 2200
 
 // A brief pause after selecting the entry — chime plays, screen stays
 // black a beat longer, THEN the wallpaper starts revealing — instead of
@@ -147,14 +157,25 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
   // the opacity change an actual observed transition instead of skipping
   // straight to its end state before the browser paints the start of it.
   const [fadeOut, setFadeOut] = useState(false)
+  // Gates the loading bar within 'splash' — false for the first
+  // LOGO_ALONE_MS (logo alone on screen), then true for the rest of
+  // 'splash' (bar fades in and starts its fill). See the JSX below for how
+  // this avoids a layout jump: the bar's own bordered track is always
+  // rendered, just invisible until this flips, so the logo never has to
+  // shift position once the bar appears.
+  const [showLoadingBar, setShowLoadingBar] = useState(false)
 
-  // Purely timed hand-off from 'splash' to 'menu' — no interaction gates
+  // Purely timed hand-off through 'splash' — no interaction gates any of
   // this, same as a real machine's logo/progress-bar screen before it
   // reaches a boot menu.
   useEffect(() => {
     if (phase !== 'splash') return
-    const toMenu = setTimeout(() => setPhase('menu'), SPLASH_DURATION_MS)
-    return () => clearTimeout(toMenu)
+    const toBar = setTimeout(() => setShowLoadingBar(true), LOGO_ALONE_MS)
+    const toMenu = setTimeout(() => setPhase('menu'), LOGO_ALONE_MS + SPLASH_LOADING_MS)
+    return () => {
+      clearTimeout(toBar)
+      clearTimeout(toMenu)
+    }
   }, [phase])
 
   const handleSelect = useCallback(() => {
@@ -232,12 +253,23 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
           <PixelLogo />
           {/* Sunken win98-bezel-style bar (matches this site's other
               "loading" chrome, e.g. WindowsLoader's own progress track) —
-              the fill is a single CSS animation timed to SPLASH_DURATION_MS
+              the fill is a single CSS animation timed to SPLASH_LOADING_MS
               (see win98-boot-loading-fill in globals.css), not JS-driven
               width state, so there's nothing to keep in sync with the
-              setTimeout above beyond both reading the same duration. */}
-          <div className="w-40 h-2.5 border border-[#808080] bg-black p-[1px]">
-            <div className="win98-boot-loading-fill h-full bg-[#c0c0c0]" style={{ animationDuration: `${SPLASH_DURATION_MS}ms` }} />
+              setTimeout above beyond both reading the same duration.
+              The outer track is always rendered (even before
+              showLoadingBar flips) so the logo above it never has to shift
+              position once the bar appears — only its opacity changes,
+              and the inner fill div (and its animation) doesn't even
+              mount until showLoadingBar is true, so the fill genuinely
+              starts right as it fades in, not earlier. */}
+          <div
+            className="w-40 h-2.5 border border-[#808080] bg-black p-[1px] transition-opacity duration-300"
+            style={{ opacity: showLoadingBar ? 1 : 0 }}
+          >
+            {showLoadingBar && (
+              <div className="win98-boot-loading-fill h-full bg-[#c0c0c0]" style={{ animationDuration: `${SPLASH_LOADING_MS}ms` }} />
+            )}
           </div>
         </div>
       )}

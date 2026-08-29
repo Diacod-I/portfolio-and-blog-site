@@ -978,84 +978,98 @@ export default function HomeClient({
     return () => cancelAnimationFrame(raf)
   }, [homeTab, advithOpen])
 
-  // Feeds ImageExhibition's own `scale` prop (see that file) — the fix for
-  // "photos clipped on the right edge / cluttered on phone or a minimized
-  // window", take two. The first attempt at this switched to a completely
-  // different vertical-stack layout below a fixed breakpoint — per
-  // feedback that lost the actual "gallery wall" look the scattered
-  // frames are supposed to have, so this instead keeps the exact same
-  // absolutely-positioned scattered layout at every width and just scales
-  // it down uniformly to fit.
+  // Feeds ImageExhibition's own `scale`/`compact` props (see that file) —
+  // the fix for "photos clipped on the right edge / cluttered on phone or
+  // a minimized window", take three.
   //
-  // Why this actually fixes the overflow (not just shrinks it): each
-  // frame's `left`/`top` are percentages of the container's own width/
-  // height (already responsive on their own), but `widthPx`/`heightPx` are
-  // FIXED pixels, hand-tuned against an assumed ~1000px-wide desktop
-  // window (see data/exhibitionFrames.ts's own header) — a frame at
-  // leftPct 81.3% with a 178px-wide polaroid overflows the instant the
-  // container is narrower than roughly leftPct% + 178px, i.e. well under
-  // 1000px already. Scaling every frame's rendered size by
-  // `min(1, containerWidth / GALLERY_SCALE_DIVISOR)` keeps `leftPct% +
-  // widthPx * scale` proportional to the container's actual current width
-  // for ANY width, not just above/below one hardcoded threshold.
+  // Two different fixes for two different width ranges, not one that
+  // covers everything:
+  //  - Above GALLERY_COMPACT_THRESHOLD (desktop, including a resized-down
+  //    window — floored by advith.exe's own minSize so it never gets
+  //    anywhere near phone-narrow): keep the exact same
+  //    absolutely-positioned scattered "gallery wall" layout and scale it
+  //    down uniformly to fit, same as before. Each frame's `left`/`top`
+  //    are percentages of the container's own width/height (already
+  //    responsive on their own), but `widthPx`/`heightPx` are FIXED
+  //    pixels, hand-tuned against an assumed ~1000px-wide desktop window
+  //    (see data/exhibitionFrames.ts's own header) — a frame at leftPct
+  //    81.3% with a 178px-wide polaroid overflows the instant the
+  //    container is narrower than roughly leftPct% + 178px, i.e. well
+  //    under 1000px already. Scaling every frame's rendered size by
+  //    `min(1, containerWidth / GALLERY_SCALE_DIVISOR)` keeps `leftPct% +
+  //    widthPx * scale` proportional to the container's actual current
+  //    width. GALLERY_SCALE_DIVISOR is 1050, not the literal 1000px design
+  //    width the frames were placed against — per feedback, "gotta grind"
+  //    (leftPct 78.7, widthPx 162) and "if you know, you know" (leftPct
+  //    78.5, widthPx 170) still clipped a few px past the window's right
+  //    edge at the minimum window width: leftPct/100 + (widthPx+16)/1000
+  //    comes out to 0.965-0.971 for them, only a ~3-4% margin, and real
+  //    rendering overhead (the window's own border, box-shadow, sub-pixel
+  //    rounding from rounding scale to 2dp) was enough to eat it. Dividing
+  //    by 1050 instead gives every frame a uniform ~5% extra shrink at any
+  //    container width — cheap, uniform insurance against exactly this,
+  //    without repositioning individual frames and risking new overlaps
+  //    between them (the original placements avoid overlap via a packing
+  //    script this repo doesn't keep around to safely rerun).
+  //  - Below GALLERY_COMPACT_THRESHOLD (an actual phone): scaling stops
+  //    being the right tool entirely. Per feedback, even with the clipping
+  //    fixed, a ~350px phone against a ~1000px design is roughly a
+  //    0.3-0.35x shrink — the biggest photos render at maybe 5-6% of the
+  //    screen width, too small to make out. There's no `scale` value that
+  //    fixes this: the scattered layout's positions only avoid
+  //    overlapping each other at (approximately) the original design
+  //    width, so a bigger scale just reintroduces the clipping this was
+  //    built to prevent. Below the threshold, ImageExhibition switches to
+  //    a completely different layout instead (plain vertical stack, one
+  //    photo per row, each at a real size) — see that file's `compact`
+  //    prop for the rest. galleryScale is simply unused by ImageExhibition
+  //    while compact, so it's left alone here rather than special-cased.
   //
-  // GALLERY_SCALE_DIVISOR is 1050, not the literal 1000px design width
-  // (see data/exhibitionFrames.ts's header) the frames were placed
-  // against — per feedback, "gotta grind" (leftPct 78.7, widthPx 162) and "if you
-  // know, you know" (leftPct 78.5, widthPx 170) still clipped a few px past
-  // the window's right edge at the minimum window width. Those two (plus
-  // "first startup idea", close behind them) sit right at the edge of what
-  // the original packing script actually guaranteed: leftPct/100 +
-  // (widthPx+16)/1000 comes out to 0.965-0.971 for them — comfortably
-  // under 1 in theory, but that's only a ~3-4% margin, and real rendering
-  // overhead (the window's own border, box-shadow, sub-pixel rounding from
-  // rounding scale to 2dp) was enough to eat it. Dividing by 1050 instead
-  // of 1000 gives every frame a uniform ~5% extra shrink at any container
-  // width — cheap, uniform insurance against exactly this, without
-  // repositioning individual frames and risking new overlaps between them
-  // (the original placements avoid overlap via a packing script this repo
-  // doesn't keep around to safely rerun — see exhibitionFrames.ts's
-  // header).
-  //
-  // Measured via ResizeObserver on the actual container instead of a
+  // Both measured via ResizeObserver on the actual container instead of a
   // matchMedia viewport check, deliberately — a real phone viewport isn't
   // the only way this container can end up narrow: advith.exe's own
   // window can be dragged down small on a wide desktop viewport too (see
   // GalleryWindow.tsx/MinesweeperWindow.tsx's own ResizeObserver-based
   // "measure my actual container, not the viewport" pattern), and a
-  // matchMedia check would completely miss that case. Rounded to 2
-  // decimal places so continuous sub-pixel width changes during an active
-  // window resize don't spam ImageExhibition with a slightly-different
-  // scale prop (and re-render) on every single ResizeObserver tick.
+  // matchMedia check would completely miss that case — though in
+  // practice the window's own minSize floor keeps a desktop resize from
+  // ever reaching GALLERY_COMPACT_THRESHOLD, so compact mode is
+  // effectively phone-only today. galleryScale is rounded to 2 decimal
+  // places so continuous sub-pixel width changes during an active window
+  // resize don't spam ImageExhibition with a slightly-different scale
+  // prop (and re-render) on every single ResizeObserver tick.
   const GALLERY_SCALE_DIVISOR = 1050
-  // Lazy initializer instead of a flat `1` — live testing on the actual
-  // deployed site found the gallery rendering fully unscaled on phone
-  // widths (photos overflowing past the right edge, confirmed by
-  // measuring a frame's getBoundingClientRect() past window.innerWidth)
-  // even after a real resize AND a full remount of this tab, which the
-  // effect below should have corrected either way. Never fully root-caused
-  // against a live, already-minified bundle with no source maps (see the
-  // Lighthouse "Missing source maps" finding) — best guess is a stale
-  // deployed chunk, since the ResizeObserver API itself checks out fine
-  // (manually attaching a second one on the live page fires correctly).
-  // Either way, this removes the dependency on that effect firing at all
-  // for a CORRECT first paint: window.innerWidth is a fine proxy for this
-  // tab's own container width, since advith.exe is always full-bleed on
-  // mobile (see Win98Window.tsx's isSmallScreen branch) — minus 32px for
-  // homeScrollRef's own px-4. Approximate on purpose (homeScrollRef isn't
-  // attached yet during this initializer, so the real container can't be
-  // measured synchronously here) — the effect below still corrects this
-  // to an exact value immediately after mount, and on every real resize
-  // after that, same as before.
+  const GALLERY_COMPACT_THRESHOLD = 640
+  // Lazy initializers instead of flat defaults — live testing on the
+  // actual deployed site once found the gallery rendering fully unscaled
+  // on phone widths (photos overflowing past the right edge) even after a
+  // real resize AND a full remount of this tab, which the effect below
+  // should have corrected either way; never fully root-caused against a
+  // live, already-minified bundle with no source maps (see the Lighthouse
+  // "Missing source maps" finding) — best guess is a stale deployed
+  // chunk, since the ResizeObserver API itself checked out fine when
+  // tested directly. Either way, this removes the dependency on that
+  // effect firing at all for a CORRECT first paint: window.innerWidth is
+  // a fine proxy for this tab's own container width, since advith.exe is
+  // always full-bleed on mobile (see Win98Window.tsx's isSmallScreen
+  // branch) — minus 32px for homeScrollRef's own px-4. Approximate on
+  // purpose (homeScrollRef isn't attached yet during this initializer, so
+  // the real container can't be measured synchronously here) — the
+  // effect below still corrects both to an exact value immediately after
+  // mount, and on every real resize after that.
   const [galleryScale, setGalleryScale] = useState(() => {
     if (typeof window === 'undefined') return 1
     const approxContainerWidth = window.innerWidth - 32
     return Math.min(1, Math.round((approxContainerWidth / GALLERY_SCALE_DIVISOR) * 100) / 100)
   })
-  // useLayoutEffect (not useEffect) so the corrected, exact scale is
+  const [galleryCompact, setGalleryCompact] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.innerWidth - 32 < GALLERY_COMPACT_THRESHOLD
+  })
+  // useLayoutEffect (not useEffect) so the corrected, exact values are
   // committed before paint rather than one frame after — belt-and-braces
-  // alongside the lazy initializer above, not a fix on its own for the
-  // stale-scale bug that initializer guards against.
+  // alongside the lazy initializers above, not a fix on its own for the
+  // stale-scale bug those guard against.
   useLayoutEffect(() => {
     // homeScrollRef only exists while the Home tab's own branch is
     // mounted (each tab is a conditionally-rendered DOM subtree, not a
@@ -1070,6 +1084,7 @@ export default function HomeClient({
     const observer = new ResizeObserver(([entry]) => {
       const raw = Math.min(1, entry.contentRect.width / GALLERY_SCALE_DIVISOR)
       setGalleryScale(Math.round(raw * 100) / 100)
+      setGalleryCompact(entry.contentRect.width < GALLERY_COMPACT_THRESHOLD)
     })
     observer.observe(el)
     return () => observer.disconnect()
@@ -1710,12 +1725,20 @@ export default function HomeClient({
                     are percentages of *this* div's own height (see
                     data/exhibitionFrames.ts), so this margin sits
                     entirely outside that math instead of just spreading
-                    the frames themselves further apart. Height/overflow
-                    here stay fixed at every width now — see galleryScale
-                    above for why: frames scale down to fit a narrow
-                    container instead of switching to a different layout,
-                    so this div's own box never needs to change shape to
-                    accommodate them. */}
+                    the frames themselves further apart.
+
+                    This div's own fixed 380vh height/overflow-hidden only
+                    applies above galleryCompact's threshold — see that
+                    state's own comment above for why compact mode (an
+                    actual phone) switches ImageExhibition to a plain
+                    vertical stack instead of scaling the scattered layout
+                    down further. A stack's natural height doesn't match
+                    380vh at all (depends on how many frames there are and
+                    how tall each one renders), so forcing that height (or
+                    clipping to it) would either leave a huge empty gap or
+                    cut frames off entirely — dropping both here instead
+                    lets the div just size itself to whatever the stack
+                    actually needs. */}
                 {/* Marks the true top of the whole hidden zone — reached
                     only once every frame below has been scrolled past,
                     i.e. the actual end of this easter egg. Deliberately
@@ -1752,8 +1775,14 @@ export default function HomeClient({
                 <p className="text-center mb-12 mx-auto w-fit bg-white text-black px-4 py-2 text-lg sm:text-xl font-light">
                   Breathe. Live life to the fullest. It&apos;ll all work out. <PixelHeart />
                 </p>
-                <div className="relative w-full min-h-[380vh] mb-[40vh] overflow-hidden">
-                  <ImageExhibition scale={galleryScale} />
+                <div
+                  className={
+                    galleryCompact
+                      ? 'relative w-full mb-[40vh]'
+                      : 'relative w-full min-h-[380vh] mb-[40vh] overflow-hidden'
+                  }
+                >
+                  <ImageExhibition scale={galleryScale} compact={galleryCompact} />
                 </div>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>AHHH!! YOUR POWER OF LOVE AND HOPE IS TOO STRONG!!!</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>DON'T SCROLL UP!!!</h1>

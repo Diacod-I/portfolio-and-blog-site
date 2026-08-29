@@ -21,9 +21,53 @@
 // hydration mismatch — see HomeClient.tsx's own call to
 // `useWindowStore.persist.rehydrate()` for how (and, importantly, *when*)
 // the real stored state actually gets pulled back in after that.
+//
+// The storage engine below is a debounced wrapper around sessionStorage,
+// not sessionStorage directly — that's deliberate, not an oversight.
+// zustand's persist middleware writes to storage synchronously on every
+// single set() call, and Win98Window.tsx's setRect fires on every
+// pointermove while a window is being dragged or resized (for live visual
+// feedback) — 60+ times a second. Without debouncing, that's a synchronous
+// JSON.stringify + sessionStorage.setItem of the whole store on every one
+// of those frames, which is exactly the kind of main-thread work that
+// shows up as visibly laggy dragging/resizing. Reads (getItem, used by
+// rehydrate()) are untouched and stay fully synchronous either way — only
+// the high-frequency write side needed coalescing.
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+
+// How long to wait after the *last* write attempt before actually touching
+// sessionStorage — long enough to coalesce an entire drag/resize gesture
+// (which fires continuously, with no gap between frames) into a single
+// write once it settles, short enough that a reload moments after
+// finishing a drag still sees the right position. The one accepted
+// trade-off: closing the tab within this window of finishing a drag could
+// lose that last move — acceptable for a portfolio site's window
+// positions, not the kind of data that needs a stronger guarantee.
+const PERSIST_WRITE_DEBOUNCE_MS = 200
+
+function createDebouncedSessionStorage() {
+  let timer: ReturnType<typeof setTimeout> | null = null
+  return {
+    // Reads stay synchronous and immediate — rehydrate() on mount (see
+    // HomeClient.tsx) depends on this to avoid its own flash-of-default-
+    // positions problem, which debouncing writes doesn't affect at all.
+    getItem: (name: string) => sessionStorage.getItem(name),
+    setItem: (name: string, value: string) => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        timer = null
+        sessionStorage.setItem(name, value)
+      }, PERSIST_WRITE_DEBOUNCE_MS)
+    },
+    removeItem: (name: string) => {
+      if (timer) clearTimeout(timer)
+      timer = null
+      sessionStorage.removeItem(name)
+    },
+  }
+}
 
 export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme' | 'minesweeper' | 'solitaire' | 'projects'
 export type WinStatus = 'closed' | 'open' | 'minimized'
@@ -158,7 +202,7 @@ export const useWindowStore = create<WindowStore>()(
       // nothing reads anymore but would otherwise sit around as a phantom
       // taskbar entry — bumping the key just starts fresh instead.
       name: 'win98-window-state-v11',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(createDebouncedSessionStorage),
       skipHydration: true,
     }
   )

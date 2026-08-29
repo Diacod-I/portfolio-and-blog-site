@@ -32,6 +32,14 @@ import { BOOT_LOG_LINES } from '@/data/bootLog'
 import { EXHIBITION_FRAMES_MAX_TOP_PCT } from '@/data/exhibitionFrames'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
+// Static import (not a '/Advith_Krishnan.webp' path string) so next/image
+// can auto-generate a blurDataURL for the dossier photo below — same
+// reasoning as data/highlights.ts and data/exhibitionFrames.ts. `priority`
+// already preloads this one, but priority only speeds up *when* the
+// request starts; on a throttled connection the photo can still take a
+// beat to arrive, and without a blur placeholder it's just blank white
+// until then.
+import profilePhoto from '@/public/Advith_Krishnan.webp'
 
 // Lazy-loaded: WorldMap pulls in react-simple-maps/d3-geo, and only ever
 // renders once the boot-log sequence finishes — no reason for that weight
@@ -1903,10 +1911,11 @@ export default function HomeClient({
                       >
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
                           <Image
-                            src="/Advith_Krishnan.webp"
+                            src={profilePhoto}
                             alt="Advith Krishnan"
                             fill
                             priority
+                            placeholder="blur"
                             sizes="(max-width: 640px) 190px, 222px"
                             className="object-cover"
                           />

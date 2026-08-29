@@ -137,6 +137,7 @@ function ImageExhibition({ scale, compact }: ImageExhibitionProps) {
                   alt={frame.alt ?? ''}
                   fill
                   sizes={`${COMPACT_CARD_MAX_WIDTH}px`}
+                  placeholder="blur"
                   className="object-cover"
                 />
               </div>
@@ -204,6 +205,7 @@ function ImageExhibition({ scale, compact }: ImageExhibitionProps) {
                 alt={frame.alt ?? ''}
                 fill
                 sizes="170px"
+                placeholder="blur"
                 className="object-cover"
               />
             </div>

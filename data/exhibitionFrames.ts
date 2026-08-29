@@ -29,6 +29,51 @@
 // by duplicating light-zone photos when nothing else was unused yet;
 // once more images existed, those duplicates were swapped out per an
 // explicit "no repeats" request).
+//
+// `src` is a static import (StaticImageData), not a plain '/public/...'
+// path string like an earlier version used — same reasoning as
+// data/highlights.ts: a static import gives next/image the real
+// width/height for free and, more importantly here, lets it auto-generate
+// a tiny blurDataURL (see ImageExhibition.tsx's `placeholder="blur"`), so
+// each photo fades in from a blurred preview instead of sitting blank
+// while it loads on a throttled connection. A plain string path can't do
+// this automatically — next/image only knows a blurDataURL when it has
+// the actual file at build time via one of these imports.
+import type { StaticImageData } from 'next/image'
+
+import frame01 from '@/public/IMG_20190103_071215.jpg'
+import frame02 from '@/public/IMG_20190103_075939.jpg'
+import frame03 from '@/public/IMG_20190103_080007.jpg'
+import frame04 from '@/public/IMG_20190103_081554.jpg'
+import frame05 from '@/public/IMG_20190103_082932.jpg'
+import frame06 from '@/public/IMG_20211119_193920.jpg'
+import frame07 from '@/public/IMG_20211122_122534.jpg'
+import frame08 from '@/public/IMG_20220302_175741.jpg'
+import frame09 from '@/public/IMG_20220304_204353.jpg'
+import frame10 from '@/public/IMG_20220401_192335_737.jpg'
+import frame12 from '@/public/IMG_20240423_080639.jpg'
+import frame16 from '@/public/IMG_20240604_130801.jpg'
+import frame17 from '@/public/IMG_20250714_005009.jpg'
+import frame18 from '@/public/IMG_0756.jpg'
+import frame19 from '@/public/05FCBBAF-CDA5-4B1B-922D-6426A9B6DBA3_1_105_c.jpeg'
+import frame20 from '@/public/1109AEAE-CB76-481B-A0C5-637DF2636E1C_4_5005_c.jpeg'
+import frame21 from '@/public/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg'
+import frame22 from '@/public/326387A0-CF8E-42C2-9F7A-87A04A5903D7_1_105_c.jpeg'
+import frame23 from '@/public/4443A26E-06E7-46C1-AF1B-D7058056D458_1_105_c.jpeg'
+import frame37 from '@/public/67D733B7-A762-4847-84C8-C5A7E5B5500F_1_105_c.jpeg'
+import frame24 from '@/public/8DEE3877-00A4-4592-B09F-300D29B8A3EF_1_105_c.jpeg'
+import frame30 from '@/public/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg'
+import frame31 from '@/public/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg'
+import frame32 from '@/public/E71A0C45-4BA0-42AB-8B15-D2EBFA7A2AB9_1_105_c.jpeg'
+import frame33 from '@/public/8eqko4.png'
+import frame34 from '@/public/hqdefault.jpg'
+import frame35 from '@/public/images.jpeg'
+import frame36 from '@/public/maxresdefault.jpg'
+import frame11 from '@/public/IMG_20231022_140633.jpg'
+import frame13 from '@/public/IMG_20240528_224218.jpg'
+import frame14 from '@/public/IMG_20240528_225351.jpg'
+import frame15 from '@/public/IMG_20240528_225753.jpg'
+
 export type ExhibitionFrame = {
   id: string
   /** Percent of the exhibition zone's own width/height (the zone is
@@ -39,9 +84,10 @@ export type ExhibitionFrame = {
   widthPx: number
   heightPx: number
   rotationDeg: number
-  /** Path under /public. Omitted → renders as a black-outline placeholder
-   *  (see ImageExhibition.tsx) instead of a real photo/polaroid. */
-  src?: string
+  /** Static import of a file under /public (see the file header above for
+   *  why, vs. a plain path string). Omitted → renders as a black-outline
+   *  placeholder (see ImageExhibition.tsx) instead of a real photo/polaroid. */
+  src?: StaticImageData
   alt?: string
   /** Handwritten-style caption in the polaroid's bottom margin (see
    *  ImageExhibition.tsx's Edu NSW/ACT Cursive text) — only meaningful
@@ -99,15 +145,15 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // ---- Light zone: dense — mostly personal photos, plus the 4
   // downloaded images mixed in among them rather than kept in their own
   // separate cluster (see the swap note below the dark zone). ----
-  { id: 'photo-01', leftPct: 10.3, topPct: 48.0, widthPx: 170, heightPx: 159, rotationDeg: -3.1, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo', caption: 'hehehe' },
-  { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'kangaru' },
+  { id: 'photo-01', leftPct: 10.3, topPct: 48.0, widthPx: 170, heightPx: 159, rotationDeg: -3.1, src: frame01, alt: 'A personal photo', caption: 'hehehe' },
+  { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: frame02, alt: 'A personal photo', caption: 'kangaru' },
   // Moved below 'love you mom' (photo-05, leftPct 70.0-88.6, topPct
   // 2.0-7.2) per request, alongside photo-10 just below — side by side
   // rather than stacked, since both are already ~7.2% tall themselves and
   // stacking them would barely fit the open corridor between photo-05
   // above and photo-22 below (topPct 7.2 to 22.8) with no real gap.
-  { id: 'photo-03', leftPct: 85.0, topPct: 9.5,  widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: ':)' },
-  { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: '/IMG_20190103_081554.jpg', alt: 'A personal photo', caption: 'too loud aaaa' },
+  { id: 'photo-03', leftPct: 85.0, topPct: 9.5,  widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: frame03, alt: 'A personal photo', caption: ':)' },
+  { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: frame04, alt: 'A personal photo', caption: 'too loud aaaa' },
   // photo-05/photo-21/photo-37 below are the top row now — the first
   // three frames reached once someone's scrolled all the way up past
   // everything else, landing directly below the "Breathe..." bookend
@@ -121,46 +167,46 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // relocated further down into open space rather than left in place,
   // since their old positions directly overlap where photo-05/photo-37
   // now sit.
-  { id: 'photo-05', leftPct: 70.0, topPct: 2.0,  widthPx: 170, heightPx: 108, rotationDeg: 1.4,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo', caption: 'love you mom' },
+  { id: 'photo-05', leftPct: 70.0, topPct: 2.0,  widthPx: 170, heightPx: 108, rotationDeg: 1.4,  src: frame05, alt: 'A personal photo', caption: 'love you mom' },
   // Relocated from its old (71.0, 5.2) spot — that slot now overlaps
   // photo-05's new top-row position above. Moved into open room between
   // the light zone's old ~62% ceiling and the dark zone's 72.6% start
   // (see the packing-script comment up top for why that gap exists and
   // is safe to use).
-  { id: 'photo-06', leftPct: 50.0, topPct: 68.0, widthPx: 104, heightPx: 170, rotationDeg: -2.4, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo', caption: 'drip check' },
-  { id: 'photo-07', leftPct: 81.3, topPct: 26.8, widthPx: 128, heightPx: 170, rotationDeg: -1.8, src: '/IMG_20211122_122534.jpg', alt: 'A personal photo', caption: 'first startup idea' },
-  { id: 'photo-08', leftPct: 38.2, topPct: 29.5, widthPx: 170, heightPx: 65,  rotationDeg: 1.9,  src: '/IMG_20220302_175741.jpg', alt: 'A personal photo', caption: 'this is Pachi' },
-  { id: 'photo-09', leftPct: 42.1, topPct: 53.4, widthPx: 127, heightPx: 170, rotationDeg: 2.0,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo', caption: 'prolly a fractal' },
+  { id: 'photo-06', leftPct: 50.0, topPct: 68.0, widthPx: 104, heightPx: 170, rotationDeg: -2.4, src: frame06, alt: 'A personal photo', caption: 'drip check' },
+  { id: 'photo-07', leftPct: 81.3, topPct: 26.8, widthPx: 128, heightPx: 170, rotationDeg: -1.8, src: frame07, alt: 'A personal photo', caption: 'first startup idea' },
+  { id: 'photo-08', leftPct: 38.2, topPct: 29.5, widthPx: 170, heightPx: 65,  rotationDeg: 1.9,  src: frame08, alt: 'A personal photo', caption: 'this is Pachi' },
+  { id: 'photo-09', leftPct: 42.1, topPct: 53.4, widthPx: 127, heightPx: 170, rotationDeg: 2.0,  src: frame09, alt: 'A personal photo', caption: 'prolly a fractal' },
   // Moved below 'love you mom' per request — see photo-03's comment just
   // above for the shared reasoning (same corridor, side by side).
-  { id: 'photo-10', leftPct: 66.0, topPct: 9.5,  widthPx: 144, heightPx: 170, rotationDeg: -4.5, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo', caption: 'magic go brrr' },
-  { id: 'photo-12', leftPct: 78.7, topPct: 43.6, widthPx: 162, heightPx: 170, rotationDeg: 0.5,  src: '/IMG_20240423_080639.jpg', alt: 'A personal photo', caption: 'gotta grind' },
-  { id: 'photo-16', leftPct: 78.5, topPct: 53.3, widthPx: 170, heightPx: 128, rotationDeg: -1.6, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo', caption: 'if you know, you know' },
-  { id: 'photo-17', leftPct: 13.2, topPct: 56.0, widthPx: 170, heightPx: 128, rotationDeg: 0.3,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo', caption: 'do I need to explain?' },
-  { id: 'photo-18', leftPct: 63.8, topPct: 59.8, widthPx: 170, heightPx: 128, rotationDeg: 1.0,  src: '/IMG_0756.jpg', alt: 'A personal photo', caption: 'angy doodle' },
-  { id: 'photo-19', leftPct: 60.5, topPct: 47.5, widthPx: 128, heightPx: 170, rotationDeg: -3.2, src: '/05FCBBAF-CDA5-4B1B-922D-6426A9B6DBA3_1_105_c.jpeg', alt: 'A personal photo', caption: 'good morning' },
-  { id: 'photo-20', leftPct: 24.8, topPct: 12.5, widthPx: 170, heightPx: 146, rotationDeg: 2.5,  src: '/1109AEAE-CB76-481B-A0C5-637DF2636E1C_4_5005_c.jpeg', alt: 'A personal photo', caption: 'worht it?' },
-  { id: 'photo-21', leftPct: 44.1, topPct: 1.2,  widthPx: 119, heightPx: 170, rotationDeg: -1.7, src: '/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg', alt: 'A personal photo', caption: 'portrait made with love <3' },
-  { id: 'photo-22', leftPct: 62.7, topPct: 22.8, widthPx: 128, heightPx: 170, rotationDeg: 2.2,  src: '/326387A0-CF8E-42C2-9F7A-87A04A5903D7_1_105_c.jpeg', alt: 'A personal photo', caption: 'browsing' },
+  { id: 'photo-10', leftPct: 66.0, topPct: 9.5,  widthPx: 144, heightPx: 170, rotationDeg: -4.5, src: frame10, alt: 'A personal photo', caption: 'magic go brrr' },
+  { id: 'photo-12', leftPct: 78.7, topPct: 43.6, widthPx: 162, heightPx: 170, rotationDeg: 0.5,  src: frame12, alt: 'A personal photo', caption: 'gotta grind' },
+  { id: 'photo-16', leftPct: 78.5, topPct: 53.3, widthPx: 170, heightPx: 128, rotationDeg: -1.6, src: frame16, alt: 'A personal photo', caption: 'if you know, you know' },
+  { id: 'photo-17', leftPct: 13.2, topPct: 56.0, widthPx: 170, heightPx: 128, rotationDeg: 0.3,  src: frame17, alt: 'A personal photo', caption: 'do I need to explain?' },
+  { id: 'photo-18', leftPct: 63.8, topPct: 59.8, widthPx: 170, heightPx: 128, rotationDeg: 1.0,  src: frame18, alt: 'A personal photo', caption: 'angy doodle' },
+  { id: 'photo-19', leftPct: 60.5, topPct: 47.5, widthPx: 128, heightPx: 170, rotationDeg: -3.2, src: frame19, alt: 'A personal photo', caption: 'good morning' },
+  { id: 'photo-20', leftPct: 24.8, topPct: 12.5, widthPx: 170, heightPx: 146, rotationDeg: 2.5,  src: frame20, alt: 'A personal photo', caption: 'worht it?' },
+  { id: 'photo-21', leftPct: 44.1, topPct: 1.2,  widthPx: 119, heightPx: 170, rotationDeg: -1.7, src: frame21, alt: 'A personal photo', caption: 'portrait made with love <3' },
+  { id: 'photo-22', leftPct: 62.7, topPct: 22.8, widthPx: 128, heightPx: 170, rotationDeg: 2.2,  src: frame22, alt: 'A personal photo', caption: 'browsing' },
   // Relocated from its old (16.0, 5.8) spot for the same reason as
   // photo-06 above — that slot now overlaps photo-37's new top-row
   // position below. Moved to the same open post-light-zone gap as
   // photo-06, just further left so the two don't collide with each
   // other either.
-  { id: 'photo-23', leftPct: 10.0, topPct: 66.0, widthPx: 170, heightPx: 128, rotationDeg: 3.5,  src: '/4443A26E-06E7-46C1-AF1B-D7058056D458_1_105_c.jpeg', alt: 'A personal photo', caption: 'night bloom' },
+  { id: 'photo-23', leftPct: 10.0, topPct: 66.0, widthPx: 170, heightPx: 128, rotationDeg: 3.5,  src: frame23, alt: 'A personal photo', caption: 'night bloom' },
   // New addition — see the top-row comment above photo-05. 1024x768
   // source, so 170px-wide/128px-tall like several other landscape shots
   // here (same "cap the longer side at 170" sizing every other frame
   // uses, see this file's header).
-  { id: 'photo-37', leftPct: 12.0, topPct: 1.0,  widthPx: 170, heightPx: 128, rotationDeg: -3.0, src: '/67D733B7-A762-4847-84C8-C5A7E5B5500F_1_105_c.jpeg', alt: 'A personal photo of two people laughing together', caption: 'we soo cute!!' },
-  { id: 'photo-24', leftPct: 14.5, topPct: 30.2, widthPx: 128, heightPx: 170, rotationDeg: -0.4, src: '/8DEE3877-00A4-4592-B09F-300D29B8A3EF_1_105_c.jpeg', alt: 'A personal photo', caption: 'whiteboarding' },
-  { id: 'photo-30', leftPct: 36.1, topPct: 36.0, widthPx: 170, heightPx: 128, rotationDeg: -4.4, src: '/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg', alt: 'A personal photo', caption: 'roses are red or some shit' },
-  { id: 'photo-31', leftPct: 75.6, topPct: 35.8, widthPx: 128, heightPx: 170, rotationDeg: -1.2, src: '/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg', alt: 'A personal photo', caption: 'pookie phase (ongoing)' },
-  { id: 'photo-32', leftPct: 46.4, topPct: 12.3, widthPx: 128, heightPx: 170, rotationDeg: -2.2, src: '/E71A0C45-4BA0-42AB-8B15-D2EBFA7A2AB9_1_105_c.jpeg', alt: 'A personal photo', caption: 'touch grass' },
-  { id: 'photo-33', leftPct: 33.3, topPct: 43.5, widthPx: 110, heightPx: 170, rotationDeg: -4.5, src: '/8eqko4.png', alt: 'A black-and-white illustration of All Might from My Hero Academia', caption: 'goat' },
-  { id: 'photo-34', leftPct: 35.4, topPct: 61.5, widthPx: 170, heightPx: 128, rotationDeg: 2.0,  src: '/hqdefault.jpg', alt: 'An anime screenshot', caption: 'za warudo!!!!' },
-  { id: 'photo-35', leftPct: 14.3, topPct: 39.3, widthPx: 135, heightPx: 170, rotationDeg: -2.5, src: '/images.jpeg', alt: 'An anime screenshot with a golden-ratio overlay', caption: 'the persona ratio' },
-  { id: 'photo-36', leftPct: 0.9,  topPct: 12.8, widthPx: 170, heightPx: 96,  rotationDeg: 3.2,  src: '/maxresdefault.jpg', alt: 'A video game screenshot', caption: 'kiryu kazuma-san' },
+  { id: 'photo-37', leftPct: 12.0, topPct: 1.0,  widthPx: 170, heightPx: 128, rotationDeg: -3.0, src: frame37, alt: 'A personal photo of two people laughing together', caption: 'we soo cute!!' },
+  { id: 'photo-24', leftPct: 14.5, topPct: 30.2, widthPx: 128, heightPx: 170, rotationDeg: -0.4, src: frame24, alt: 'A personal photo', caption: 'whiteboarding' },
+  { id: 'photo-30', leftPct: 36.1, topPct: 36.0, widthPx: 170, heightPx: 128, rotationDeg: -4.4, src: frame30, alt: 'A personal photo', caption: 'roses are red or some shit' },
+  { id: 'photo-31', leftPct: 75.6, topPct: 35.8, widthPx: 128, heightPx: 170, rotationDeg: -1.2, src: frame31, alt: 'A personal photo', caption: 'pookie phase (ongoing)' },
+  { id: 'photo-32', leftPct: 46.4, topPct: 12.3, widthPx: 128, heightPx: 170, rotationDeg: -2.2, src: frame32, alt: 'A personal photo', caption: 'touch grass' },
+  { id: 'photo-33', leftPct: 33.3, topPct: 43.5, widthPx: 110, heightPx: 170, rotationDeg: -4.5, src: frame33, alt: 'A black-and-white illustration of All Might from My Hero Academia', caption: 'goat' },
+  { id: 'photo-34', leftPct: 35.4, topPct: 61.5, widthPx: 170, heightPx: 128, rotationDeg: 2.0,  src: frame34, alt: 'An anime screenshot', caption: 'za warudo!!!!' },
+  { id: 'photo-35', leftPct: 14.3, topPct: 39.3, widthPx: 135, heightPx: 170, rotationDeg: -2.5, src: frame35, alt: 'An anime screenshot with a golden-ratio overlay', caption: 'the persona ratio' },
+  { id: 'photo-36', leftPct: 0.9,  topPct: 12.8, widthPx: 170, heightPx: 96,  rotationDeg: 3.2,  src: frame36, alt: 'A video game screenshot', caption: 'kiryu kazuma-san' },
 
   // ---- Dark zone: sparse — 4 personal photos (moved out of the light
   // zone above), not the 4 downloaded/meme images that used to live down
@@ -173,10 +219,10 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // doodle shot — thematically closer to "individual pieces of art" than
   // the candid photos, which felt like a reasonable set to stand alone
   // and sparse rather than an arbitrary pick. ----
-  { id: 'photo-11', leftPct: 53.8, topPct: 87.4, widthPx: 170, heightPx: 114, rotationDeg: -2.0, src: '/IMG_20231022_140633.jpg', alt: 'A personal photo', caption: 'the honest fourier transform' },
-  { id: 'photo-13', leftPct: 8.8,  topPct: 80.1, widthPx: 170, heightPx: 104, rotationDeg: 4.8,  src: '/IMG_20240528_224218.jpg', alt: 'A personal photo', caption: 'naruto phase' },
-  { id: 'photo-14', leftPct: 63.7, topPct: 74.3, widthPx: 170, heightPx: 97,  rotationDeg: -4.0, src: '/IMG_20240528_225351.jpg', alt: 'A personal photo', caption: 'artsy phase' },
-  { id: 'photo-15', leftPct: 5.5,  topPct: 72.6, widthPx: 170, heightPx: 128, rotationDeg: 2.7,  src: '/IMG_20240528_225753.jpg', alt: 'A personal photo', caption: 'campaign poster made by me' },
+  { id: 'photo-11', leftPct: 53.8, topPct: 87.4, widthPx: 170, heightPx: 114, rotationDeg: -2.0, src: frame11, alt: 'A personal photo', caption: 'the honest fourier transform' },
+  { id: 'photo-13', leftPct: 8.8,  topPct: 80.1, widthPx: 170, heightPx: 104, rotationDeg: 4.8,  src: frame13, alt: 'A personal photo', caption: 'naruto phase' },
+  { id: 'photo-14', leftPct: 63.7, topPct: 74.3, widthPx: 170, heightPx: 97,  rotationDeg: -4.0, src: frame14, alt: 'A personal photo', caption: 'artsy phase' },
+  { id: 'photo-15', leftPct: 5.5,  topPct: 72.6, widthPx: 170, heightPx: 128, rotationDeg: 2.7,  src: frame15, alt: 'A personal photo', caption: 'campaign poster made by me' },
 ]
 
 // The frame closest to the *bottom* of the zone (largest topPct) is the

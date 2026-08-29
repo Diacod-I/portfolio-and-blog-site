@@ -957,6 +957,26 @@ export default function HomeClient({
     }
   }
 
+  // Pull persisted window state back in from sessionStorage right after
+  // this component's first commit — a useLayoutEffect, not a plain
+  // useEffect, and that choice is the whole fix for a visible flash this
+  // used to have (default/closed positions showing for a split second,
+  // then jumping to the user's actual stored layout): layout effects run
+  // synchronously, before the browser paints whatever this render just
+  // committed. windowStore.ts's sessionStorage is a synchronous storage
+  // engine, so zustand's persist middleware resolves rehydrate() entirely
+  // synchronously for it too (no microtask/Promise deferral — see
+  // toThenable in zustand's own middleware source), meaning the store
+  // already holds the restored state by the time this callback returns,
+  // and React re-renders with the correct layout before that first frame
+  // ever reaches the screen. (skipHydration in windowStore.ts is what
+  // makes this safe to begin with — it keeps server and client identical,
+  // both starting from plain initialWins, so there's no hydration
+  // mismatch for this rehydrate() to paper over.)
+  useLayoutEffect(() => {
+    useWindowStore.persist.rehydrate()
+  }, [])
+
   const focusedId = (Object.entries(wins) as [AppId, WinState][])
     .filter(([, w]) => w.status === 'open')
     .sort((a, b) => b[1].z - a[1].z)[0]?.[0]

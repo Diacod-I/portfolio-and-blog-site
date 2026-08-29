@@ -11,19 +11,19 @@
 // the user comes back to "/" — e.g. leaving advith.exe or the blog viewer
 // open, reading a post, then navigating back still shows that same window.
 //
-// Deliberately NOT backed by sessionStorage anymore (it used to be, via
-// zustand's `persist` middleware, so a plain page refresh restored the same
-// layout too). That stopped making sense once PowerOnGate started playing a
-// full boot sequence — pre-boot screen, bootloader menu, loading heart,
-// chime — on every reload of '/' (see that component): restoring the exact
-// prior window arrangement underneath an animation that reads as "the
-// machine just restarted" contradicted the whole point of that animation.
-// So a real reload now always starts from a clean desktop (every window
-// closed), same as an actual restart would; only client-side navigation
-// between routes (which never touches sessionStorage, just this singleton
-// staying alive in memory) still preserves state.
+// Also backed by sessionStorage (via the `persist` middleware below) so a
+// real page reload restores the same layout too, on top of PowerOnGate's
+// boot-sequence animation (see that component) — closing the tab/browser
+// still resets it, same as rebooting a real desktop (which, on most real
+// OSes, also reopens whatever you had up before). `skipHydration: true`
+// keeps the store's state identical between server and client for the very
+// first render (both just use initialWins below) so there's no SSR
+// hydration mismatch — see HomeClient.tsx's own call to
+// `useWindowStore.persist.rehydrate()` for how (and, importantly, *when*)
+// the real stored state actually gets pulled back in after that.
 
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 export type AppId = 'advith' | 'blogs' | 'gallery' | 'credits' | 'pop' | 'popReadme' | 'minesweeper' | 'solitaire' | 'projects'
 export type WinStatus = 'closed' | 'open' | 'minimized'
@@ -84,68 +84,82 @@ type WindowStore = {
   setTaskOrder: (ids: AppId[]) => void
 }
 
-export const useWindowStore = create<WindowStore>()((set) => ({
-  wins: initialWins,
-  taskOrder: [],
-  zCounter: 1,
+export const useWindowStore = create<WindowStore>()(
+  persist(
+    (set) => ({
+      wins: initialWins,
+      taskOrder: [],
+      zCounter: 1,
 
-  registerApp: (id) =>
-    set((s) => (s.taskOrder.includes(id) ? s : { taskOrder: [...s.taskOrder, id] })),
+      registerApp: (id) =>
+        set((s) => (s.taskOrder.includes(id) ? s : { taskOrder: [...s.taskOrder, id] })),
 
-  focusApp: (id) =>
-    set((s) => {
-      const z = s.zCounter + 1
-      const w = s.wins[id]
-      // Windows open maximized by default, same as clicking a real
-      // taskbar shortcut for the first time — full mode, not a small
-      // card the user has to stretch out themselves. Only applies the
-      // moment a window actually transitions from closed -> open, so
-      // re-focusing an already-open (or minimized) window never
-      // overrides a size/maximize state the user already chose.
-      const openingFresh = w.status === 'closed'
-      return {
-        zCounter: z,
-        taskOrder: s.taskOrder.includes(id) ? s.taskOrder : [...s.taskOrder, id],
-        wins: {
-          ...s.wins,
-          [id]: {
-            ...w,
-            status: 'open',
-            z,
-            maximized: openingFresh && !SKIP_AUTO_MAXIMIZE.includes(id) ? true : w.maximized,
-          },
-        },
-      }
+      focusApp: (id) =>
+        set((s) => {
+          const z = s.zCounter + 1
+          const w = s.wins[id]
+          // Windows open maximized by default, same as clicking a real
+          // taskbar shortcut for the first time — full mode, not a small
+          // card the user has to stretch out themselves. Only applies the
+          // moment a window actually transitions from closed -> open, so
+          // re-focusing an already-open (or minimized) window never
+          // overrides a size/maximize state the user already chose.
+          const openingFresh = w.status === 'closed'
+          return {
+            zCounter: z,
+            taskOrder: s.taskOrder.includes(id) ? s.taskOrder : [...s.taskOrder, id],
+            wins: {
+              ...s.wins,
+              [id]: {
+                ...w,
+                status: 'open',
+                z,
+                maximized: openingFresh && !SKIP_AUTO_MAXIMIZE.includes(id) ? true : w.maximized,
+              },
+            },
+          }
+        }),
+
+      minimizeApp: (id) =>
+        set((s) => ({ wins: { ...s.wins, [id]: { ...s.wins[id], status: 'minimized' } } })),
+
+      closeApp: (id) =>
+        set((s) => ({
+          wins: { ...s.wins, [id]: { ...s.wins[id], status: 'closed' } },
+          taskOrder: s.taskOrder.filter((a) => a !== id),
+        })),
+
+      setRect: (id, rect) =>
+        // Dragging/resizing implicitly un-maximizes (matches real Windows:
+        // grabbing a maximized window's titlebar restores it first).
+        set((s) => ({
+          wins: { ...s.wins, [id]: { ...s.wins[id], rect, maximized: false, preMaximizeRect: null } },
+        })),
+
+      toggleMaximize: (id) =>
+        set((s) => {
+          const w = s.wins[id]
+          return {
+            wins: {
+              ...s.wins,
+              [id]: w.maximized
+                ? { ...w, maximized: false, rect: w.preMaximizeRect, preMaximizeRect: null }
+                : { ...w, maximized: true, preMaximizeRect: w.rect },
+            },
+          }
+        }),
+
+      setTaskOrder: (ids) => set({ taskOrder: ids }),
     }),
-
-  minimizeApp: (id) =>
-    set((s) => ({ wins: { ...s.wins, [id]: { ...s.wins[id], status: 'minimized' } } })),
-
-  closeApp: (id) =>
-    set((s) => ({
-      wins: { ...s.wins, [id]: { ...s.wins[id], status: 'closed' } },
-      taskOrder: s.taskOrder.filter((a) => a !== id),
-    })),
-
-  setRect: (id, rect) =>
-    // Dragging/resizing implicitly un-maximizes (matches real Windows:
-    // grabbing a maximized window's titlebar restores it first).
-    set((s) => ({
-      wins: { ...s.wins, [id]: { ...s.wins[id], rect, maximized: false, preMaximizeRect: null } },
-    })),
-
-  toggleMaximize: (id) =>
-    set((s) => {
-      const w = s.wins[id]
-      return {
-        wins: {
-          ...s.wins,
-          [id]: w.maximized
-            ? { ...w, maximized: false, rect: w.preMaximizeRect, preMaximizeRect: null }
-            : { ...w, maximized: true, preMaximizeRect: w.rect },
-        },
-      }
-    }),
-
-  setTaskOrder: (ids) => set({ taskOrder: ids }),
-}))
+    {
+      // Bumped to v11: removed 'report' — it's now a tab inside advith.exe
+      // (see ReportViewer.tsx/HomeClient.tsx) rather than its own window/app.
+      // Old persisted state could still have a 'report' key open, which
+      // nothing reads anymore but would otherwise sit around as a phantom
+      // taskbar entry — bumping the key just starts fresh instead.
+      name: 'win98-window-state-v11',
+      storage: createJSONStorage(() => sessionStorage),
+      skipHydration: true,
+    }
+  )
+)

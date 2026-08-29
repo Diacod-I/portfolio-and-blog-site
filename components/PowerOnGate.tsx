@@ -14,25 +14,29 @@
 // one such gesture — see SoundEffects.tsx's own long comment on this.
 // HomeClient's Home tab starts typing its "$ >" query (and playing a
 // keystroke sound per character, plus a boot log, plus a "dossier ready"
-// chime) automatically the moment advith.exe is open, which used to be
-// possible with zero gesture yet this page load whenever a *reload* of '/'
-// restored an already-open advith.exe from earlier in the session — window
-// state used to persist across reloads via sessionStorage. That specific
-// scenario can't happen anymore: window state now always resets on a real
-// reload (see windowStore.ts's own comment on why), so a reload can never
-// land on an already-open, already-typing advith.exe.
+// chime) automatically the moment advith.exe is open — which, since window
+// state persists across reloads (see windowStore.ts), can genuinely happen
+// on a *reload* of '/' if advith.exe was already open on the Home tab from
+// earlier in the session. That's exactly the case this component's own
+// gate prevents from ever mattering: HomeClient (and the store rehydration
+// that restores that prior state) doesn't mount at all until *after* the
+// user has clicked through the boot menu below — and that click is itself
+// a real gesture, satisfying the browser's autoplay requirement for the
+// whole rest of the page well before HomeClient's auto-typing effect ever
+// runs.
 //
-// This component stuck around anyway, because it's since become a
-// deliberate part of the experience in its own right: reloading '/' now
-// plays through an actual boot sequence — a pre-boot screen, this
-// bootloader menu, a loading heart, a chime — before handing off to the
-// desktop, so a reload genuinely reads as "restarting the machine" rather
-// than just refreshing a webpage. Gating the whole first '/' landing
-// behind one explicit selection, rather than special-casing "is a sound
-// about to autoplay" case by case, still has the side effect of
-// guaranteeing every sound effect on the site works from the very first
-// real interaction onward — it's just no longer the primary reason this
-// exists.
+// This component stuck around and grew well past that original need,
+// because it's since become a deliberate part of the experience in its own
+// right: reloading '/' now plays through an actual boot sequence — a
+// pre-boot screen, this bootloader menu, a loading heart, a chime — before
+// handing off to the desktop, so a reload genuinely reads as "restarting
+// the machine" rather than just refreshing a webpage (restoring the
+// previous window layout underneath that, rather than wiping it, is no
+// different from how a real OS's "reopen windows after restart" setting
+// works). Gating the whole first '/' landing behind one explicit
+// selection, rather than special-casing "is a sound about to autoplay"
+// case by case, is simply the more robust way to guarantee the audio side
+// of this — it's just no longer the primary reason this exists.
 //
 // Six phases, in order, purely timed except 'menu' (which waits on the
 // user):

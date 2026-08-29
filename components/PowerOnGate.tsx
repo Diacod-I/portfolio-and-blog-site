@@ -78,7 +78,7 @@
 //                       HomeClient (which renders that exact same
 //                       wallpaper — see its own backgroundImage — so
 //                       there's no visual jump at handoff).
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 
 type PowerOnGateProps = {
   onStart: () => void
@@ -91,6 +91,30 @@ const PREBOOT_BLUE_MS = 1000
 // Black screen with just the blinking cursor, the classic "firmware is
 // still doing something" beat right before the boot menu shows up.
 const PREBOOT_CURSOR_MS = 2000
+
+// Lighthouse's LCP element on '/' is the boot-menu paragraph below
+// ("Click on the entry..."), which can't paint until PREBOOT_BLUE_MS +
+// PREBOOT_CURSOR_MS (3000ms of pure, non-interactive waiting) elapse —
+// that's the whole reported LCP delay, since neither beat needs or
+// responds to any user input. sessionStorage key marking "this browser
+// has already sat through the pre-boot beats once this session" — set the
+// moment this component first mounts (see the effect below), so any
+// *later* '/' landing this session (a reload; see AppShellHost.tsx for
+// why this never mounts on a same-session client-side nav back to '/')
+// skips straight to the interactive 'menu' phase instead of re-running
+// them. The menu itself, and everything after it, is untouched: it's a
+// real, deliberate, interactive part of the experience (not pure
+// waiting), so a repeat visit still gets the exact same boot-menu ->
+// logo -> loading -> chime -> reveal sequence — just without sitting
+// through 3 seconds of blue screen and blinking cursor it's already seen.
+//
+// A fresh/incognito Lighthouse run has no prior sessionStorage for this
+// origin, so this doesn't change the audited first-visit LCP number —
+// it's specifically a real-repeat-visitor improvement, not a Lighthouse
+// score lever. (First-visit LCP is still bound by the deliberate 3000ms;
+// shortening that further would mean cutting the beats themselves, a
+// separate trade-off this doesn't touch.)
+const BOOT_SEEN_KEY = 'advith-os-preboot-seen'
 
 // How long the heart logo sits alone (not beating yet, no bar) once
 // Advith-OS is selected, before the loading bar itself starts.
@@ -203,6 +227,31 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
   // style "file not found" line shown under the menu box, cleared the
   // next time the selection moves or another attempt is made.
   const [bootError, setBootError] = useState<string | null>(null)
+
+  // Skips the two pre-boot beats on a repeat '/' landing this session —
+  // see BOOT_SEEN_KEY above. Deliberately NOT read into the initial
+  // useState above: this always needs to start its very first render as
+  // 'preboot-blue' so it matches whatever the server rendered (no
+  // sessionStorage to read there), same "SSR-safe default, corrected
+  // after mount" shape as HomeClient.tsx's galleryScale. useLayoutEffect
+  // (not useEffect) so the correction, once hydration has actually run,
+  // lands before the browser's next paint rather than one frame after —
+  // the guard below means this only ever does anything on the very first
+  // render (phase starts, and stays, 'preboot-blue' until this or the
+  // timer below moves it), so it can't re-fire on later phase changes.
+  useLayoutEffect(() => {
+    if (phase !== 'preboot-blue') return
+    if (typeof window === 'undefined') return
+    try {
+      if (window.sessionStorage.getItem(BOOT_SEEN_KEY)) {
+        setPhase('menu')
+      }
+      window.sessionStorage.setItem(BOOT_SEEN_KEY, '1')
+    } catch {
+      /* sessionStorage unavailable (privacy mode, disabled storage, ...) —
+         just falls back to always playing the full pre-boot beats. */
+    }
+  }, [phase])
 
   // Purely timed hand-off through the two pre-boot beats — no interaction
   // gates either of these, same as real firmware working through its own

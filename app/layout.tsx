@@ -122,23 +122,24 @@ export default async function RootLayout({
             PowerOnGate's div appears it's just an instant decode-from-cache
             + paint, not a network round trip. */}
         <link rel="preload" href="/win98/windows_98_wallpaper.webp" as="image" type="image/webp" />
-        {/* World-atlas topojson the Home tab's Location panel fetches at
-            runtime (see components/WorldMap.tsx's GEO_URL constant — keep
-            this in sync if that ever changes). react-simple-maps only
-            starts this fetch once WorldMap itself actually mounts, which
-            per WorldMap's own comment in HomeClient.tsx is gated behind
-            the boot-log sequence finishing — by then this preload (kicked
-            off at page load, long before that point) has likely already
-            finished, so the fetch WorldMap makes just resolves from cache
-            instead of starting cold. crossOrigin is required for a
-            cross-origin preload to actually get reused by the later fetch
-            (otherwise the browser treats them as two separate requests). */}
-        <link
-          rel="preload"
-          href="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
-          as="fetch"
-          crossOrigin="anonymous"
-        />
+        {/* No preload for the world-atlas topojson the Home tab's Location
+            panel fetches at runtime (see components/WorldMap.tsx's GEO_URL
+            constant) — there used to be one here. Removed because it was
+            firing Chrome's "preloaded but not used within a few seconds"
+            console warning on every '/' landing: WorldMap only mounts deep
+            into the Home tab's dossier reveal, well after PowerOnGate's own
+            multi-phase boot sequence (pre-boot screens, bootloader menu,
+            loading heart, wallpaper fade) finishes, which by itself is
+            already several seconds of head start — plenty of time for a
+            plain, non-preloaded fetch to resolve well before WorldMap
+            actually needs it, so the preload wasn't buying anything real
+            anymore, just an early request competing with page-load-critical
+            resources (fonts, JS bundles) plus the console noise. WorldMap
+            also isn't the default tab on '/about' or '/contact' (those open
+            straight to the About/Contact tab, not Home), so even outside
+            PowerOnGate's gate this preload's benefit was always narrow.
+            HomeClient's own loading fallback for WorldMap (see that
+            component) already covers the brief gap while it fetches. */}
         {/* Edu NSW/ACT Cursive (hidden gallery's polaroid captions, see
             components/ImageExhibition.tsx) — loaded straight from Google
             Fonts' CDN rather than next/font/google like the other four

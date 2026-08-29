@@ -54,10 +54,14 @@ import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 // swaps in without any layout jump — it's the *fetch* that's still not
 // instant, but now the panel itself, its title, and a "loading" state
 // show up in the very same beat as everything else, which is what
-// actually reads as "slow" or not. See app/layout.tsx for a
-// complementary <link rel="preload"> on GEO_URL itself, kicking off that
-// fetch as early as page load instead of only once this component
-// mounts.
+// actually reads as "slow" or not. (There used to also be a
+// <link rel="preload"> on GEO_URL in app/layout.tsx, kicking that fetch
+// off at page load instead of waiting for this component to mount —
+// removed since it was firing a "preloaded but not used" console warning
+// on every '/' landing without buying much: by the time this actually
+// mounts, PowerOnGate's own boot sequence has already run for several
+// seconds, which is plenty of head start for a plain fetch on its own.
+// See app/layout.tsx's own comment for the full reasoning.)
 const WorldMap = dynamic(() => import('@/components/WorldMap'), {
   ssr: false,
   loading: () => (

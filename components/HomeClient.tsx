@@ -957,13 +957,6 @@ export default function HomeClient({
     }
   }
 
-  // Pull persisted window state back in from sessionStorage after mount
-  // (skipped automatically during SSR/first paint to avoid a hydration
-  // mismatch — see skipHydration in lib/store/windowStore.ts).
-  useEffect(() => {
-    useWindowStore.persist.rehydrate()
-  }, [])
-
   const focusedId = (Object.entries(wins) as [AppId, WinState][])
     .filter(([, w]) => w.status === 'open')
     .sort((a, b) => b[1].z - a[1].z)[0]?.[0]

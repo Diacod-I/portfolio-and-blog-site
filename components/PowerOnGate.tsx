@@ -6,26 +6,33 @@
 // the nav bar doesn't re-trigger it, since that click already satisfies
 // the browser gesture requirement below on its own).
 //
-// Why this exists at all: browsers block any audio.play()/AudioContext
-// call that isn't triggered directly inside a real user gesture (click,
-// tap, keydown) until the page has seen at least one such gesture — see
-// SoundEffects.tsx's own long comment on this. HomeClient's Home tab
-// starts typing its "$ >" query (and playing a keystroke sound per
-// character, plus a boot log, plus a "dossier ready" chime) automatically
-// the moment advith.exe is open — which, on a cold '/' load with no
-// persisted window state, requires a click on its desktop icon first
-// (already a real gesture, so this isn't usually a problem) — but
-// sessionStorage persists window state (see windowStore.ts's persist
-// middleware), so a *reload* of '/' with advith.exe already marked open
-// from an earlier visit this session replays that whole sequence
-// immediately, with zero gesture yet in this fresh page load. Every one
-// of those sounds silently fails.
+// Why this exists: two reasons — one historical, one current.
 //
-// Rather than special-casing that one scenario, this gates the entire
-// first '/' landing behind one explicit selection before HomeClient
-// mounts at all — simpler than trying to detect "is a sound about to
-// autoplay" case by case, and it guarantees every sound effect on the
-// site works from the very first real interaction onward.
+// It started as a fix for an autoplay problem: browsers block any
+// audio.play()/AudioContext call that isn't triggered directly inside a
+// real user gesture (click, tap, keydown) until the page has seen at least
+// one such gesture — see SoundEffects.tsx's own long comment on this.
+// HomeClient's Home tab starts typing its "$ >" query (and playing a
+// keystroke sound per character, plus a boot log, plus a "dossier ready"
+// chime) automatically the moment advith.exe is open, which used to be
+// possible with zero gesture yet this page load whenever a *reload* of '/'
+// restored an already-open advith.exe from earlier in the session — window
+// state used to persist across reloads via sessionStorage. That specific
+// scenario can't happen anymore: window state now always resets on a real
+// reload (see windowStore.ts's own comment on why), so a reload can never
+// land on an already-open, already-typing advith.exe.
+//
+// This component stuck around anyway, because it's since become a
+// deliberate part of the experience in its own right: reloading '/' now
+// plays through an actual boot sequence — a pre-boot screen, this
+// bootloader menu, a loading heart, a chime — before handing off to the
+// desktop, so a reload genuinely reads as "restarting the machine" rather
+// than just refreshing a webpage. Gating the whole first '/' landing
+// behind one explicit selection, rather than special-casing "is a sound
+// about to autoplay" case by case, still has the side effect of
+// guaranteeing every sound effect on the site works from the very first
+// real interaction onward — it's just no longer the primary reason this
+// exists.
 //
 // Six phases, in order, purely timed except 'menu' (which waits on the
 // user):

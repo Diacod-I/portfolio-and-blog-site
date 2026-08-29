@@ -110,18 +110,16 @@ export default function AppShellHost({ notes, featured, children }: AppShellHost
   const blogPost = useRouteContentStore((s) => s.blogPost)
   const report = useRouteContentStore((s) => s.report)
 
-  // See PowerOnGate.tsx for the full reasoning — short version: '/' is the
-  // only route nothing auto-opens on (every other shell route force-opens
-  // straight into content — see deriveShellView below), so it's the only
-  // place a cold load can end up replaying HomeClient's auto-playing Home
-  // tab sequence (typing sound, boot log, dossier chime) with zero user
-  // gesture yet this page load, which browsers silently block. Lazy
+  // See PowerOnGate.tsx for the full reasoning — short version: it plays a
+  // full boot sequence (pre-boot screen, bootloader menu, loading heart,
+  // chime) on the very first '/' landing each session, so a reload of '/'
+  // reads as an actual restart rather than just a webpage refresh. Lazy
   // useState initializer: only evaluated once, on this component's actual
   // mount (which only happens on a real navigation/reload — AppShellHost
   // itself persists across client-side nav within the root layout), so
   // this captures "was '/' the very first route this session actually
   // loaded" and nothing later (like clicking Home from another tab, which
-  // is itself already a real gesture) re-triggers it.
+  // never remounts this component at all) re-triggers it.
   const [showPowerOnGate, setShowPowerOnGate] = useState(() => pathname === '/')
   if (showPowerOnGate) {
     return (

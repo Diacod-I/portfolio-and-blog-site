@@ -203,6 +203,32 @@ const EASTER_EGG_TEXT_STYLE: CSSProperties = {
   color: 'color-mix(in srgb, white calc((1 - var(--reveal-progress, 0)) * 100%), black calc(var(--reveal-progress, 0) * 100%))',
 }
 
+// Small beating pixel-art heart for the "end of the easter egg" message
+// (see the JSX around galleryCompact further down). Drawn as a grid of
+// SVG <rect>s (crisp/blocky edges, matching the win98/pixel-art aesthetic
+// used throughout the site) rather than a smooth vector heart — each
+// character in PIXEL_HEART_ROWS below is one cell of a 7-wide by 6-tall
+// grid, 'X' filled/red, '.' empty. The animation (win98-pixel-heart-beat,
+// see globals.css) is a two-thump "lub-dub" scale pulse on the wrapping
+// <span>, not the <svg> itself — animating an SVG element's own transform
+// needs transform-box: fill-box to scale from its visual center reliably
+// across browsers; scaling a plain HTML wrapper instead sidesteps that
+// entirely.
+const PIXEL_HEART_ROWS = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...']
+function PixelHeart() {
+  return (
+    <span className="inline-block win98-pixel-heart-beat" aria-hidden="true">
+      <svg viewBox="0 0 7 6" width={21} height={18} shapeRendering="crispEdges">
+        {PIXEL_HEART_ROWS.flatMap((row, y) =>
+          row
+            .split('')
+            .map((cell, x) => (cell === 'X' ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#e8283f" /> : null))
+        )}
+      </svg>
+    </span>
+  )
+}
+
 // Wavy/italic/rainbow treatment for "terminal prompt" in the last easter-egg
 // protest line below (see win98-rainbow-wavy, win98RainbowWave, and
 // win98RainbowColor in globals.css) — one <span> per character, each with
@@ -820,6 +846,48 @@ export default function HomeClient({
     const raf = requestAnimationFrame(establishStartingPosition)
     return () => cancelAnimationFrame(raf)
   }, [homeTab, advithOpen])
+
+  // Drives both the gallery wrapper div's height/overflow below AND
+  // ImageExhibition's own layout (see the `compact` prop passed to it) —
+  // true whenever homeScrollRef's own rendered width drops below 640px
+  // (same breakpoint this site uses elsewhere for "mobile", e.g.
+  // Win98Window.tsx/PrinceOfPersiaWindow.tsx's own matchMedia checks), but
+  // measured via ResizeObserver on the actual container instead of a
+  // matchMedia viewport check, deliberately — a real phone viewport isn't
+  // the only way this container can end up narrow: advith.exe's own
+  // window can be dragged down small on a wide desktop viewport too (see
+  // GalleryWindow.tsx/MinesweeperWindow.tsx's own ResizeObserver-based
+  // "measure my actual container, not the viewport" pattern), and a
+  // matchMedia check would completely miss that case. This is the fix for
+  // "photos clipped on the right edge / cluttered on phone or a minimized
+  // window": the gallery's frames (see ImageExhibition.tsx) are
+  // positioned by percentage of this container's width but sized in fixed
+  // pixels, hand-tuned against an assumed ~1000px-wide desktop window
+  // (see data/exhibitionFrames.ts's own header) — well below that, some
+  // frames' leftPct + widthPx runs past the container's right edge
+  // entirely. Below the threshold, ImageExhibition switches to a plain
+  // vertical stack instead (no absolute percent math at all, so nothing
+  // to overflow), and the wrapper div below drops its fixed 380vh
+  // height/overflow-hidden to fit that stack's own natural height instead
+  // of clipping it.
+  const [galleryCompact, setGalleryCompact] = useState(false)
+  useEffect(() => {
+    // homeScrollRef only exists while the Home tab's own branch is
+    // mounted (each tab is a conditionally-rendered DOM subtree, not a
+    // CSS-hidden one — see the homeTab ternary in the JSX below) — same
+    // reason the starting-position effect above re-runs on every homeTab
+    // change instead of just once on mount: without depending on homeTab
+    // here too, landing on some other tab first (or switching away and
+    // back) would leave this observing a stale/null ref forever.
+    if (homeTab !== 'home') return
+    const el = homeScrollRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      setGalleryCompact(entry.contentRect.width < 640)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [homeTab])
 
   // Minesweeper isn't resizable at all (see resizable={false} below) — like
   // the real game, its window always fits the current difficulty's board
@@ -1500,10 +1568,65 @@ export default function HomeClient({
                     are percentages of *this* div's own height (see
                     data/exhibitionFrames.ts), so this margin sits
                     entirely outside that math instead of just spreading
-                    the frames themselves further apart. */}
-                <div className="relative w-full min-h-[380vh] mb-[40vh] overflow-hidden">
-                  <ImageExhibition />
+                    the frames themselves further apart.
+
+                    On a narrow/compact container (see galleryCompact
+                    above) this drops the fixed 380vh height and
+                    overflow-hidden entirely — ImageExhibition switches to
+                    a plain vertical stack there instead of the
+                    absolute/percentage scatter, and that stack's own
+                    natural height (which can run well past 380vh once
+                    every frame is a full-width block instead of a
+                    scattered ~170px square) needs room to actually exist
+                    in, not get clipped by a leftover fixed height meant
+                    for the desktop layout. */}
+                {/* Marks the true top of the whole hidden zone — reached
+                    only once every frame below has been scrolled past,
+                    i.e. the actual end of this easter egg. Deliberately
+                    not another all-caps "protest" line like the ones
+                    further down: those read as a dramatic, funny
+                    escalation on the way in, this is the quiet, sincere
+                    payoff once someone's actually scrolled all the way to
+                    the end. Kept OUTSIDE the gallery div just below (as a
+                    normal-flow sibling before it, not nested inside it) on
+                    purpose — a couple of desktop frames sit close enough
+                    to topPct 0 (see data/exhibitionFrames.ts) that nesting
+                    this inside the absolutely-positioned gallery would
+                    visually collide with them; as a sibling it just pushes
+                    the whole gallery down by its own height instead, with
+                    nothing to overlap. Uses the same EASTER_EGG_TEXT_STYLE
+                    color-mix as the protest lines so it's legible against
+                    whatever the faulty-terminal background looks like up
+                    here (by this point it's had the most scroll distance
+                    of anywhere in the zone to finish dissolving to its
+                    light/pink look — see EASTER_EGG_FULL_REVEAL_FRACTION
+                    above). PixelHeart is the small beating red heart — see
+                    that component further up this file. */}
+                <p
+                  className="text-center mb-12 text-lg sm:text-xl font-light italic flex items-center justify-center gap-3"
+                  style={EASTER_EGG_TEXT_STYLE}
+                >
+                  Breathe. Live life to the fullest. It&apos;ll all work out.
+                  <PixelHeart />
+                </p>
+                <div
+                  className={
+                    galleryCompact
+                      ? 'relative w-full overflow-visible mb-16'
+                      : 'relative w-full min-h-[380vh] mb-[40vh] overflow-hidden'
+                  }
+                >
+                  <ImageExhibition compact={galleryCompact} />
                 </div>
+                {/* Sits right at the bottom of the "dark zone" (see
+                    data/exhibitionFrames.ts) — the first thing actually
+                    reached scrolling up into the hidden zone from the
+                    protest lines below, right as things are just starting
+                    to get dark/strange. "The only way is up" doubles as a
+                    literal nod to the scroll direction that got you here. */}
+                <p className="text-center mb-16 text-lg sm:text-xl font-light italic" style={EASTER_EGG_TEXT_STYLE}>
+                  The only way is up. Give it your all.
+                </p>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>AHHH!! YOUR POWER OF LOVE AND HOPE IS TOO STRONG!!!</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>DON'T SCROLL UP!!!</h1>
                 <h1 className="text-center mb-24" style={EASTER_EGG_TEXT_STYLE}>YOU CAN'T DO THAT!!</h1>

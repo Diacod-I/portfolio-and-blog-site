@@ -194,7 +194,8 @@
   .win98-glitch-text,
   .win98-new-tag-pulse,
   .win98-rainbow-wavy,
-  .win98-grub-blink {
+  .win98-grub-blink,
+  .win98-pixel-heart-beat {
     animation: none !important;
   }
   .win98-loader-pop,
@@ -267,6 +268,21 @@
   animation:
     win98RainbowWave 1.4s ease-in-out infinite,
     win98RainbowColor 2.8s linear infinite;
+}
+
+/* HomeClient.tsx's PixelHeart — a two-thump "lub-dub" heartbeat: two quick
+   scale pulses close together, then a longer rest before repeating,
+   closer to a real heartbeat's rhythm than one smooth in-out pulse. */
+@keyframes win98HeartBeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.25); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.18); }
+  60% { transform: scale(1); }
+}
+.win98-pixel-heart-beat {
+  animation: win98HeartBeat 1.4s ease-in-out infinite;
+  transform-origin: center;
 }
 
 /* PowerOnGate.tsx's boot-menu entry: a gentle dim-pulse on the selection

@@ -1433,7 +1433,7 @@ export default function HomeClient({
           isFocused={focusedId === 'advith'}
           maximized={wins.advith.maximized}
           defaultInset={{ top: 5, right: 5, bottom: 43, left: 5 }}
-          defaultSize={{ w: 860, h: 580 }}
+          defaultSize={{ w: 870, h: 580 }}
           // The About tab's bio+photo block is short and centers itself
           // (see homeTab === 'about' below) rather than stretching to fill
           // the window, so a very large window just means more faulty-
@@ -1452,11 +1452,12 @@ export default function HomeClient({
           // handles in the first place — set equal to defaultSize.w (not
           // some other number) so the window's own default opening width
           // doubles as its floor, with nothing narrower ever reachable by
-          // dragging. Only affects desktop's drag-resize path (see
+          // dragging. Bumped 860 -> 870 per feedback (still clipping a bit
+          // at the old floor). Only affects desktop's drag-resize path (see
           // Win98Window.tsx's own comment on minSize) — mobile (<640px)
           // never uses minSize at all, it always renders from
           // defaultInset instead, so this doesn't constrain phones.
-          minSize={{ w: 860, h: 240 }}
+          minSize={{ w: 870, h: 240 }}
           // advith.exe now auto-maximizes on first open like every other
           // app (see SKIP_AUTO_MAXIMIZE in windowStore.ts) — cardOffset
           // below only matters for wherever it restores to after the user

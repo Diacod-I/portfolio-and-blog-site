@@ -109,7 +109,17 @@ const APPS: Record<AppId, { name: string; icon: string }> = {
   credits: { name: 'Credits', icon: '/win98/info.webp' },
   pop: { name: 'Prince of Persia', icon: '/win98/pop.ico' },
   popReadme: { name: 'POP.TXT - Notepad', icon: '/win98/notepad.webp' },
-  minesweeper: { name: 'Minesweeper', icon: '/win98/minesweeper.svg' },
+  // Was minesweeper.svg — a naive PNG-to-SVG trace that encoded the icon as
+  // ~1,300 individual 1x1-unit <path> rects (one per pixel) instead of a
+  // handful of real shapes, bloating it to ~540 KiB versus every other
+  // icon here being under 60 KiB (most under 1 KiB) — the concrete cause
+  // of "the minesweeper logo takes a moment to load" compared to the rest
+  // of the desktop icons. Re-rendered via ImageMagick straight from that
+  // same SVG (`convert -background none minesweeper.svg minesweeper.webp`)
+  // at its original 224x224 intrinsic size, alpha preserved — down to 634
+  // bytes, visually identical, same format every other icon here already
+  // uses.
+  minesweeper: { name: 'Minesweeper', icon: '/win98/minesweeper.webp' },
   solitaire: { name: 'Solitaire', icon: '/win98/solitaire.png' },
   projects: { name: 'Projects', icon: '/win98/folder.webp' },
 }
@@ -1004,8 +1014,35 @@ export default function HomeClient({
   // window resize don't spam ImageExhibition with a slightly-different
   // scale prop (and re-render) on every single ResizeObserver tick.
   const GALLERY_DESIGN_WIDTH = 1000
-  const [galleryScale, setGalleryScale] = useState(1)
-  useEffect(() => {
+  // Lazy initializer instead of a flat `1` — live testing on the actual
+  // deployed site found the gallery rendering fully unscaled on phone
+  // widths (photos overflowing past the right edge, confirmed by
+  // measuring a frame's getBoundingClientRect() past window.innerWidth)
+  // even after a real resize AND a full remount of this tab, which the
+  // effect below should have corrected either way. Never fully root-caused
+  // against a live, already-minified bundle with no source maps (see the
+  // Lighthouse "Missing source maps" finding) — best guess is a stale
+  // deployed chunk, since the ResizeObserver API itself checks out fine
+  // (manually attaching a second one on the live page fires correctly).
+  // Either way, this removes the dependency on that effect firing at all
+  // for a CORRECT first paint: window.innerWidth is a fine proxy for this
+  // tab's own container width, since advith.exe is always full-bleed on
+  // mobile (see Win98Window.tsx's isSmallScreen branch) — minus 32px for
+  // homeScrollRef's own px-4. Approximate on purpose (homeScrollRef isn't
+  // attached yet during this initializer, so the real container can't be
+  // measured synchronously here) — the effect below still corrects this
+  // to an exact value immediately after mount, and on every real resize
+  // after that, same as before.
+  const [galleryScale, setGalleryScale] = useState(() => {
+    if (typeof window === 'undefined') return 1
+    const approxContainerWidth = window.innerWidth - 32
+    return Math.min(1, Math.round((approxContainerWidth / GALLERY_DESIGN_WIDTH) * 100) / 100)
+  })
+  // useLayoutEffect (not useEffect) so the corrected, exact scale is
+  // committed before paint rather than one frame after — belt-and-braces
+  // alongside the lazy initializer above, not a fix on its own for the
+  // stale-scale bug that initializer guards against.
+  useLayoutEffect(() => {
     // homeScrollRef only exists while the Home tab's own branch is
     // mounted (each tab is a conditionally-rendered DOM subtree, not a
     // CSS-hidden one — see the homeTab ternary in the JSX below) — same

@@ -34,7 +34,7 @@
 //                       blue a real monitor/BIOS shows before anything
 //                       else appears.
 //   'preboot-cursor' — black screen, nothing but a blinking underscore
-//                       cursor in the top right (see win98-cursor-blink in
+//                       cursor in the top left (see win98-cursor-blink in
 //                       globals.css), PREBOOT_CURSOR_MS long — the classic
 //                       pre-OS "still booting firmware" beat.
 //   'menu'           — the GRUB-style boot menu (see BOOT_ENTRIES below):
@@ -309,7 +309,7 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
       {phase === 'preboot-cursor' && (
         <div className="absolute inset-0 bg-black">
           <span
-            className="win98-cursor-blink absolute top-4 right-6 sm:top-6 sm:right-8 font-mono text-2xl sm:text-3xl text-[#c0c0c0] select-none"
+            className="win98-cursor-blink absolute top-4 left-6 sm:top-6 sm:left-8 font-mono text-2xl sm:text-3xl text-[#c0c0c0] select-none"
             aria-hidden="true"
           >
             _

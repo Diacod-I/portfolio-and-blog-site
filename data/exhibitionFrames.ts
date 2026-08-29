@@ -103,8 +103,26 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'kangaru' },
   { id: 'photo-03', leftPct: 2.0,  topPct: 27.8, widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: ':)' },
   { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: '/IMG_20190103_081554.jpg', alt: 'A personal photo', caption: 'too loud aaaa' },
-  { id: 'photo-05', leftPct: 68.1, topPct: 15.6, widthPx: 170, heightPx: 108, rotationDeg: 1.4,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo', caption: 'love you mom' },
-  { id: 'photo-06', leftPct: 71.0, topPct: 5.2,  widthPx: 104, heightPx: 170, rotationDeg: 4.1,  src: '/IMG_20211119_193920.jpg', alt: 'A personal photo', caption: 'drip check' },
+  // photo-05/photo-21/photo-37 below are the top row now — the first
+  // three frames reached once someone's scrolled all the way up past
+  // everything else, landing directly below the "Breathe..." bookend
+  // message right above this whole zone (see HomeClient.tsx) — per
+  // request: 'we soo cute!!' on the left, 'portrait made with love <3' in
+  // the middle, 'love you mom' on the right, all at topPct ~1-2 so they
+  // read as one aligned row. photo-05 moved here from its old (68.1,
+  // 15.6) spot; photo-21 was already nearly here (44.1, 2.4) and only
+  // needed a small topPct nudge. Both original occupants of this topPct
+  // band that weren't part of the request — photo-06 and photo-23 — were
+  // relocated further down into open space rather than left in place,
+  // since their old positions directly overlap where photo-05/photo-37
+  // now sit.
+  { id: 'photo-05', leftPct: 70.0, topPct: 2.0,  widthPx: 170, heightPx: 108, rotationDeg: 1.4,  src: '/IMG_20190103_082932.jpg', alt: 'A personal photo', caption: 'love you mom' },
+  // Relocated from its old (71.0, 5.2) spot — that slot now overlaps
+  // photo-05's new top-row position above. Moved into open room between
+  // the light zone's old ~62% ceiling and the dark zone's 72.6% start
+  // (see the packing-script comment up top for why that gap exists and
+  // is safe to use).
+  { id: 'photo-06', leftPct: 50.0, topPct: 68.0, widthPx: 104, heightPx: 170, rotationDeg: -2.4, src: '/IMG_20211119_193920.jpg', alt: 'A personal photo', caption: 'drip check' },
   { id: 'photo-07', leftPct: 81.3, topPct: 26.8, widthPx: 128, heightPx: 170, rotationDeg: -1.8, src: '/IMG_20211122_122534.jpg', alt: 'A personal photo', caption: 'first startup idea' },
   { id: 'photo-08', leftPct: 38.2, topPct: 29.5, widthPx: 170, heightPx: 65,  rotationDeg: 1.9,  src: '/IMG_20220302_175741.jpg', alt: 'A personal photo', caption: 'this is Pachi' },
   { id: 'photo-09', leftPct: 42.1, topPct: 53.4, widthPx: 127, heightPx: 170, rotationDeg: 2.0,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo', caption: 'prolly a fractal' },
@@ -115,9 +133,19 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   { id: 'photo-18', leftPct: 63.8, topPct: 59.8, widthPx: 170, heightPx: 128, rotationDeg: 1.0,  src: '/IMG_0756.jpg', alt: 'A personal photo', caption: 'angy doodle' },
   { id: 'photo-19', leftPct: 60.5, topPct: 47.5, widthPx: 128, heightPx: 170, rotationDeg: -3.2, src: '/05FCBBAF-CDA5-4B1B-922D-6426A9B6DBA3_1_105_c.jpeg', alt: 'A personal photo', caption: 'good morning' },
   { id: 'photo-20', leftPct: 24.8, topPct: 12.5, widthPx: 170, heightPx: 146, rotationDeg: 2.5,  src: '/1109AEAE-CB76-481B-A0C5-637DF2636E1C_4_5005_c.jpeg', alt: 'A personal photo', caption: 'worht it?' },
-  { id: 'photo-21', leftPct: 44.1, topPct: 2.4,  widthPx: 119, heightPx: 170, rotationDeg: -1.7, src: '/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg', alt: 'A personal photo', caption: 'portrait made with love <3' },
+  { id: 'photo-21', leftPct: 44.1, topPct: 1.2,  widthPx: 119, heightPx: 170, rotationDeg: -1.7, src: '/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg', alt: 'A personal photo', caption: 'portrait made with love <3' },
   { id: 'photo-22', leftPct: 62.7, topPct: 22.8, widthPx: 128, heightPx: 170, rotationDeg: 2.2,  src: '/326387A0-CF8E-42C2-9F7A-87A04A5903D7_1_105_c.jpeg', alt: 'A personal photo', caption: 'browsing' },
-  { id: 'photo-23', leftPct: 16.0, topPct: 5.8,  widthPx: 170, heightPx: 128, rotationDeg: 4.2,  src: '/4443A26E-06E7-46C1-AF1B-D7058056D458_1_105_c.jpeg', alt: 'A personal photo', caption: 'night bloom' },
+  // Relocated from its old (16.0, 5.8) spot for the same reason as
+  // photo-06 above — that slot now overlaps photo-37's new top-row
+  // position below. Moved to the same open post-light-zone gap as
+  // photo-06, just further left so the two don't collide with each
+  // other either.
+  { id: 'photo-23', leftPct: 10.0, topPct: 66.0, widthPx: 170, heightPx: 128, rotationDeg: 3.5,  src: '/4443A26E-06E7-46C1-AF1B-D7058056D458_1_105_c.jpeg', alt: 'A personal photo', caption: 'night bloom' },
+  // New addition — see the top-row comment above photo-05. 1024x768
+  // source, so 170px-wide/128px-tall like several other landscape shots
+  // here (same "cap the longer side at 170" sizing every other frame
+  // uses, see this file's header).
+  { id: 'photo-37', leftPct: 12.0, topPct: 1.0,  widthPx: 170, heightPx: 128, rotationDeg: -3.0, src: '/67D733B7-A762-4847-84C8-C5A7E5B5500F_1_105_c.jpeg', alt: 'A personal photo of two people laughing together', caption: 'we soo cute!!' },
   { id: 'photo-24', leftPct: 14.5, topPct: 30.2, widthPx: 128, heightPx: 170, rotationDeg: -0.4, src: '/8DEE3877-00A4-4592-B09F-300D29B8A3EF_1_105_c.jpeg', alt: 'A personal photo', caption: 'whiteboarding' },
   { id: 'photo-30', leftPct: 36.1, topPct: 36.0, widthPx: 170, heightPx: 128, rotationDeg: -4.4, src: '/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg', alt: 'A personal photo', caption: 'roses are red or some shit' },
   { id: 'photo-31', leftPct: 75.6, topPct: 35.8, widthPx: 128, heightPx: 170, rotationDeg: -1.2, src: '/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg', alt: 'A personal photo', caption: 'pookie phase (ongoing)' },

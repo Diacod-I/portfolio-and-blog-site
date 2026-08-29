@@ -1489,7 +1489,7 @@ export default function HomeClient({
       />
       <DesktopIcon
         id="advith"
-        label="advith.exe"
+        label="CLICK_MEEE"
         icon={APPS.advith.icon}
         cell={iconCells.advith}
         showBadge={hasNewReport}

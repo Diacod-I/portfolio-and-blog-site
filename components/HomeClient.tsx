@@ -284,6 +284,91 @@ function RainbowWavyText({ text }: { text: string }) {
   )
 }
 
+// Morphing role text in the dossier's first bio bullet ("AI engineer" ->
+// "AI researcher" -> "Software dev" -> "Full stack dev" -> ...), scrambling
+// through random characters before settling on each word. Used to be plain
+// state (roleIndex/displayText) sitting directly in HomeClient's own body,
+// with the morph effect calling setDisplayText every ~40ms while
+// scrambling/revealing — completely unconditionally, regardless of which
+// tab was even showing. Since that state lived on HomeClient itself, every
+// one of those ticks re-rendered this component's *entire* tree — every
+// open window, the gallery, the world map, all of it — just to scramble
+// four letters, continuously, for as long as advith.exe stayed open.
+// FaultyTerminalBackground.tsx's own memo() comment already called this
+// ticker out by name ("continuously in the background... regardless of
+// which tab is active") as one of the things its memo() has to shrug off;
+// isolating the state here instead fixes it at the source: nothing outside
+// this one small component re-renders while it's morphing, and — since
+// it's only ever mounted while the dossier bullet that uses it is (see the
+// call site below, inside the same tab-conditional dossier JSX this text
+// always lived in) — the ticker itself now stops entirely the moment the
+// user isn't on a tab showing it, instead of running forever regardless.
+const ROLE_MORPH_WORDS = ['AI engineer', 'AI researcher', 'Software dev', 'Full stack dev']
+function randomMorphChar() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-='
+  return chars[Math.floor(Math.random() * chars.length)]
+}
+function RoleMorphText() {
+  const [roleIndex, setRoleIndex] = useState(0)
+  const [displayText, setDisplayText] = useState(ROLE_MORPH_WORDS[0])
+
+  useEffect(() => {
+    let morphTimeout: ReturnType<typeof setTimeout>
+    let revealTimeout: ReturnType<typeof setTimeout>
+    let holdTimeout: ReturnType<typeof setTimeout>
+
+    const morphTo = ROLE_MORPH_WORDS[(roleIndex + 1) % ROLE_MORPH_WORDS.length]
+
+    let morphFrame = 0
+    const morphFrames = 500 / 40
+    const morph = () => {
+      setDisplayText(() => {
+        let cryptic = ''
+        for (let i = 0; i < morphTo.length; i++) cryptic += randomMorphChar()
+        return cryptic
+      })
+      morphFrame++
+      if (morphFrame < morphFrames) {
+        morphTimeout = setTimeout(morph, 40)
+      } else {
+        let revealFrame = 0
+        const reveal = () => {
+          setDisplayText(() => {
+            let revealed = ''
+            for (let i = 0; i < morphTo.length; i++) {
+              revealed += i <= revealFrame ? morphTo[i] : randomMorphChar()
+            }
+            return revealed
+          })
+          if (revealFrame < morphTo.length - 1) {
+            revealFrame++
+            revealTimeout = setTimeout(reveal, 40)
+          } else {
+            setDisplayText(morphTo)
+            holdTimeout = setTimeout(() => {
+              setRoleIndex((prev) => (prev + 1) % ROLE_MORPH_WORDS.length)
+            }, 2000)
+          }
+        }
+        reveal()
+      }
+    }
+    morph()
+
+    return () => {
+      clearTimeout(morphTimeout)
+      clearTimeout(revealTimeout)
+      clearTimeout(holdTimeout)
+    }
+  }, [roleIndex])
+
+  return (
+    <span className="inline-block text-black bg-white font-bold transition-opacity duration-300" style={{ letterSpacing: '0.5px' }}>
+      &nbsp;{displayText.trim()}&nbsp;
+    </span>
+  )
+}
+
 // Types `text` out character by character every time `active` transitions
 // from false to true — and resets back to blank the moment `active` goes
 // false, so the *next* time it becomes active it types from scratch again
@@ -1238,81 +1323,6 @@ export default function HomeClient({
     if (forceOpenApp) focusApp(forceOpenApp)
   }, [forceOpenApp, focusApp])
 
-  // Morphing animation for roles with cryptic letters
-  const roles = [
-    "AI engineer",
-    "AI researcher",
-    "Software dev",
-    "Full stack dev"
-  ];
-  const [roleIndex, setRoleIndex] = useState(0);
-  const [displayText, setDisplayText] = useState(roles[0]);
-  const morphing = useRef(false);
-
-  const randomChar = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
-    return chars[Math.floor(Math.random() * chars.length)];
-  };
-
-  useEffect(() => {
-    let morphTimeout: NodeJS.Timeout;
-    let revealTimeout: NodeJS.Timeout;
-    let holdTimeout: NodeJS.Timeout;
-
-    const morphTo = roles[(roleIndex + 1) % roles.length];
-    morphing.current = true;
-
-    let morphFrame = 0;
-    const morphFrames = 500 / 40;
-    const morph = () => {
-      setDisplayText(() => {
-        let cryptic = '';
-        for (let i = 0; i < morphTo.length; i++) {
-          cryptic += randomChar();
-        }
-        return cryptic;
-      });
-      morphFrame++;
-      if (morphFrame < morphFrames) {
-        morphTimeout = setTimeout(morph, 40);
-      } else {
-        let revealFrame = 0;
-        const reveal = () => {
-          setDisplayText(() => {
-            let revealed = '';
-            for (let i = 0; i < morphTo.length; i++) {
-              if (i <= revealFrame) {
-                revealed += morphTo[i];
-              } else {
-                revealed += randomChar();
-              }
-            }
-            return revealed;
-          });
-          if (revealFrame < morphTo.length - 1) {
-            revealFrame++;
-            revealTimeout = setTimeout(reveal, 40);
-          } else {
-            setDisplayText(morphTo);
-            holdTimeout = setTimeout(() => {
-              setRoleIndex((prev) => (prev + 1) % roles.length);
-              morphing.current = false;
-            }, 2000);
-          }
-        };
-        reveal();
-      }
-    };
-    morph();
-
-    return () => {
-      clearTimeout(morphTimeout);
-      clearTimeout(revealTimeout);
-      clearTimeout(holdTimeout);
-    };
-    // eslint-disable-next-line
-  }, [roleIndex]);
-
   const taskbarApps = taskOrder
     .filter(id => wins[id].status !== 'closed')
     .map(id => ({
@@ -1837,12 +1847,7 @@ export default function HomeClient({
                             matching the blog/report reading columns elsewhere. */}
                         <ul className="text-[#ccc] text-md leading-relaxed text-justify list-disc list-outside pl-4 marker:text-white flex flex-col">
                           <li className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
-                            <span
-                            className="inline-block text-black bg-white font-bold transition-opacity duration-300"
-                            style={{ letterSpacing: '0.5px' }}
-                          >
-                            &nbsp;{displayText.trim()}&nbsp;
-                          </span>
+                            <RoleMorphText />
                           &nbsp;who works on cool stuff.
                           </li>
                           <li className="win98-instant-pop" style={{ animationDelay: '0ms' }}> Delves into kernels, compilers, ML backends, i.e. the <span

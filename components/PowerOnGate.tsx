@@ -110,7 +110,7 @@ const BOOT_ENTRIES: BootEntry[] = [
   { label: 'Windows Recovery Environment', bootable: false },
   { label: 'memtest86+', bootable: false },
   { label: '/dev/sda2 (unreadable)', bootable: false },
-  { label: 'Advanced options for Advith-OS', bootable: false },
+  { label: 'Advanced options for Ubuntu', bootable: false },
 ]
 // Real GRUB pads its box out to a fixed height regardless of how many
 // entries are actually installed (see the blank filler rows below) — this

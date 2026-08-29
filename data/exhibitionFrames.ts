@@ -101,7 +101,12 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   // separate cluster (see the swap note below the dark zone). ----
   { id: 'photo-01', leftPct: 10.3, topPct: 48.0, widthPx: 170, heightPx: 159, rotationDeg: -3.1, src: '/IMG_20190103_071215.jpg', alt: 'A personal photo', caption: 'hehehe' },
   { id: 'photo-02', leftPct: 61.6, topPct: 38.2, widthPx: 69,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_075939.jpg', alt: 'A personal photo', caption: 'kangaru' },
-  { id: 'photo-03', leftPct: 2.0,  topPct: 27.8, widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: ':)' },
+  // Moved below 'love you mom' (photo-05, leftPct 70.0-88.6, topPct
+  // 2.0-7.2) per request, alongside photo-10 just below — side by side
+  // rather than stacked, since both are already ~7.2% tall themselves and
+  // stacking them would barely fit the open corridor between photo-05
+  // above and photo-22 below (topPct 7.2 to 22.8) with no real gap.
+  { id: 'photo-03', leftPct: 85.0, topPct: 9.5,  widthPx: 67,  heightPx: 170, rotationDeg: 2.1,  src: '/IMG_20190103_080007.jpg', alt: 'A personal photo', caption: ':)' },
   { id: 'photo-04', leftPct: 31.4, topPct: 22.0, widthPx: 170, heightPx: 139, rotationDeg: -1.7, src: '/IMG_20190103_081554.jpg', alt: 'A personal photo', caption: 'too loud aaaa' },
   // photo-05/photo-21/photo-37 below are the top row now — the first
   // three frames reached once someone's scrolled all the way up past
@@ -126,7 +131,9 @@ export const EXHIBITION_FRAMES: ExhibitionFrame[] = [
   { id: 'photo-07', leftPct: 81.3, topPct: 26.8, widthPx: 128, heightPx: 170, rotationDeg: -1.8, src: '/IMG_20211122_122534.jpg', alt: 'A personal photo', caption: 'first startup idea' },
   { id: 'photo-08', leftPct: 38.2, topPct: 29.5, widthPx: 170, heightPx: 65,  rotationDeg: 1.9,  src: '/IMG_20220302_175741.jpg', alt: 'A personal photo', caption: 'this is Pachi' },
   { id: 'photo-09', leftPct: 42.1, topPct: 53.4, widthPx: 127, heightPx: 170, rotationDeg: 2.0,  src: '/IMG_20220304_204353.jpg', alt: 'A personal photo', caption: 'prolly a fractal' },
-  { id: 'photo-10', leftPct: 1.4,  topPct: 19.0, widthPx: 144, heightPx: 170, rotationDeg: -4.5, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo', caption: 'magic go brrr' },
+  // Moved below 'love you mom' per request — see photo-03's comment just
+  // above for the shared reasoning (same corridor, side by side).
+  { id: 'photo-10', leftPct: 66.0, topPct: 9.5,  widthPx: 144, heightPx: 170, rotationDeg: -4.5, src: '/IMG_20220401_192335_737.jpg', alt: 'A personal photo', caption: 'magic go brrr' },
   { id: 'photo-12', leftPct: 78.7, topPct: 43.6, widthPx: 162, heightPx: 170, rotationDeg: 0.5,  src: '/IMG_20240423_080639.jpg', alt: 'A personal photo', caption: 'gotta grind' },
   { id: 'photo-16', leftPct: 78.5, topPct: 53.3, widthPx: 170, heightPx: 128, rotationDeg: -1.6, src: '/IMG_20240604_130801.jpg', alt: 'A personal photo', caption: 'if you know, you know' },
   { id: 'photo-17', leftPct: 13.2, topPct: 56.0, widthPx: 170, heightPx: 128, rotationDeg: 0.3,  src: '/IMG_20250714_005009.jpg', alt: 'A personal photo', caption: 'do I need to explain?' },

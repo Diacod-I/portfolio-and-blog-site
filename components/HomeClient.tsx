@@ -436,8 +436,20 @@ function useReplayableTypedQuery(text: string, active: boolean, onChar?: () => v
 // instant the query's closing ';' was typed, reading as too abrupt (the
 // query needs a beat to actually be read before output starts appearing
 // underneath it, same as a real shell taking a moment to actually run a
-// command rather than printing results mid-keystroke).
+// command rather than printing results mid-keystroke). Filled with a
+// classic ASCII spinner (see SPINNER_FRAMES) rather than sitting blank —
+// a real shell "working on it" indicator — which is then removed outright
+// (not faded) the instant the boot log's first line takes its place,
+// same "cuts, doesn't fade" reasoning as the rest of this sequence.
 const BOOT_LOG_START_DELAY_MS = 500
+// The '|' -> '/' -> '-' -> '\' -> '|'... spinner cycle, one frame per
+// SPINNER_FRAME_MS — classic CLI "working" spinner (top, right, bottom,
+// left, in that rotating order). 100ms/frame over the 500ms delay above
+// plays through the full 4-frame cycle once plus one extra frame, so it
+// visibly completes at least one full rotation rather than cutting off
+// mid-spin.
+const SPINNER_FRAMES = ['|', '/', '-', '\\']
+const SPINNER_FRAME_MS = 100
 // Interval between the boot log printing one line and the next (see
 // useBootSequence below) — kept as a named constant since BOOT_LOG_TOTAL_MS
 // below has to derive from the exact same number, not a copy of it.
@@ -463,12 +475,13 @@ const BOOT_LOG_TOTAL_MS =
 // (no win98-terminal-pop/opacity-fade/scale on these lines specifically):
 // a real terminal doesn't animate a new line into existence, the line
 // just exists the moment it's written, so this doesn't either. `phase`:
-//   'idle'    — query hasn't finished typing yet, or has but is still
-//               sitting through BOOT_LOG_START_DELAY_MS's beat before the
-//               first line prints — nothing renders either way.
-//   'booting' — lines are being printed one at a time (then sitting
-//               readable once all of them are up).
-//   'done'    — boot log stops rendering entirely, in the same frame it
+//   'idle'     — query hasn't finished typing yet, nothing renders.
+//   'spinning' — query's done; the ASCII spinner (see spinnerChar) plays
+//                for BOOT_LOG_START_DELAY_MS in place of the boot log,
+//                which hasn't started yet.
+//   'booting'  — lines are being printed one at a time (then sitting
+//                readable once all of them are up).
+//   'done'     — boot log stops rendering entirely, in the same frame it
 //               finishes its read pause — a real terminal clearing the
 //               screen (think `clear`, or a kernel handing off to a
 //               login prompt) doesn't fade, it just cuts — so this cuts
@@ -485,8 +498,12 @@ const BOOT_LOG_TOTAL_MS =
 // boot log without this hook needing to know anything about audio itself
 // (see playSysLogTick and its call site below).
 function useBootSequence(active: boolean, lineCount: number, onLine?: () => void) {
-  const [phase, setPhase] = useState<'idle' | 'booting' | 'done'>('idle')
+  const [phase, setPhase] = useState<'idle' | 'spinning' | 'booting' | 'done'>('idle')
   const [visibleLines, setVisibleLines] = useState(0)
+  // Index into SPINNER_FRAMES — only ever ticks while phase is 'spinning'
+  // (see the interval below), left at whatever it last was the rest of the
+  // time since nothing reads it outside that phase.
+  const [spinnerFrameIndex, setSpinnerFrameIndex] = useState(0)
   // Ref, not a dependency — onLine is a fresh inline function on every
   // HomeClient render (it closes over getUiAudioCtx/uiAudioCtxRef), and
   // putting it straight in the effect's dependency array below would
@@ -499,15 +516,27 @@ function useBootSequence(active: boolean, lineCount: number, onLine?: () => void
     if (!active) {
       setPhase('idle')
       setVisibleLines(0)
+      setSpinnerFrameIndex(0)
       return
     }
+    let spinnerInterval: ReturnType<typeof setInterval> | undefined
     let printInterval: ReturnType<typeof setInterval> | undefined
     let toDone: ReturnType<typeof setTimeout> | undefined
-    // BOOT_LOG_START_DELAY_MS beat before anything prints — phase stays
-    // 'idle' (nothing renders, see this hook's own phase doc above) for
-    // this whole stretch, same "still idle" state as before the query even
-    // finished typing.
+
+    // BOOT_LOG_START_DELAY_MS beat before anything prints — the spinner
+    // plays in place of the boot log for this whole stretch (see the JSX
+    // below), then gets removed outright (not faded) the instant
+    // 'booting' takes over, same as every other cut in this sequence.
+    setPhase('spinning')
+    setSpinnerFrameIndex(0)
+    let frame = 0
+    spinnerInterval = setInterval(() => {
+      frame = (frame + 1) % SPINNER_FRAMES.length
+      setSpinnerFrameIndex(frame)
+    }, SPINNER_FRAME_MS)
+
     const startDelay = setTimeout(() => {
+      clearInterval(spinnerInterval)
       setPhase('booting')
       // First line is up immediately once booting starts — a real
       // terminal doesn't sit blank for one whole stagger interval before
@@ -524,13 +553,14 @@ function useBootSequence(active: boolean, lineCount: number, onLine?: () => void
       toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS)
     }, BOOT_LOG_START_DELAY_MS)
     return () => {
+      clearInterval(spinnerInterval)
       clearTimeout(startDelay)
       clearInterval(printInterval)
       clearTimeout(toDone)
     }
   }, [active, lineCount])
 
-  return { phase, visibleLines }
+  return { phase, visibleLines, spinnerChar: SPINNER_FRAMES[spinnerFrameIndex] }
 }
 
 // Every AppId needs a reserved grid cell (Record<AppId, ...> requires it),
@@ -821,7 +851,7 @@ export default function HomeClient({
   // Boot log's own phase, driven off the query above finishing — see
   // useBootSequence for the 'booting' → 'done' lifecycle this plays out,
   // and the JSX below for where each phase actually renders.
-  const { phase: bootPhase, visibleLines: bootLogVisibleLines } = useBootSequence(
+  const { phase: bootPhase, visibleLines: bootLogVisibleLines, spinnerChar } = useBootSequence(
     homeQueryDone,
     BOOT_LOG_LINES.length,
     playSysLogTick
@@ -1857,6 +1887,19 @@ export default function HomeClient({
                           />
                         )}
                     </h1>
+                    {/* Classic CLI "working" spinner (see SPINNER_FRAMES/
+                        useBootSequence) filling BOOT_LOG_START_DELAY_MS's
+                        gap between the query above finishing and the boot
+                        log below starting — removed outright the instant
+                        'booting' takes over (no fade), same as the boot
+                        log's own cut to 'done'. mt-4 to land in the exact
+                        spot the boot log's own block below sits at, so
+                        nothing shifts when one replaces the other. */}
+                    {bootPhase === 'spinning' && (
+                      <p className="font-mono text-sm sm:text-[15px] text-[#ccc] mt-4" aria-hidden="true">
+                        {spinnerChar}
+                      </p>
+                    )}
                     {/* Boot log (see data/bootLog.ts) — plays once, right
                         after the query above finishes typing, then clears
                         rather than sticking around: it's staged as part of

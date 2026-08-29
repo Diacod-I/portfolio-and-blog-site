@@ -38,9 +38,10 @@ licensed.
   via [Pixabay](https://pixabay.com/sound-effects/) (Pixabay Content
   License — free to use, attribution appreciated but not required).
 - The Solitaire win chime, Minesweeper explosion, the Home tab's
-  typed-query keystroke sound, and the boot-menu startup chime (see the
-  "power on" screen before the desktop loads) are all synthesized in the
-  browser with the Web Audio API — no recorded samples.
+  typed-query keystroke sound, its boot log's per-line tick, and the
+  boot-menu startup chime (see the "power on" screen before the desktop
+  loads) are all synthesized in the browser with the Web Audio API — no
+  recorded samples.
 - Prince of Persia desktop icon sourced via [SteamGridDB](https://www.steamgriddb.com/icon/100103);
   Minesweeper and Solitaire desktop icons sourced via Logopedia
   ([Microsoft Minesweeper](https://logos.fandom.com/wiki/Microsoft_Minesweeper),

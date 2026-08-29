@@ -306,9 +306,20 @@ const BOOT_LOG_TOTAL_MS =
 // leaving the Home tab and coming back replays the whole sequence (query
 // → boot log → dossier) from scratch rather than snapping straight to
 // 'done' forever.
-function useBootSequence(active: boolean, lineCount: number) {
+// onLine (optional) fires once per line the instant it's printed —
+// including the first one — so a caller can layer a sound effect onto the
+// boot log without this hook needing to know anything about audio itself
+// (see playSysLogTick and its call site below).
+function useBootSequence(active: boolean, lineCount: number, onLine?: () => void) {
   const [phase, setPhase] = useState<'idle' | 'booting' | 'done'>('idle')
   const [visibleLines, setVisibleLines] = useState(0)
+  // Ref, not a dependency — onLine is a fresh inline function on every
+  // HomeClient render (it closes over getUiAudioCtx/uiAudioCtxRef), and
+  // putting it straight in the effect's dependency array below would
+  // restart the whole boot sequence's timers on every unrelated re-render
+  // instead of only when `active`/`lineCount` genuinely change.
+  const onLineRef = useRef(onLine)
+  onLineRef.current = onLine
 
   useEffect(() => {
     if (!active) {
@@ -321,9 +332,11 @@ function useBootSequence(active: boolean, lineCount: number) {
     // for one whole stagger interval before printing anything either.
     let shown = 1
     setVisibleLines(shown)
+    onLineRef.current?.()
     const printInterval = setInterval(() => {
       shown++
       setVisibleLines(shown)
+      onLineRef.current?.()
       if (shown >= lineCount) clearInterval(printInterval)
     }, BOOT_LOG_LINE_STAGGER_MS)
     const toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS)
@@ -418,126 +431,128 @@ export default function HomeClient({
     audio.currentTime = 0
     audio.play().catch(() => { /* blocked until a real gesture — opening an app already is one */ })
   }, [])
+  // Shared AudioContext for the Home tab's small synthesized UI sounds —
+  // the typed "$ >" query's keystroke sound below and the boot log's
+  // per-line tick further down (see playSysLogTick). One context, created
+  // lazily on whichever of those fires first and reused for every call
+  // after — NOT a fresh context per call the way Minesweeper's one-off
+  // explosion does. Both of these fire far more often than any other sound
+  // on the site (typing ~every 40ms, boot log lines ~every 90ms), and
+  // constructing an AudioContext isn't free; reusing one and just creating
+  // fresh, cheap oscillator/buffer-source nodes per call (the normal Web
+  // Audio pattern for repeated short sounds — those nodes are meant to be
+  // built and discarded per play) avoids reintroducing exactly the kind of
+  // main-thread cost the FaultyTerminalBackground/ImageExhibition
+  // memoization above was fixing.
+  const uiAudioCtxRef = useRef<AudioContext | null>(null)
+  const getUiAudioCtx = useCallback(() => {
+    const AC =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    const ctx = uiAudioCtxRef.current ?? (uiAudioCtxRef.current = new AC())
+    // Autoplay policy suspends a freshly-created context until a real user
+    // gesture too (same restriction as <audio>.play() elsewhere on this
+    // site — see SoundEffects.tsx) — resume() is a no-op once already
+    // running, and this call itself doesn't need to be awaited: if it's
+    // still suspended, nodes built on it simply produce no sound, same
+    // silent-fallback behavior as every other blocked sound here.
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+    return ctx
+  }, [])
+
   // Keystroke sound for the Home tab's typed "$ >" query (see
   // useReplayableTypedQuery's onChar param and the HOME_QUERY_TEXT call
-  // site below). Used to be a sample (type_key.wav) played through a
-  // rotating <audio> pool — per feedback that read as too sharp/clicky,
-  // so this is now synthesized instead: same Web Audio technique as
-  // Minesweeper's explosion and Solitaire's win chime (see those files'
-  // own playExplosion/playWinChime — a filtered noise burst, here with a
-  // soft low sine "thump" underneath), pitch-tuned across five rounds of
-  // feedback: lowpass cutoff 900Hz -> 1400Hz -> 2200Hz -> 3400Hz (held
-  // there since round 3, since pushing it further risked reintroducing
-  // the original sample's sharp/clicky quality), sine 170Hz -> 320Hz ->
-  // 520Hz -> 850Hz -> 1500Hz.
-  //
-  // This round keeps both of those frequencies exactly as they were (per
-  // request) but adds a third layer — a `click` burst — so the sound
-  // reads more like an actual key being pressed rather than one smooth
-  // blip: a real key has a short, sharp *attack* (the switch/membrane
-  // making contact) on top of a duller *body* tone, not just one
-  // homogeneous sound. `click` below is that attack: ~6ms of noise
-  // through a resonant BANDPASS centered on the same 3400Hz the body's
-  // lowpass already uses (so it's not a new pitch, just a sharper-edged
-  // texture at the existing one), gone almost as fast as it starts. The
-  // original noise burst (now `body`) and the sine (`thump`) are
-  // unchanged below — this is a layer added on top, not a replacement.
-  //
-  // One AudioContext, created lazily on the first keystroke and reused
-  // for every keystroke after — NOT a fresh context per call the way
-  // Minesweeper's one-off explosion does. Typing fires this far more
-  // often than any other sound on the site (~every 40ms during a query),
-  // and constructing an AudioContext isn't free; reusing one and just
-  // creating fresh, cheap oscillator/buffer-source nodes per keystroke
-  // (the normal Web Audio pattern for repeated short sounds — those nodes
-  // are meant to be built and discarded per play) avoids reintroducing
-  // exactly the kind of main-thread cost the FaultyTerminalBackground/
-  // ImageExhibition memoization above was fixing.
-  const typeAudioCtxRef = useRef<AudioContext | null>(null)
+  // site below). Went through a few earlier designs: a sample
+  // (type_key.wav) played through a rotating <audio> pool, then a
+  // synthesized mechanical-keyboard sound (filtered noise burst +
+  // percussive click + low sine thump, tuned across several rounds of
+  // pitch feedback). Per the latest request this is now a deliberately
+  // different character entirely — a short sci-fi/HUD-style "interface
+  // blip" instead of anything that reads as a physical key:
+  //   "chirp"    — the tonal identity of the sound. A triangle oscillator
+  //                (softer/more synthetic than a sawtooth, brighter than a
+  //                pure sine) sweeping DOWN in pitch very quickly
+  //                (2400Hz -> 1200Hz over 20ms) — that fast downward sweep
+  //                is what reads as "digital blip" rather than a musical
+  //                note, the same shape countless sci-fi UI/computer
+  //                sounds use.
+  //   "sparkle"  — a very brief (4ms), very quiet burst of noise through a
+  //                high bandpass (6500Hz) layered on top of the chirp's
+  //                attack, for a crisp, slightly airy digital edge rather
+  //                than a pure, clinical tone.
   const playTypeSound = useCallback(() => {
     try {
-      const AC =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      const ctx = typeAudioCtxRef.current ?? (typeAudioCtxRef.current = new AC())
-      // Autoplay policy suspends a freshly-created context until a real
-      // user gesture too (same restriction as <audio>.play() elsewhere on
-      // this site — see SoundEffects.tsx) — resume() is a no-op once
-      // already running, and this call itself doesn't need to be awaited:
-      // if it's still suspended, the nodes below simply produce no sound,
-      // same silent-fallback behavior as every other blocked sound here.
-      if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+      const ctx = getUiAudioCtx()
       const now = ctx.currentTime
-      const dur = 0.035
 
-      // "click" — the sharp attack of the key making contact. Very short
-      // (6ms) and gone almost instantly, through a bandpass (not lowpass
-      // like `body` below) so it's a narrow, resonant tick centered right
-      // on 3400Hz rather than everything below it — that narrowness plus
-      // the fast decay is what reads as a percussive "click" instead of a
-      // wash of noise, and a high Q makes the filter ring slightly at its
-      // center frequency, closer to a real switch's tactile snap.
-      const clickDur = 0.006
-      const clickBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * clickDur), ctx.sampleRate)
-      const clickData = clickBuffer.getChannelData(0)
-      for (let i = 0; i < clickData.length; i++) {
-        clickData[i] = Math.random() * 2 - 1
-      }
-      const click = ctx.createBufferSource()
-      click.buffer = clickBuffer
-      const clickFilter = ctx.createBiquadFilter()
-      clickFilter.type = 'bandpass'
-      clickFilter.frequency.setValueAtTime(3400, now)
-      clickFilter.Q.setValueAtTime(6, now)
-      const clickGain = ctx.createGain()
-      clickGain.gain.setValueAtTime(0.22, now)
-      clickGain.gain.exponentialRampToValueAtTime(0.001, now + clickDur)
-      click.connect(clickFilter).connect(clickGain).connect(ctx.destination)
-      click.start(now)
-
-      // "body" — the duller tone underneath the click. Per feedback this
-      // used to carry an unwanted resonant bass undertone (described as
-      // "sounds like a tabla") — a lowpass alone only caps the TOP of the
-      // spectrum, so a wideband noise burst still keeps its full sub-bass
-      // content underneath, and the ear reads that leftover low-end boom
-      // as a separate drum-like tone. Added a highpass at 350Hz in series
-      // (noise -> highpass -> lowpass) to cut that sub-bass out entirely,
-      // leaving just the mid-range "thock" the lowpass was already meant
-      // to isolate, with nothing booming underneath it.
-      const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
-      const data = buffer.getChannelData(0)
-      for (let i = 0; i < data.length; i++) {
-        data[i] = (Math.random() * 2 - 1) * (1 - i / data.length)
-      }
-      const noise = ctx.createBufferSource()
-      noise.buffer = buffer
-      const highpass = ctx.createBiquadFilter()
-      highpass.type = 'highpass'
-      highpass.frequency.setValueAtTime(350, now)
-      const filter = ctx.createBiquadFilter()
-      filter.type = 'lowpass'
-      filter.frequency.setValueAtTime(3400, now)
-      const noiseGain = ctx.createGain()
-      noiseGain.gain.setValueAtTime(0.16, now)
-      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + dur)
-      noise.connect(highpass).connect(filter).connect(noiseGain).connect(ctx.destination)
-      noise.start(now)
-
-      // "thump" — the sine tone, same as before.
+      // "chirp"
+      const chirpDur = 0.02
       const osc = ctx.createOscillator()
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(2400, now)
+      osc.frequency.exponentialRampToValueAtTime(1200, now + chirpDur)
       const oscGain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(1500, now)
-      oscGain.gain.setValueAtTime(0.1, now)
-      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05)
+      oscGain.gain.setValueAtTime(0.11, now)
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + chirpDur)
       osc.connect(oscGain).connect(ctx.destination)
       osc.start(now)
-      osc.stop(now + 0.06)
+      osc.stop(now + chirpDur + 0.005)
+
+      // "sparkle"
+      const sparkleDur = 0.004
+      const sparkleBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * sparkleDur), ctx.sampleRate)
+      const sparkleData = sparkleBuffer.getChannelData(0)
+      for (let i = 0; i < sparkleData.length; i++) {
+        sparkleData[i] = Math.random() * 2 - 1
+      }
+      const sparkle = ctx.createBufferSource()
+      sparkle.buffer = sparkleBuffer
+      const sparkleFilter = ctx.createBiquadFilter()
+      sparkleFilter.type = 'bandpass'
+      sparkleFilter.frequency.setValueAtTime(6500, now)
+      sparkleFilter.Q.setValueAtTime(4, now)
+      const sparkleGain = ctx.createGain()
+      sparkleGain.gain.setValueAtTime(0.05, now)
+      sparkleGain.gain.exponentialRampToValueAtTime(0.001, now + sparkleDur)
+      sparkle.connect(sparkleFilter).connect(sparkleGain).connect(ctx.destination)
+      sparkle.start(now)
     } catch {
       /* Web Audio unavailable/blocked — lose silently, same as every
          other sound on this site. */
     }
-  }, [])
+  }, [getUiAudioCtx])
+
+  // Sys-log "tick" — plays once per boot log line as it's printed (see
+  // useBootSequence's onLine callback and the call site below). Shares
+  // the same futuristic palette as playTypeSound above (short, synthetic,
+  // no mechanical/percussive character) but is its own distinct two-note
+  // rising blip so it doesn't sound like the same event as a keystroke —
+  // a quick low-to-high sine pair (1100Hz then 1900Hz, 12ms apart, ~18ms
+  // each) reads as a small "data validated" tick rather than a typed
+  // character. Kept quiet (peak gain 0.05) since these fire in a fast
+  // BOOT_LOG_LINE_STAGGER_MS-paced burst, not one at a time like typing.
+  const playSysLogTick = useCallback(() => {
+    try {
+      const ctx = getUiAudioCtx()
+      const now = ctx.currentTime
+      ;[1100, 1900].forEach((freq, i) => {
+        const start = now + i * 0.012
+        const dur = 0.018
+        const osc = ctx.createOscillator()
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(freq, start)
+        const gain = ctx.createGain()
+        gain.gain.setValueAtTime(0.05, start)
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur)
+        osc.connect(gain).connect(ctx.destination)
+        osc.start(start)
+        osc.stop(start + dur + 0.005)
+      })
+    } catch {
+      /* Web Audio unavailable/blocked — lose silently, same as every
+         other sound on this site. */
+    }
+  }, [getUiAudioCtx])
   // "Data confirmed" chime for the instant the dossier (photo + bio +
   // Experience) actually appears — see the bootPhase === 'done' effect
   // below, right after bootPhase itself is declared. Just one Audio, not a
@@ -622,7 +637,11 @@ export default function HomeClient({
   // Boot log's own phase, driven off the query above finishing — see
   // useBootSequence for the 'booting' → 'done' lifecycle this plays out,
   // and the JSX below for where each phase actually renders.
-  const { phase: bootPhase, visibleLines: bootLogVisibleLines } = useBootSequence(homeQueryDone, BOOT_LOG_LINES.length)
+  const { phase: bootPhase, visibleLines: bootLogVisibleLines } = useBootSequence(
+    homeQueryDone,
+    BOOT_LOG_LINES.length,
+    playSysLogTick
+  )
   // Plays dossierBeepRef the instant bootPhase flips to 'done' — i.e. the
   // exact frame the boot log cuts away and the dossier row takes over (see
   // the JSX below) — not on mount, and not on 'idle'/'booting'. Replays

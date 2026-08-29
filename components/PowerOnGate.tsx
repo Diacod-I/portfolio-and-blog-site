@@ -27,94 +27,121 @@
 // autoplay" case by case, and it guarantees every sound effect on the
 // site works from the very first real interaction onward.
 //
-// Styled to match the real GRUB2 boot menu as closely as CSS reasonably
-// allows (see the 'menu' phase's own comment below for the specifics) —
-// per feedback, a generic "click to enable sound" dialog didn't read as
-// "an actual operating system starting up" the way an actual bootloader
-// screen does, and it's the one moment on the site that's genuinely
-// "before" the win98 desktop exists yet. Three phases:
-//   'splash'  — the very first thing shown, itself two beats: a small
-//               device logo (see PixelLogo below) sits alone on screen
-//               for LOGO_ALONE_MS, then a loading bar fades in below it
-//               and fills left to right over SPLASH_LOADING_MS — same
-//               idea as a real machine's manufacturer logo appearing
-//               before its progress bar does (think the Apple logo, then
-//               the progress bar, on a Mac). Purely timed — no
-//               interaction, nothing to click — and hands off to 'menu'
-//               automatically once both beats have elapsed.
-//   'menu'    — black screen, one selectable menu entry, nothing else.
-//   'booting' — plays a synthesized startup chime (same one-off-
-//               AudioContext pattern as Minesweeper's explosion — see
-//               that file — rather than the reused-context pattern
-//               HomeClient's playTypeSound uses, since this only ever
-//               fires once per session) while the real desktop wallpaper
-//               fades in from behind a black overlay — echoing a real OS
-//               boot (chime + splash fading to the desktop). Once the
-//               fade finishes, onStart() fires and this component
-//               unmounts for good, handing off to the real HomeClient
-//               (which renders that exact same wallpaper — see its own
-//               backgroundImage — so there's no visual jump at handoff).
+// Six phases, in order, purely timed except 'menu' (which waits on the
+// user):
+//   'preboot-blue'   — the very first thing shown: a solid blue screen,
+//                       PREBOOT_BLUE_MS long, echoing the "no signal yet"
+//                       blue a real monitor/BIOS shows before anything
+//                       else appears.
+//   'preboot-cursor' — black screen, nothing but a blinking underscore
+//                       cursor in the top right (see win98-cursor-blink in
+//                       globals.css), PREBOOT_CURSOR_MS long — the classic
+//                       pre-OS "still booting firmware" beat.
+//   'menu'           — the GRUB-style boot menu (see BOOT_ENTRIES below):
+//                       one real, bootable entry (Advith-OS) plus several
+//                       garbage entries that look installed but aren't —
+//                       clicking/selecting+entering one of those shows a
+//                       GRUB-style "not found" error and stays on the
+//                       menu instead of proceeding. Arrow keys move the
+//                       highlight, click or Enter attempts to boot
+//                       whichever entry is currently selected/clicked.
+//   'boot-logo'      — once Advith-OS is actually selected: the site's
+//                       pixel-heart logo (see PixelHeartLogo below) sits
+//                       alone on screen, not yet beating, for
+//                       LOGO_ALONE_MS — same idea as a device's
+//                       manufacturer logo appearing before its progress
+//                       bar does.
+//   'boot-loading'   — the heart starts beating (win98-pixel-heart-beat)
+//                       and a loading bar fades in below it and fills
+//                       left to right over SPLASH_LOADING_MS.
+//   'boot-reveal'    — plays a synthesized startup chime (same one-off-
+//                       AudioContext pattern as Minesweeper's explosion —
+//                       see that file — rather than the reused-context
+//                       pattern HomeClient's playTypeSound uses, since
+//                       this only ever fires once per session) while the
+//                       real desktop wallpaper fades in from behind a
+//                       black overlay — echoing a real OS boot (chime +
+//                       splash fading to the desktop). Once the fade
+//                       finishes, onStart() fires and this component
+//                       unmounts for good, handing off to the real
+//                       HomeClient (which renders that exact same
+//                       wallpaper — see its own backgroundImage — so
+//                       there's no visual jump at handoff).
 import { useCallback, useEffect, useState } from 'react'
 
 type PowerOnGateProps = {
   onStart: () => void
 }
 
-// 'splash' now has two beats, not one: the logo sits alone first (no
-// loading bar yet — see showLoadingBar below), then the loading bar fades
-// in and starts its fill. Per feedback, showing both from the very first
-// frame didn't read as an actual boot sequence — a real device shows its
-// logo for a beat before a progress indicator even appears.
+type Phase = 'preboot-blue' | 'preboot-cursor' | 'menu' | 'boot-logo' | 'boot-loading' | 'boot-reveal'
+
+// Solid blue "no signal yet" beat before anything else appears.
+const PREBOOT_BLUE_MS = 1000
+// Black screen with just the blinking cursor, the classic "firmware is
+// still doing something" beat right before the boot menu shows up.
+const PREBOOT_CURSOR_MS = 2000
+
+// How long the heart logo sits alone (not beating yet, no bar) once
+// Advith-OS is selected, before the loading bar itself starts.
 const LOGO_ALONE_MS = 1000
-// How long the loading bar's own fill takes, once it starts (i.e. after
-// LOGO_ALONE_MS has already elapsed) — long enough to read as an actual
-// fill, not just a flash. 'splash' hands off to 'menu' this long after the
-// bar starts, so LOGO_ALONE_MS + SPLASH_LOADING_MS is the total time spent
-// on 'splash'.
+// How long the loading bar's own fill takes, once it starts — long enough
+// to read as an actual fill, not just a flash. The heart beats throughout
+// this whole stretch (see PixelHeartLogo's `beating` prop below).
 const SPLASH_LOADING_MS = 2200
 
-// A brief pause after selecting the entry — chime plays, screen stays
-// black a beat longer, THEN the wallpaper starts revealing — instead of
-// the reveal beginning the instant it's selected. Echoes the pause real
-// hardware/firmware takes before a boot splash actually shows up.
-const BOOT_DELAY_MS = 1000
-
-// How long the wallpaper-reveal fade itself takes, once it starts (i.e.
-// after BOOT_DELAY_MS has already elapsed) — onStart() fires this long
-// after the fade begins, not immediately, so the fade is actually visible
-// before HomeClient takes over.
+// How long the wallpaper-reveal fade itself takes, once 'boot-reveal'
+// begins — onStart() fires this long after the fade begins, not
+// immediately, so the fade is actually visible before HomeClient takes
+// over.
 const BOOT_FADE_MS = 1600
 
-// Small pixel-art ">_" mark for the 'splash' phase — a blocky terminal
-// chevron-and-cursor glyph rather than a literal "device" logo, since
-// there's no real hardware brand to reference here; ties back to the same
-// "$ >" prompt/blinking-cursor motif HomeClient's Home tab types out (see
-// HOME_QUERY_TEXT and the cursor block right after it), so the one moment
-// "before" the desktop exists still reads as the same machine. Same
-// grid-of-SVG-rects technique as HomeClient.tsx's PixelHeart — 'X' cells
-// draw the chevron in the boot menu's own #c0c0c0 gray, 'O' cells draw the
-// cursor bar in the same green (#00FF00) HomeClient's own typing cursor
-// and boot log "OK" status use.
-const PIXEL_LOGO_ROWS = [
-  '.........',
-  'XX.......',
-  '..XX.....',
-  '....XX...',
-  '..XX.....',
-  'XX.......',
-  '.........',
-  '...OOOOO.',
+// The boot menu's entries. Only the first is real — everything else is
+// set dressing that LOOKS like a normal multi-boot GRUB menu (a recovery
+// environment, memtest, an "advanced options" submenu — all genuine
+// staples of a real /boot/grub/grub.cfg) but can't actually be booted:
+// selecting one shows a GRUB-style "file not found" error and leaves the
+// user back on the menu, same as a real broken bootloader entry would.
+type BootEntry = {
+  label: string
+  bootable: boolean
+}
+const BOOT_ENTRIES: BootEntry[] = [
+  { label: 'Advith-OS', bootable: true },
+  { label: 'Windows Recovery Environment', bootable: false },
+  { label: 'memtest86+', bootable: false },
+  { label: '/dev/sda2 (unreadable)', bootable: false },
+  { label: 'Advanced options for Advith-OS', bootable: false },
 ]
-function PixelLogo() {
+// Real GRUB pads its box out to a fixed height regardless of how many
+// entries are actually installed (see the blank filler rows below) — this
+// is that fixed row count, entries included, so the box stays the same
+// tall, mostly-empty shape it always has.
+const MENU_TOTAL_ROWS = 10
+
+// Small pixel-art beating heart for the 'boot-logo'/'boot-loading' phases
+// — same 7-wide by 6-tall grid technique as HomeClient.tsx's own
+// PixelHeart (see that file), duplicated locally rather than imported so
+// this file stays a self-contained, standalone gate with no dependency on
+// the (much larger) HomeClient module. `beating` gates the
+// win98-pixel-heart-beat animation (see globals.css) — off while the logo
+// sits alone in 'boot-logo', on once 'boot-loading' starts, so the heart
+// visibly "starts beating when the loading happens" rather than beating
+// from the very first frame.
+const PIXEL_HEART_ROWS = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...']
+function PixelHeartLogo({ beating }: { beating: boolean }) {
   return (
-    <svg viewBox="0 0 9 8" width={72} height={64} shapeRendering="crispEdges" aria-hidden="true">
-      {PIXEL_LOGO_ROWS.flatMap((row, y) =>
-        row.split('').map((cell, x) => {
-          if (cell === '.') return null
-          return <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={cell === 'O' ? '#00FF00' : '#c0c0c0'} />
-        })
-      )}
-    </svg>
+    <span
+      className={`inline-block${beating ? ' win98-pixel-heart-beat' : ''}`}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 7 6" width={56} height={48} shapeRendering="crispEdges">
+        {PIXEL_HEART_ROWS.flatMap((row, y) =>
+          row
+            .split('')
+            .map((cell, x) => (cell === 'X' ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#e8283f" /> : null))
+        )}
+      </svg>
+    </span>
   )
 }
 
@@ -151,90 +178,120 @@ function playBootChime() {
 }
 
 export default function PowerOnGate({ onStart }: PowerOnGateProps) {
-  const [phase, setPhase] = useState<'splash' | 'menu' | 'booting'>('splash')
+  const [phase, setPhase] = useState<Phase>('preboot-blue')
   // Starts true (opaque black, hiding the wallpaper beneath) and flips to
-  // false one frame after entering 'booting' — the delay is what makes
-  // the opacity change an actual observed transition instead of skipping
-  // straight to its end state before the browser paints the start of it.
+  // false once 'boot-reveal' begins — see that phase's effect below for
+  // why a plain effect (not an extra setTimeout) is enough to make this an
+  // actual observed transition instead of skipping straight to its end
+  // state before the browser paints the start of it.
   const [fadeOut, setFadeOut] = useState(false)
-  // Gates the loading bar within 'splash' — false for the first
-  // LOGO_ALONE_MS (logo alone on screen), then true for the rest of
-  // 'splash' (bar fades in and starts its fill). See the JSX below for how
-  // this avoids a layout jump: the bar's own bordered track is always
-  // rendered, just invisible until this flips, so the logo never has to
-  // shift position once the bar appears.
-  const [showLoadingBar, setShowLoadingBar] = useState(false)
+  // Which boot-menu entry is currently highlighted (arrow keys move this;
+  // clicking an entry both highlights and immediately attempts it).
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  // Set when the user attempts to boot a non-bootable entry — a GRUB-
+  // style "file not found" line shown under the menu box, cleared the
+  // next time the selection moves or another attempt is made.
+  const [bootError, setBootError] = useState<string | null>(null)
 
-  // Purely timed hand-off through 'splash' — no interaction gates any of
-  // this, same as a real machine's logo/progress-bar screen before it
-  // reaches a boot menu.
+  // Purely timed hand-off through the two pre-boot beats — no interaction
+  // gates either of these, same as real firmware working through its own
+  // splash/POST screens before it ever reaches a boot menu.
   useEffect(() => {
-    if (phase !== 'splash') return
-    const toBar = setTimeout(() => setShowLoadingBar(true), LOGO_ALONE_MS)
-    const toMenu = setTimeout(() => setPhase('menu'), LOGO_ALONE_MS + SPLASH_LOADING_MS)
-    return () => {
-      clearTimeout(toBar)
-      clearTimeout(toMenu)
-    }
+    if (phase !== 'preboot-blue') return
+    const t = setTimeout(() => setPhase('preboot-cursor'), PREBOOT_BLUE_MS)
+    return () => clearTimeout(t)
   }, [phase])
 
-  const handleSelect = useCallback(() => {
-    if (phase !== 'menu') return
-    setPhase('booting')
-    // Chime plays from the effect below, once BOOT_DELAY_MS has elapsed,
-    // in lockstep with the wallpaper starting to fade in — not here — so
-    // the sound and the visual reveal actually happen together instead of
-    // the chime firing (and mostly finishing its decay) during the silent
-    // black-screen pause that comes first.
+  useEffect(() => {
+    if (phase !== 'preboot-cursor') return
+    const t = setTimeout(() => setPhase('menu'), PREBOOT_CURSOR_MS)
+    return () => clearTimeout(t)
   }, [phase])
 
-  // The button itself already has autoFocus, so real GRUB-style Enter
-  // handling mostly happens for free (a focused native <button> fires a
-  // click on Enter) — but this listens on the window too, so Enter boots
-  // the entry even if focus ever ended up elsewhere (e.g. a stray click on
-  // the page background before the keypress). Only attached during 'menu'
-  // — the effect re-runs and detaches it the instant phase flips away.
+  // Attempts to boot whichever entry index is passed in — used by both a
+  // direct click on an entry (which should select AND immediately attempt
+  // it, not just highlight it) and the Enter key (which attempts whatever
+  // is already highlighted). Real entries move on to 'boot-logo'; fake
+  // ones surface a GRUB-style error and leave phase alone.
+  const attemptBoot = useCallback(
+    (index: number) => {
+      if (phase !== 'menu') return
+      setSelectedIndex(index)
+      const entry = BOOT_ENTRIES[index]
+      if (!entry.bootable) {
+        setBootError(`error: '${entry.label}' not found.`)
+        return
+      }
+      setBootError(null)
+      setPhase('boot-logo')
+    },
+    [phase]
+  )
+
+  // Arrow keys move the highlight (wrapping at either end, same as real
+  // GRUB), Enter attempts to boot whatever's currently highlighted — all
+  // only while 'menu' is showing; the effect re-runs and detaches this the
+  // instant phase flips away, same pattern as every other phase-scoped
+  // listener in this file.
   useEffect(() => {
     if (phase !== 'menu') return
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Enter') return
-      e.preventDefault()
-      handleSelect()
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        attemptBoot(selectedIndex)
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setBootError(null)
+        setSelectedIndex((i) => (i + 1) % BOOT_ENTRIES.length)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setBootError(null)
+        setSelectedIndex((i) => (i - 1 + BOOT_ENTRIES.length) % BOOT_ENTRIES.length)
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [phase, handleSelect])
+  }, [phase, selectedIndex, attemptBoot])
+
+  // 'boot-logo' -> 'boot-loading' -> 'boot-reveal', purely timed, same as
+  // the two pre-boot beats above.
+  useEffect(() => {
+    if (phase !== 'boot-logo') return
+    const t = setTimeout(() => setPhase('boot-loading'), LOGO_ALONE_MS)
+    return () => clearTimeout(t)
+  }, [phase])
 
   useEffect(() => {
-    if (phase !== 'booting') return
-    // Screen stays solid black (and silent) for BOOT_DELAY_MS after the
-    // entry is selected, then the chime and the reveal fade both start in
-    // the same tick, then the fade itself takes BOOT_FADE_MS — onStart()
-    // fires once both have elapsed, so HomeClient takes over right as the
-    // fade visually finishes. Delaying the chime this way (rather than
-    // playing it immediately on selection) is still well within the
-    // page's user-activation window — the selecting click/Enter press is
-    // itself the qualifying gesture, and that "this document has had a
-    // real user gesture" flag is what unblocks AudioContext playback, not
-    // strict millisecond-level synchronicity with the gesture itself.
-    const toReveal = setTimeout(() => {
-      playBootChime()
-      setFadeOut(true)
-    }, BOOT_DELAY_MS)
-    const toStart = setTimeout(onStart, BOOT_DELAY_MS + BOOT_FADE_MS)
-    return () => {
-      clearTimeout(toReveal)
-      clearTimeout(toStart)
-    }
+    if (phase !== 'boot-loading') return
+    const t = setTimeout(() => setPhase('boot-reveal'), SPLASH_LOADING_MS)
+    return () => clearTimeout(t)
+  }, [phase])
+
+  useEffect(() => {
+    if (phase !== 'boot-reveal') return
+    // No extra setTimeout needed here (unlike the timed phases above) —
+    // this effect only runs once React has already committed AND painted
+    // the render where phase first became 'boot-reveal' (with fadeOut
+    // still false, wallpaper hidden), so setFadeOut(true) here is
+    // guaranteed to be a *second*, later paint — which is exactly what
+    // makes the opacity change an actually-observed CSS transition
+    // instead of jumping straight to its end state.
+    playBootChime()
+    setFadeOut(true)
+    const t = setTimeout(onStart, BOOT_FADE_MS)
+    return () => clearTimeout(t)
   }, [phase, onStart])
+
+  const showLogoScreen = phase === 'boot-logo' || phase === 'boot-loading'
 
   return (
     <div className="fixed inset-0 z-[99999] bg-black">
       {/* Real desktop wallpaper, revealed as the black overlay below
           fades out — same image/sizing HomeClient uses for the actual
           desktop, so the handoff at onStart() is seamless. Only rendered
-          once booting starts; no reason to pay for it during 'menu'. */}
-      {phase === 'booting' && (
+          once the reveal actually starts; no reason to pay for it any
+          earlier. */}
+      {phase === 'boot-reveal' && (
         <div
           className="absolute inset-0"
           style={{
@@ -248,26 +305,37 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
         className="absolute inset-0 bg-black transition-opacity ease-out"
         style={{ opacity: fadeOut ? 0 : 1, transitionDuration: `${BOOT_FADE_MS}ms` }}
       />
-      {phase === 'splash' && (
+      {phase === 'preboot-blue' && <div className="absolute inset-0" style={{ backgroundColor: '#0000aa' }} />}
+      {phase === 'preboot-cursor' && (
+        <div className="absolute inset-0 bg-black">
+          <span
+            className="win98-cursor-blink absolute top-4 right-6 sm:top-6 sm:right-8 font-mono text-2xl sm:text-3xl text-[#c0c0c0] select-none"
+            aria-hidden="true"
+          >
+            _
+          </span>
+        </div>
+      )}
+      {showLogoScreen && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 select-none">
-          <PixelLogo />
+          <PixelHeartLogo beating={phase === 'boot-loading'} />
           {/* Sunken win98-bezel-style bar (matches this site's other
               "loading" chrome, e.g. WindowsLoader's own progress track) —
               the fill is a single CSS animation timed to SPLASH_LOADING_MS
               (see win98-boot-loading-fill in globals.css), not JS-driven
               width state, so there's nothing to keep in sync with the
               setTimeout above beyond both reading the same duration.
-              The outer track is always rendered (even before
-              showLoadingBar flips) so the logo above it never has to shift
-              position once the bar appears — only its opacity changes,
-              and the inner fill div (and its animation) doesn't even
-              mount until showLoadingBar is true, so the fill genuinely
-              starts right as it fades in, not earlier. */}
+              The outer track is always rendered (even during 'boot-logo')
+              so the heart above it never has to shift position once the
+              bar appears — only its opacity changes, and the inner fill
+              div (and its animation) doesn't even mount until
+              'boot-loading', so the fill genuinely starts right as it
+              fades in, not earlier. */}
           <div
             className="w-40 h-2.5 border border-[#808080] bg-black p-[1px] transition-opacity duration-300"
-            style={{ opacity: showLoadingBar ? 1 : 0 }}
+            style={{ opacity: phase === 'boot-loading' ? 1 : 0 }}
           >
-            {showLoadingBar && (
+            {phase === 'boot-loading' && (
               <div className="win98-boot-loading-fill h-full bg-[#c0c0c0]" style={{ animationDuration: `${SPLASH_LOADING_MS}ms` }} />
             )}
           </div>
@@ -277,54 +345,65 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
         <div className="absolute inset-0 flex items-center justify-center font-mono text-[#c0c0c0] select-none px-4">
           {/* Laid out to match real GRUB2's default text menu as closely
               as CSS reasonably allows: "GNU GRUB  version X.XX" above a
-              bordered box, the one real entry highlighted with a static
-              (not blinking — real GRUB doesn't blink its selection)
-              inverted bar, and the box padded out with blank rows to the
-              same tall, mostly-empty shape GRUB's box has even with only
-              one or two entries installed, followed by the exact
-              "Use the arrow keys..." instructions GRUB itself shows. See
-              CreditsWindow.tsx's Design & Inspiration section for the
-              trademark note this borrows the same disclosure pattern
-              from (the Windows 98 homage above it). */}
+              bordered box, the highlighted entry inverted (a slight,
+              gentle dim-pulse via win98-grub-blink, not fully static —
+              per feedback, real GRUB's fully static bar read as a little
+              too inert), the rest of the entries plain text on black, and
+              the box padded out with blank rows to the same tall,
+              mostly-empty shape GRUB's box has even with only a couple
+              entries installed. See CreditsWindow.tsx's Design &
+              Inspiration section for the trademark note this borrows the
+              same disclosure pattern from (the Windows 98 homage above
+              it). */}
           <div className="w-full max-w-xl">
             <p className="text-sm sm:text-base mb-2">Not GNU GRUB&nbsp;&nbsp;version 2.06</p>
             <div className="border border-[#c0c0c0]">
-              {/* A real <button>, not a styled div — native Enter/Space
-                  handling for free, and it matches SoundEffects.tsx's own
-                  INTERACTIVE_SELECTOR (button, ...), so selecting it also
-                  produces the site's normal click sound right alongside
-                  the boot chime above. win98-grub-blink adds a slight,
-                  gentle dim-pulse to the highlight (see globals.css) — per
-                  feedback, real GRUB's fully static bar read as a little
-                  too inert; text stays black throughout so it's never hard
-                  to read mid-pulse. */}
-              <button
-                type="button"
-                onClick={handleSelect}
-                autoFocus
-                className="win98-grub-blink w-full text-left px-3 py-1 text-sm sm:text-base bg-[#c0c0c0] text-black"
-              >
-                Advith-OS
-              </button>
+              {BOOT_ENTRIES.map((entry, i) => (
+                // Real <button>s, not styled divs — matches
+                // SoundEffects.tsx's own INTERACTIVE_SELECTOR (button,
+                // ...), so clicking one also produces the site's normal
+                // click sound right alongside the boot chime (for the one
+                // real entry) or the error line (for the rest). outline-
+                // none/focus-visible:outline-none strip the browser's own
+                // default focus ring — the highlight here is entirely
+                // this component's own bg/blink styling, so a native blue
+                // focus rectangle on top of it (which clicking a button
+                // normally leaves behind) would just look like a stray
+                // rendering glitch.
+                <button
+                  key={entry.label}
+                  type="button"
+                  onClick={() => attemptBoot(i)}
+                  className={`w-full text-left px-3 py-1 text-sm sm:text-base outline-none focus:outline-none focus-visible:outline-none ${
+                    i === selectedIndex ? 'win98-grub-blink bg-[#c0c0c0] text-black' : 'bg-black text-[#c0c0c0] hover:bg-[#1a1a1a]'
+                  }`}
+                >
+                  {entry.label}
+                </button>
+              ))}
               {/* Blank filler rows — real GRUB's box is a fixed height
                   (room for far more entries than most machines actually
                   have installed), not sized tightly around however many
                   entries exist. aria-hidden since there's nothing here
                   for a screen reader to announce. */}
-              {Array.from({ length: 9 }).map((_, i) => (
+              {Array.from({ length: Math.max(0, MENU_TOTAL_ROWS - BOOT_ENTRIES.length) }).map((_, i) => (
                 <div key={i} className="px-3 py-1 text-sm sm:text-base" aria-hidden="true">
                   &nbsp;
                 </div>
               ))}
             </div>
+            {bootError && (
+              <p className="text-xs sm:text-sm mt-3 text-[#ff6b6b]" role="alert">
+                {bootError}
+              </p>
+            )}
             <p className="text-xs sm:text-sm mt-4 leading-relaxed">
               Use the ↑ and ↓ keys to select which entry is highlighted.
             </p>
             {/* Kept on its own line (separate from the arrow-key
-                instruction above) but no longer has the rainbow
-                background — just plain white text now. */}
+                instruction above), plain white text, no rainbow. */}
             <p className="text-xs sm:text-sm mt-1 leading-relaxed text-white">
-              Press Enter to boot the selected OS.
+              Click on the entry, or press Enter, to boot the selected OS.
             </p>
           </div>
         </div>

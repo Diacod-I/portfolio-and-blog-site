@@ -198,17 +198,24 @@
   .win98-pixel-heart-beat {
     animation: none !important;
   }
+  /* win98-cursor-blink's *base* state (opacity 1, see its keyframe) is
+     already visible, so simply stopping the animation leaves a solid,
+     non-blinking cursor on screen instead of a stuck-invisible one — no
+     extra !important override needed beyond animation: none. */
+  .win98-cursor-blink {
+    animation: none !important;
+  }
   /* Unlike the rules above, win98-boot-loading-fill's *base* width is 0%
      (see its keyframe) — disabling the animation without also forcing it
      full would leave the bar looking permanently empty instead of just
      skipping the fill motion. PowerOnGate.tsx's own setTimeouts (not
-     gated by this media query at all) still advance past 'splash' after
-     LOGO_ALONE_MS + SPLASH_LOADING_MS regardless of this setting, so the
-     screen doesn't hang here either way — the bar's outer track still
-     fades in via its own opacity transition once showLoadingBar flips
-     (a separate, much smaller transition this rule doesn't touch), it's
-     specifically the *fill* that's forced to its end state instead of
-     animating. */
+     gated by this media query at all) still advance past each timed
+     phase — 'preboot-blue', 'preboot-cursor', 'boot-logo',
+     'boot-loading' — regardless of this setting, so the screen doesn't
+     hang here either way — the bar's outer track still fades in via its
+     own opacity transition once 'boot-loading' starts (a separate, much
+     smaller transition this rule doesn't touch), it's specifically the
+     *fill* that's forced to its end state instead of animating. */
   .win98-boot-loading-fill {
     animation: none !important;
     width: 100% !important;
@@ -330,6 +337,18 @@
 }
 .win98-grub-blink {
   animation: win98GrubBlink 1.2s steps(1, end) infinite;
+}
+
+/* PowerOnGate.tsx's 'preboot-cursor' phase — a plain on/off blink (not a
+   pulse like win98-grub-blink above), matching an old BIOS/DOS-style text
+   cursor sitting on an otherwise empty black screen. steps(1) gives a hard
+   cut between visible/invisible rather than a fade. */
+@keyframes win98CursorBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.win98-cursor-blink {
+  animation: win98CursorBlink 1s steps(1) infinite;
 }
 
 .animate-gradient {

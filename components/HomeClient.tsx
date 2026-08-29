@@ -431,6 +431,13 @@ function useReplayableTypedQuery(text: string, active: boolean, onChar?: () => v
   return { typed, done }
 }
 
+// Pause between the "$ >" query finishing typing and the boot log's first
+// line appearing — without this the first syslog line popped up the
+// instant the query's closing ';' was typed, reading as too abrupt (the
+// query needs a beat to actually be read before output starts appearing
+// underneath it, same as a real shell taking a moment to actually run a
+// command rather than printing results mid-keystroke).
+const BOOT_LOG_START_DELAY_MS = 500
 // Interval between the boot log printing one line and the next (see
 // useBootSequence below) — kept as a named constant since BOOT_LOG_TOTAL_MS
 // below has to derive from the exact same number, not a copy of it.
@@ -456,7 +463,9 @@ const BOOT_LOG_TOTAL_MS =
 // (no win98-terminal-pop/opacity-fade/scale on these lines specifically):
 // a real terminal doesn't animate a new line into existence, the line
 // just exists the moment it's written, so this doesn't either. `phase`:
-//   'idle'    — query hasn't finished typing yet, nothing renders.
+//   'idle'    — query hasn't finished typing yet, or has but is still
+//               sitting through BOOT_LOG_START_DELAY_MS's beat before the
+//               first line prints — nothing renders either way.
 //   'booting' — lines are being printed one at a time (then sitting
 //               readable once all of them are up).
 //   'done'    — boot log stops rendering entirely, in the same frame it
@@ -492,20 +501,30 @@ function useBootSequence(active: boolean, lineCount: number, onLine?: () => void
       setVisibleLines(0)
       return
     }
-    setPhase('booting')
-    // First line is up immediately — a real terminal doesn't sit blank
-    // for one whole stagger interval before printing anything either.
-    let shown = 1
-    setVisibleLines(shown)
-    onLineRef.current?.()
-    const printInterval = setInterval(() => {
-      shown++
+    let printInterval: ReturnType<typeof setInterval> | undefined
+    let toDone: ReturnType<typeof setTimeout> | undefined
+    // BOOT_LOG_START_DELAY_MS beat before anything prints — phase stays
+    // 'idle' (nothing renders, see this hook's own phase doc above) for
+    // this whole stretch, same "still idle" state as before the query even
+    // finished typing.
+    const startDelay = setTimeout(() => {
+      setPhase('booting')
+      // First line is up immediately once booting starts — a real
+      // terminal doesn't sit blank for one whole stagger interval before
+      // printing anything either.
+      let shown = 1
       setVisibleLines(shown)
       onLineRef.current?.()
-      if (shown >= lineCount) clearInterval(printInterval)
-    }, BOOT_LOG_LINE_STAGGER_MS)
-    const toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS)
+      printInterval = setInterval(() => {
+        shown++
+        setVisibleLines(shown)
+        onLineRef.current?.()
+        if (shown >= lineCount) clearInterval(printInterval)
+      }, BOOT_LOG_LINE_STAGGER_MS)
+      toDone = setTimeout(() => setPhase('done'), BOOT_LOG_TOTAL_MS)
+    }, BOOT_LOG_START_DELAY_MS)
     return () => {
+      clearTimeout(startDelay)
       clearInterval(printInterval)
       clearTimeout(toDone)
     }

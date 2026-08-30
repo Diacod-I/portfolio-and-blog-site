@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://advithkrishnan.com" target="_blank" title="Click to visit my portfolio!">
-    <img src="https://api.microlink.io/?url=https://advithkrishnan.com/&screenshot=true&meta=false&embed=screenshot.url&colorScheme=dark&viewport.width=1200&viewport.height=450" alt="Advith's Blogfolio" width="800px" />
+  <img width="974" height="445" alt="Screenshot 2026-08-30 at 10 43 14 PM" src="https://github.com/user-attachments/assets/da8ca640-0b30-4dce-9fba-3c3fa41a05ee" />
   </a>
 </p>
 

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://advithkrishnan.com" target="_blank" title="Click to visit my portfolio!">
-  <img width="974" height="445" alt="Screenshot 2026-08-30 at 10 43 14 PM" src="https://github.com/user-attachments/assets/da8ca640-0b30-4dce-9fba-3c3fa41a05ee" />
+  <img width="1001" height="251" alt="Screenshot 2026-08-30 at 10 58 40 PM" src="https://github.com/user-attachments/assets/60028727-fb84-4cf9-9b98-ceffa6547b73" />
   </a>
 </p>
 

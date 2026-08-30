@@ -30,7 +30,7 @@ const education: EducationEntry[] = [
     institution: 'SRM Institute of Science and Technology',
     location: 'Kattankulathur, Chennai, India',
     dates: 'Aug 2021 – Aug 2025',
-    logo: '/logos/srm.png',
+    logo: '/logos/srm-seal.png',
   },
 ]
 

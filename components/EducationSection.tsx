@@ -43,13 +43,12 @@ export default function EducationSection() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div className="flex items-baseline justify-between flex-wrap">
                   <span className="font-bold text-white text-sm">{e.degree}</span>
                   <span className="text-[11px] text-[#777] font-semibold whitespace-nowrap">{e.dates}</span>
                 </div>
-                <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div className="flex items-baseline justify-between flex-wrap">
                   <span className="text-[#aaaaaa] text-xs">{e.institution}</span>
-                  <span className="text-[11px] text-[#999]">{e.location}</span>
                 </div>
               </div>
             </li>

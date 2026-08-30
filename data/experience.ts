@@ -18,12 +18,13 @@ export interface ExperienceEntry {
    *  (used for companies without a sourced logo yet, e.g. small/private
    *  ones with no freely-licensed asset found). */
   logo?: string
-  /** True for a logo asset that's white-on-transparent (meant to sit on a
-   *  dark background) — gives that entry's badge a black fill instead of
-   *  the default light one, so the white wordmark/mark is actually
-   *  visible. Infosys specifically: its usual logo is blue-on-white, but
-   *  the dark/reversed variant reads better as a self-contained "chip"
-   *  against this section's own dark background. */
+  /** Gives that entry's badge a black fill instead of the default light
+   *  one. Originally added for white-on-transparent logos (meant to sit on
+   *  a dark background) — Infosys's usual logo is blue-on-white, but the
+   *  dark/reversed variant reads better as a self-contained "chip" against
+   *  this section's own dark background. Also used for logos that are full
+   *  color but just look better as a dark chip (NASA's meatball, at the
+   *  user's request). */
   logoDark?: boolean
 }
 
@@ -51,7 +52,7 @@ const experience: ExperienceEntry[] = [
     company: 'ETH Zurich',
     location: 'Zurich, Switzerland · Remote',
     dates: 'Aug 2024 – Mar 2025',
-    logo: '/logos/eth-zurich.svg',
+    logo: '/logos/eth-zurich.png',
   },
   {
     id: 'miot',
@@ -68,6 +69,7 @@ const experience: ExperienceEntry[] = [
     location: 'Washington, D.C., USA · Remote',
     dates: 'Sep 2022 – Oct 2023',
     logo: '/logos/nasa.svg',
+    logoDark: true,
   },
 ]
 

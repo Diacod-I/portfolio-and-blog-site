@@ -23,6 +23,8 @@
 // white-on-transparent asset needs a dark badge fill instead or the mark
 // disappears. Entries without a sourced `logo` just render without a
 // badge (flex layout below simply gives that row's text its full width).
+// logoTight (see ExperienceEntry) trims that inner padding further for a
+// logo that still reads small at the standard padding.
 import Image from 'next/image'
 import experience from '@/data/experience'
 
@@ -52,7 +54,7 @@ export default function ExperienceSection() {
                     alt={`${e.company} logo`}
                     width={LOGO_SIZE}
                     height={LOGO_SIZE}
-                    className="object-contain p-1"
+                    className={`object-contain ${e.logoTight ? 'p-0.5' : 'p-1'}`}
                   />
                 </div>
               )}

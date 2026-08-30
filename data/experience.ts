@@ -26,6 +26,13 @@ export interface ExperienceEntry {
    *  color but just look better as a dark chip (NASA's meatball, at the
    *  user's request). */
   logoDark?: boolean
+  /** Shrinks the badge's inner padding (see ExperienceSection.tsx) so the
+   *  logo fills more of the fixed-size badge. Default padding works fine
+   *  for wordmarks with their own built-in breathing room (Infosys,
+   *  StejasSYS's flame), but a tightly-cropped pictorial mark like NASA's
+   *  meatball still looked small at the standard padding, at the user's
+   *  request to make it bigger. */
+  logoTight?: boolean
 }
 
 const experience: ExperienceEntry[] = [
@@ -70,6 +77,7 @@ const experience: ExperienceEntry[] = [
     dates: 'Sep 2022 – Oct 2023',
     logo: '/logos/nasa.svg',
     logoDark: true,
+    logoTight: true,
   },
 ]
 

@@ -441,13 +441,12 @@ function useReplayableTypedQuery(text: string, active: boolean, onChar?: () => v
 // a real shell "working on it" indicator — which is then removed outright
 // (not faded) the instant the boot log's first line takes its place,
 // same "cuts, doesn't fade" reasoning as the rest of this sequence.
-const BOOT_LOG_START_DELAY_MS = 500
+const BOOT_LOG_START_DELAY_MS = 1000
 // The '|' -> '/' -> '-' -> '\' -> '|'... spinner cycle, one frame per
 // SPINNER_FRAME_MS — classic CLI "working" spinner (top, right, bottom,
-// left, in that rotating order). 100ms/frame over the 500ms delay above
-// plays through the full 4-frame cycle once plus one extra frame, so it
-// visibly completes at least one full rotation rather than cutting off
-// mid-spin.
+// left, in that rotating order). 100ms/frame over the 1000ms delay above
+// plays through the full 4-frame cycle two and a half times, so it always
+// completes multiple full rotations rather than cutting off mid-spin.
 const SPINNER_FRAMES = ['|', '/', '-', '\\']
 const SPINNER_FRAME_MS = 100
 // Interval between the boot log printing one line and the next (see

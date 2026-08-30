@@ -365,7 +365,7 @@ export default function PowerOnGate({ onStart }: PowerOnGateProps) {
         className="absolute inset-0 bg-black transition-opacity ease-out"
         style={{ opacity: fadeOut ? 0 : 1, transitionDuration: `${BOOT_FADE_MS}ms` }}
       />
-      {phase === 'preboot-blue' && <div className="absolute inset-0" style={{ backgroundColor: '#0000aa' }} />}
+      {phase === 'preboot-blue' && <div className="absolute inset-0" style={{ backgroundColor: '#0057CD' }} />}
       {phase === 'preboot-cursor' && (
         <div className="absolute inset-0 bg-black">
           <span

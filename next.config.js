@@ -46,6 +46,17 @@ const nextConfig = {
     // own default). Keep this in sync if a new quality value gets used
     // anywhere else.
     qualities: [70, 75, 85],
+    // Next's image optimizer refuses to serve local SVGs at all unless
+    // this is set — needed for the company/institution logo badges in
+    // ExperienceSection.tsx/EducationSection.tsx (public/logos/*.svg,
+    // sourced from each org's own brand assets). contentSecurityPolicy
+    // here is the mitigation Next's own docs recommend alongside this
+    // flag (an SVG can embed <script>, so this sandboxes anything served
+    // through the image endpoint and disables script execution) — belt
+    // and suspenders, since every SVG under public/logos is one this repo
+    // fetched and committed itself, not user-uploaded.
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   async headers() {
     return [

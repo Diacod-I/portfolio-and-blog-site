@@ -22,6 +22,7 @@ import SolitaireWindow from '@/components/SolitaireWindow'
 import ProjectsWindow from '@/components/ProjectsWindow'
 import ContributorArchive from '@/components/ContributorArchive'
 import ExperienceSection from '@/components/ExperienceSection'
+import EducationSection from '@/components/EducationSection'
 import GithubContributionGraph from '@/components/GithubContributionGraph'
 import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
@@ -2034,6 +2035,17 @@ export default function HomeClient({
                             one included. */}
                         <div className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
                         <ExperienceSection />
+                        </div>
+                        {/* Education, directly below Experience — same
+                            '0ms' win98-instant-pop wrapper, same reasoning
+                            as ExperienceSection's own comment just above
+                            (one dossier beat, not a trickle). See
+                            components/EducationSection.tsx: deliberately
+                            mirrors ExperienceSection's look rather than
+                            introducing a different card style for what's
+                            the same kind of content. */}
+                        <div className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
+                        <EducationSection />
                         </div>
                       </div>
                     </div>

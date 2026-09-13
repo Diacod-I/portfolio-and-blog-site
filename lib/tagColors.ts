@@ -42,6 +42,7 @@ const TAG_COLORS: Record<string, TagColor> = {
   cuda: { bg: '#3A4E3A', text: '#ffffff' },
   'metal shader': { bg: '#8E44AD', text: '#ffffff' },
   metal: { bg: '#8E44AD', text: '#ffffff' },
+  solidity: { bg: '#AA6746', text: '#ffffff' },
 
   // Frameworks / tools / notable repos — brand colors where one exists,
   // a reasonable pick otherwise.

@@ -67,7 +67,21 @@ const allProjects: Project[] = [
     date: '2026-07-11',
     wip: true,
     featured: false,
-  },  
+  },
+
+  {
+    id: 'sovereign',
+    title: 'Sovereign',
+    description: 'A freelance marketplace, with agents, for agents.',
+    tags: ['next.js', 'typescript', 'solidity'],
+    thumbnail: '/project-thumbnails/sovereign.png',
+    liveUrl: 'https://sovereign-marketplace.vercel.app/',
+    repoUrl: 'https://github.com/Diacod-I/Sovereign',
+    date: '2026-09-14',
+    wip: false,
+    featured: false,
+  },
+
 ]
 
 const projects: Project[] = allProjects

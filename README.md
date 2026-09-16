@@ -11,6 +11,7 @@ A nostalgic Windows 98-inspired portfolio and blog website built with Next.js an
 
 ## Features
 
+<<<<<<< HEAD
 - 🖥️ Authentic Windows 98 desktop: draggable/resizable windows, a real taskbar with Start menu, minimize/maximize/close, and drag-to-reorder taskbar buttons.
 - 🪟 advith.exe: Home, About, and Contact tabs in one window (plus a Report tab for reading a single Contributor Report), with a one-click downloadable resume in the navbar and an animated CRT/terminal-glitch shader background behind Home/About/Contact.
 - 📈 Contribution Graph: A GitHub-style 365-day contribution heatmap on the Home tab, fetched live from GitHub's GraphQL API.
@@ -18,8 +19,17 @@ A nostalgic Windows 98-inspired portfolio and blog website built with Next.js an
 - 🤖 Automated monthly reports: A scheduled GitHub Action scaffolds each month's Contributor Report from the GitHub Search API (commits, PRs, issues, reviews) with a narrative paragraph drafted by GitHub Models, then opens it as a PR for review before it goes live (see `scripts/generate-report.mjs` and `.github/workflows/monthly-report.yml`).
 - 📝 MDX-powered blog with tag filtering, search, and sortable columns in a Win98 Explorer-style list.
 - 🎮 Minesweeper and Solitaire, built from scratch in React, plus Prince of Persia embedded via archive.org's in-browser MS-DOS emulation.
+=======
+- 🖥️ Authentic Windows 98 desktop with draggable/resizable windows and a real taskbar
+- 🪟 advith.exe: Home, About, Contact, and Report tabs in one window, with a CRT/terminal-glitch shader background
+- 📈 GitHub-style 365-day contribution heatmap, fetched live from GitHub's GraphQL API
+- 🗃️ Contribution Archive of monthly reports, tagged with `#repo` hashtags
+- 🤖 Monthly Contributor Reports auto-scaffolded by a GitHub Action and drafted with GitHub Models
+- 📝 MDX-powered blog with tag filtering, search, and a Win98 Explorer-style list
+- 🎮 From-scratch Minesweeper and Solitaire, plus Prince of Persia via archive.org's DOS emulation
+>>>>>>> 110d9f7 (Update README.md)
 - 🖼️ Gallery window with personal photo highlights
-- 🔗 Internet Shortcuts panel linking out to social profile links, and a downloadable resume.
+- 🔗 Internet Shortcuts panel linking to social profiles and a downloadable resume
 - 💻 Responsive design
 
 ## Tech Stack

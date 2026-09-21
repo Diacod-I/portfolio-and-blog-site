@@ -23,6 +23,7 @@ import ProjectsWindow from '@/components/ProjectsWindow'
 import ContributorArchive from '@/components/ContributorArchive'
 import ExperienceSection from '@/components/ExperienceSection'
 import EducationSection from '@/components/EducationSection'
+import TestimonialsSection from '@/components/TestimonialsSection'
 import GithubContributionGraph from '@/components/GithubContributionGraph'
 import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
@@ -2046,6 +2047,34 @@ export default function HomeClient({
                             the same kind of content. */}
                         <div className="win98-instant-pop" style={{ animationDelay: '0ms' }}>
                         <EducationSection />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Testimonials & Endorsements row — sits between
+                        Education and the Location map per feedback, and
+                        deliberately mirrors the bio/Experience row above it
+                        with the two sides swapped: TestimonialsSection
+                        (text) on the left this time, a second sticky photo
+                        on the right, rather than reusing the exact same
+                        left/right arrangement twice in a row. Same
+                        "sm:sticky sm:top-2" pattern as the profile photo
+                        above (see that div's own comment for the full
+                        reasoning) — it pins near the top of the scroll
+                        container while the testimonials list (usually
+                        taller, especially with 3 real LinkedIn
+                        recommendations) scrolls past it. No real photo
+                        exists yet — see data/testimonials.ts for the same
+                        "paste the real thing in" situation the quotes
+                        themselves are in — so this renders a plain
+                        placeholder box (dashed border, no img) instead of
+                        an <Image> until one exists. */}
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-6 win98-instant-pop" style={{ animationDelay: '0ms' }}>
+                      <div className="flex-1 min-w-0 flex flex-col gap-3">
+                        <TestimonialsSection />
+                      </div>
+                      <div className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-2">
+                        <div className="relative aspect-square border-2 border-dashed border-[#808080] bg-[#c0c0c0] overflow-hidden flex flex-col items-center justify-center gap-1 text-center px-2 mt-3">
+                          <span className="font-mono text-xs text-[#666]">[ photo pending ]</span>
                         </div>
                       </div>
                     </div>

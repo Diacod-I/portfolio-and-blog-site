@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "migrate:r2": "node --env-file=.env.local scripts/migrate-to-r2.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
@@ -30,6 +31,8 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.699.0",
+    "sharp": "^0.34.5",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20.19.27",
     "@types/react": "^18.3.27",

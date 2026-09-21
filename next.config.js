@@ -57,6 +57,23 @@ const nextConfig = {
     // fetched and committed itself, not user-uploaded.
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Allowlists the Cloudflare R2 bucket's public custom domain so
+    // next/image will optimize images whose `src` is a full remote URL
+    // there — see lib/r2.ts and scripts/migrate-to-r2.mjs for the media
+    // migration this supports (gallery/exhibition photos, project
+    // thumbnails, blog post images, profile photo — moved out of public/
+    // and off the repo instead of growing it every time a new photo or
+    // video is added). R2_PUBLIC_HOSTNAME lets the actual subdomain be
+    // configured via env instead of hardcoded here; falls back to the
+    // real one once it exists so a fresh clone without .env.local set
+    // still type-checks/builds (images from it just won't load until the
+    // env var — or the bucket's domain itself — is set up).
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: process.env.R2_PUBLIC_HOSTNAME || 'cdn.advithkrishnan.com',
+      },
+    ],
   },
   async headers() {
     return [

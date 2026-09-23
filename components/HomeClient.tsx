@@ -42,6 +42,12 @@ import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
 // beat to arrive, and without a blur placeholder it's just blank white
 // until then.
 import profilePhoto from '@/public/Advith_Krishnan.webp'
+// Second sticky dossier photo, for the Testimonials row further down (see
+// that row's own comment on why it mirrors the bio row's photo+text split
+// reversed) — same static-import-for-a-free-blurDataURL reasoning as
+// profilePhoto above, just no `priority` since this one is well below the
+// fold and doesn't need to jump the queue on initial load.
+import testimonialsPhoto from '@/public/Advith_Krishnan_2.webp'
 
 // Lazy-loaded: WorldMap pulls in react-simple-maps/d3-geo, and only ever
 // renders once the boot-log sequence finishes — no reason for that weight
@@ -2062,19 +2068,23 @@ export default function HomeClient({
                         reasoning) — it pins near the top of the scroll
                         container while the testimonials list (usually
                         taller, especially with 3 real LinkedIn
-                        recommendations) scrolls past it. No real photo
-                        exists yet — see data/testimonials.ts for the same
-                        "paste the real thing in" situation the quotes
-                        themselves are in — so this renders a plain
-                        placeholder box (dashed border, no img) instead of
-                        an <Image> until one exists. */}
+                        recommendations) scrolls past it. Uses
+                        testimonialsPhoto (see the import up top) — no
+                        `priority` since this row is well below the fold. */}
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-left mt-4 pb-3 mb-6 win98-instant-pop" style={{ animationDelay: '0ms' }}>
                       <div className="flex-1 min-w-0 flex flex-col gap-3">
                         <TestimonialsSection />
                       </div>
-                      <div className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-2">
-                        <div className="relative aspect-square border-2 border-dashed border-[#808080] bg-[#c0c0c0] overflow-hidden flex flex-col items-center justify-center gap-1 text-center px-2 mt-3">
-                          <span className="font-mono text-xs text-[#666]">[ photo pending ]</span>
+                      <div className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-2 mt-3">
+                        <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
+                          <Image
+                            src={testimonialsPhoto}
+                            alt="Advith Krishnan"
+                            fill
+                            placeholder="blur"
+                            sizes="(max-width: 640px) 190px, 222px"
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     </div>

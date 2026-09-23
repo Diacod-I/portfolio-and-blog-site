@@ -22,9 +22,9 @@ import testimonials from '@/data/testimonials'
 // "always show where a photo will go" idea as the big sticky placeholder
 // photo in HomeClient.tsx, rather than silently omitting the badge until
 // a real avatar exists.
-const AVATAR_SIZE = 32
+const AVATAR_SIZE = 48
 const AVATAR_BADGE_CLASS =
-  'relative shrink-0 w-8 h-8 rounded-md border-2 border-black overflow-hidden bg-white'
+  'relative shrink-0 w-12 h-12 rounded-md border-2 border-black overflow-hidden bg-white'
 
 export default function TestimonialsSection() {
   return (
@@ -61,25 +61,24 @@ export default function TestimonialsSection() {
                 <blockquote className="text-[#ccc] text-sm leading-relaxed text-justify -mt-3 mb-1 m-0 whitespace-pre-line">
                   {t.quote}
                 </blockquote>
-                <figcaption className="flex items-center gap-2 text-xs">
+                <figcaption className="flex items-center gap-3 text-sm">
                   {t.avatar ? (
                     <div className={AVATAR_BADGE_CLASS}>
                       {/* w-full h-full is the actual fix for the white
                           sliver at the bottom of these badges — Tailwind's
                           preflight sets a global `img { height: auto }`,
-                          which overrides the height={32} HTML attribute
-                          below and lets the browser size the <img> itself
-                          to whatever height matches the photo's own aspect
-                          ratio (e.g. ~29px for a 196x180 source), rather
-                          than the full 32px badge. That left a few px of
-                          this div's own bg-white showing under a
-                          short image — nothing to do with cropping.
-                          w-full/h-full (utilities layer) beat the preflight
-                          rule and force the <img> to actually fill the
-                          badge; object-cover + object-top then crop *within*
-                          that correctly-sized box, anchored to the top so a
-                          headshot's face stays in frame instead of a center
-                          crop clipping it. */}
+                          which overrides the height={AVATAR_SIZE} HTML
+                          attribute below and lets the browser size the
+                          <img> itself to whatever height matches the
+                          photo's own aspect ratio, rather than the full
+                          badge height. That left a few px of this div's own
+                          bg-white showing under a short image — nothing to
+                          do with cropping. w-full/h-full (utilities layer)
+                          beat the preflight rule and force the <img> to
+                          actually fill the badge; object-cover + object-top
+                          then crop *within* that correctly-sized box,
+                          anchored to the top so a headshot's face stays in
+                          frame instead of a center crop clipping it. */}
                       <Image
                         src={t.avatar}
                         alt={`${t.author}'s LinkedIn photo`}
@@ -109,7 +108,7 @@ export default function TestimonialsSection() {
                       )}
                     </span>
                     <br/>
-                    <span className="text-[#888]">{t.role}</span>
+                    <span className="text-[#999]">{t.role}</span>
                   </span>
                 </figcaption>
               </figure>

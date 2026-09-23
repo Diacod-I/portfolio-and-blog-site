@@ -60,6 +60,11 @@ const FOLDERS = [
   { dir: 'highlights', prefix: 'highlights' },
   { dir: 'project-thumbnails', prefix: 'project-thumbnails' },
   { dir: 'post-images', prefix: 'post-images' },
+  // Recommender photos for TestimonialsSection — see data/testimonials.ts
+  // for how these get here in the first place (LinkedIn has no API for
+  // this, so they're saved by hand). Folder may not exist yet on a given
+  // run — walk() below just skips it with a warning if so.
+  { dir: 'testimonials', prefix: 'testimonials' },
 ]
 
 // The profile photo — its own prefix since it isn't an exhibition photo.
@@ -128,6 +133,11 @@ async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true })
   const files = []
   for (const entry of entries) {
+    // Skip dotfiles (.DS_Store etc.) — Finder drops these into any folder
+    // it's browsed, and they're gitignored so they'd never be noticed in
+    // `git status`, but this walks the real filesystem, not git, so
+    // without this they'd get uploaded to R2 as real (junk) objects.
+    if (entry.name.startsWith('.')) continue
     const full = path.join(dir, entry.name)
     if (entry.isDirectory()) files.push(...(await walk(full)))
     else files.push(full)

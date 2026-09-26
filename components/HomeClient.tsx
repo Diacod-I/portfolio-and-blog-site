@@ -941,38 +941,69 @@ export default function HomeClient({
   const homeContentStartRef = useRef<HTMLDivElement>(null)
   const startingScrollTopRef = useRef(0)
 
-  const handleTabScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = e.currentTarget.scrollTop
-    faultyTerminalRef.current?.setScrollOffset(scrollTop * FAULTY_TERMINAL_PARALLAX_SCALE)
+  // rAF-throttled: native scroll events can fire far more often than the
+  // screen actually repaints (trackpads/high-poll-rate mice can dispatch
+  // well over 60/s), and every tick here was doing real work — a shader
+  // uniform write plus, on the Home tab, a dissolve-progress calculation
+  // and a style.setProperty() (which forces a style recalc that cascades
+  // to every descendant reading --reveal-progress, see
+  // EASTER_EGG_TEXT_STYLE). Coalescing to "at most once per animation
+  // frame" cuts that down to the rate that can actually show up on
+  // screen, instead of redoing the same work multiple times between
+  // paints — this is what was behind the Home tab's scroll feeling
+  // laggier once it grew taller (Testimonials + the second sticky photo
+  // added real scroll distance, so more of these events fire per scroll
+  // gesture). Only the latest event's scrollTop/element within a given
+  // frame is kept (pendingScrollElRef) — any earlier ones queued in the
+  // same frame are stale by the time the rAF fires anyway.
+  const scrollRafRef = useRef<number | null>(null)
+  const pendingScrollElRef = useRef<HTMLDivElement | null>(null)
 
-    // No-op on every tab besides Home until startingScrollTopRef has
-    // actually been set by the layout effect below (it stays 0 — its
-    // useRef initial value — everywhere else, including on About/Contact,
-    // which never run that effect) — safe to leave unguarded by homeTab
-    // for the same reason faultyTerminalRef's call above is.
-    const resting = startingScrollTopRef.current
-    if (resting > 0) {
-      // raw: 0 at rest, 1 at the very top of the scrollable range. progress
-      // stays 0 until EASTER_EGG_DEAD_ZONE_FRACTION, then ramps up to a
-      // clean 1 by EASTER_EGG_FULL_REVEAL_FRACTION (see both constants'
-      // comments — deliberately not synced exactly to the gallery's own
-      // span, so most frames scroll past an already fully-revealed
-      // background rather than still catching up to it).
-      const raw = 1 - scrollTop / resting
-      const progress = Math.max(
-        0,
-        Math.min(1, (raw - EASTER_EGG_DEAD_ZONE_FRACTION) / (EASTER_EGG_FULL_REVEAL_FRACTION - EASTER_EGG_DEAD_ZONE_FRACTION))
-      )
-      faultyTerminalRef.current?.setDissolveProgress(progress)
-      // Same progress value, mirrored onto a CSS custom property so the
-      // "protest" lines' color (see EASTER_EGG_TEXT_STYLE above) can
-      // color-mix() off it — e.currentTarget here IS homeScrollRef's own
-      // element (this handler only reaches this branch on the Home tab,
-      // see the resting > 0 guard above), and --reveal-progress cascades
-      // down to every descendant, so no separate ref/lookup is needed for
-      // those h1s to pick it up.
-      e.currentTarget.style.setProperty('--reveal-progress', String(progress))
+  useEffect(() => {
+    return () => {
+      if (scrollRafRef.current !== null) cancelAnimationFrame(scrollRafRef.current)
     }
+  }, [])
+
+  const handleTabScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    pendingScrollElRef.current = e.currentTarget
+    if (scrollRafRef.current !== null) return
+    scrollRafRef.current = requestAnimationFrame(() => {
+      scrollRafRef.current = null
+      const el = pendingScrollElRef.current
+      if (!el) return
+      const scrollTop = el.scrollTop
+      faultyTerminalRef.current?.setScrollOffset(scrollTop * FAULTY_TERMINAL_PARALLAX_SCALE)
+
+      // No-op on every tab besides Home until startingScrollTopRef has
+      // actually been set by the layout effect below (it stays 0 — its
+      // useRef initial value — everywhere else, including on About/Contact,
+      // which never run that effect) — safe to leave unguarded by homeTab
+      // for the same reason faultyTerminalRef's call above is.
+      const resting = startingScrollTopRef.current
+      if (resting > 0) {
+        // raw: 0 at rest, 1 at the very top of the scrollable range. progress
+        // stays 0 until EASTER_EGG_DEAD_ZONE_FRACTION, then ramps up to a
+        // clean 1 by EASTER_EGG_FULL_REVEAL_FRACTION (see both constants'
+        // comments — deliberately not synced exactly to the gallery's own
+        // span, so most frames scroll past an already fully-revealed
+        // background rather than still catching up to it).
+        const raw = 1 - scrollTop / resting
+        const progress = Math.max(
+          0,
+          Math.min(1, (raw - EASTER_EGG_DEAD_ZONE_FRACTION) / (EASTER_EGG_FULL_REVEAL_FRACTION - EASTER_EGG_DEAD_ZONE_FRACTION))
+        )
+        faultyTerminalRef.current?.setDissolveProgress(progress)
+        // Same progress value, mirrored onto a CSS custom property so the
+        // "protest" lines' color (see EASTER_EGG_TEXT_STYLE above) can
+        // color-mix() off it — el here IS homeScrollRef's own element
+        // (this branch only reaches this on the Home tab, see the
+        // resting > 0 guard above), and --reveal-progress cascades down to
+        // every descendant, so no separate ref/lookup is needed for those
+        // h1s to pick it up.
+        el.style.setProperty('--reveal-progress', String(progress))
+      }
+    })
   }, [])
   useEffect(() => {
     faultyTerminalRef.current?.setScrollOffset(0)

@@ -122,9 +122,33 @@
     background-color: #008080 !important;
   }
   
-  .win98-app-name.active {
+  /* Desktop icon "selected" state (rubber-band marquee / click / ctrl-click
+     — see DesktopIcon.tsx and the selection state in HomeClient.tsx). Same
+     navy (#000080) real Windows uses for a selected icon's label — reuses
+     the exact color .win98-start-menu-item's hover already uses elsewhere
+     on this site, since to a visitor's eye they should read as the same
+     "this is highlighted" signal. This is the label's only highlighted
+     state now — an icon's own open/closed status isn't shown here at all
+     (an earlier isActive treatment gave an open app's icon this same look
+     permanently, which read as indistinguishable from being selected and
+     was removed). */
+  .win98-app-name.selected {
     background-color: #000080 !important;
     color: white !important;
+  }
+
+  /* Classic Windows "selected icon" blue tint — a translucent navy wash
+     over the icon artwork itself, multiplied on top rather than replacing
+     it, so the icon is still recognizable but reads as picked-up/active.
+     Sits in its own absolutely-positioned layer over the <Image> (see
+     DesktopIcon.tsx) rather than an SVG filter/hue-rotate, since those
+     shift hue per-source-color unpredictably across icons that are all
+     different colors already — a flat multiply overlay looks the same
+     regardless of the icon underneath it. */
+  .win98-icon-tint {
+    @apply absolute inset-0 pointer-events-none rounded-sm;
+    background-color: rgba(0, 0, 128, 0.4);
+    mix-blend-mode: multiply;
   }
 
   /* Blog post body (BlogPostView's .prose wrapper). Tailwind Typography's

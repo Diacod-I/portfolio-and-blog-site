@@ -133,11 +133,12 @@ function ImageExhibition({ scale, compact }: ImageExhibitionProps) {
                 style={{ aspectRatio: `${frame.widthPx} / ${frame.heightPx}` }}
               >
                 <Image
-                  src={frame.src}
+                  src={frame.src.src}
                   alt={frame.alt ?? ''}
                   fill
                   sizes={`${COMPACT_CARD_MAX_WIDTH}px`}
                   placeholder="blur"
+                  blurDataURL={frame.src.blurDataURL}
                   className="object-cover"
                 />
               </div>
@@ -201,11 +202,12 @@ function ImageExhibition({ scale, compact }: ImageExhibitionProps) {
               style={{ width: frame.widthPx, height: frame.heightPx }}
             >
               <Image
-                src={frame.src}
+                src={frame.src.src}
                 alt={frame.alt ?? ''}
                 fill
                 sizes="170px"
                 placeholder="blur"
+                blurDataURL={frame.src.blurDataURL}
                 className="object-cover"
               />
             </div>

@@ -18,12 +18,14 @@
 // recommender's profile photo through any API either, so getting one
 // here means opening their profile, saving their photo by hand (open it
 // in a new tab for the full-res version, not the tiny inline thumbnail),
-// and dropping it in /public/testimonials/ — see scripts/migrate-to-r2.mjs's
-// FOLDERS list, which already knows to sweep that folder up to R2
-// alongside everything else once the migration actually runs (see
-// lib/r2.ts / next.config.js's own comments on that). Until a photo
-// exists for an entry, TestimonialsSection renders a dashed-border
-// placeholder badge in its place instead (see that component).
+// dropping it in /public/testimonials/, and running `pnpm run migrate:r2`
+// (scripts/migrate-to-r2.mjs's FOLDERS list already sweeps that folder up
+// to R2 alongside everything else — see lib/r2.ts / next.config.js's own
+// comments on that). Until a photo exists for an entry, TestimonialsSection
+// renders a dashed-border placeholder badge in its place instead (see that
+// component).
+
+import { r2Url } from '@/lib/r2'
 
 export interface Testimonial {
   id: string
@@ -34,9 +36,9 @@ export interface Testimonial {
    *  ExperienceSection/EducationSection use for role + company. */
   role: string
   linkedinUrl?: string
-  /** Path under /public/testimonials — see the file header above for how
-   *  to actually get one. Omitted → dashed-border placeholder badge
-   *  instead (see TestimonialsSection.tsx). */
+  /** Full R2 URL, built via r2Url('testimonials/<file>') — see the file
+   *  header above for how to actually get one. Omitted → dashed-border
+   *  placeholder badge instead (see TestimonialsSection.tsx). */
   avatar?: string
 }
 
@@ -46,7 +48,7 @@ const testimonials: Testimonial[] = [
     quote: 'Advith is one of the most hardworking people I know. His knowledge about various technical aspects is really worth listening to. Along with that he’s good with helping people learn and grow themselves.',
     author: 'Karan Pargal',
     role: 'Software Engineer @ Covalent',
-    avatar: '/testimonials/karan_pargal.jpeg',
+    avatar: r2Url('testimonials/karan_pargal.jpeg'),
   },
   {
     id: 'kunal-keshan',
@@ -55,14 +57,14 @@ const testimonials: Testimonial[] = [
 Advith and I met when we participated in a hackathon; we were connected to a mutual junior. During the time we spent together, I noticed how dedicated he was to his work and how selfless he is with his juniors and seniors alike. He sees the best in others and provides feedback where required with honesty and kindness. I wish nothing but luck and success to Advith in his future endeavours, and those who are working with him will be lucky to have him as an asset.`,
     author: 'Kunal Keshan',
     role: 'Software Engineer @ StejasSYS',
-    avatar: '/testimonials/kunal_keshan.png',
+    avatar: r2Url('testimonials/kunal_keshan.png'),
   },
   {
     id: 'aryan-raj',
     quote: 'Advith stands out as an exceptional researcher. His expertise in machine learning and deep learning is truly impressive. Collaborating with him is not only enjoyable, but also a valuable learning experience thanks to his extensive knowledge and willingness to share it.',
     author: 'Aryan Raj',
     role: 'Software Engineer (AI) @ Value Labs',
-    avatar: '/testimonials/aryan_raj.jpeg',
+    avatar: r2Url('testimonials/aryan_raj.jpeg'),
   },
 ]
 

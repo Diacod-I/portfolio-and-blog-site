@@ -34,20 +34,20 @@ import { BOOT_LOG_LINES } from '@/data/bootLog'
 import { EXHIBITION_FRAMES_MAX_TOP_PCT } from '@/data/exhibitionFrames'
 import type { Note } from '@/lib/notes'
 import type { FeaturedLink } from '@/app/actions/getFeaturedLinks'
-// Static import (not a '/Advith_Krishnan.webp' path string) so next/image
-// can auto-generate a blurDataURL for the dossier photo below — same
-// reasoning as data/highlights.ts and data/exhibitionFrames.ts. `priority`
-// already preloads this one, but priority only speeds up *when* the
-// request starts; on a throttled connection the photo can still take a
-// beat to arrive, and without a blur placeholder it's just blank white
-// until then.
-import profilePhoto from '@/public/Advith_Krishnan.webp'
+import { remoteImage } from '@/lib/media'
+// Now served from R2 (see scripts/migrate-to-r2.mjs's PROFILE_PHOTO and
+// lib/media.ts) instead of a static import from public/ — remoteImage()
+// pulls the width/height/blurDataURL that a static import used to give
+// next/image for free out of the migration manifest instead. `priority`
+// (passed where this is rendered below) already preloads this one, but
+// priority only speeds up *when* the request starts; on a throttled
+// connection the photo can still take a beat to arrive, and without a
+// blur placeholder it's just blank white until then.
+const profilePhoto = remoteImage('/Advith_Krishnan.webp')
 // Second sticky dossier photo, for the Testimonials row further down (see
 // that row's own comment on why it mirrors the bio row's photo+text split
-// reversed) — same static-import-for-a-free-blurDataURL reasoning as
-// profilePhoto above, just no `priority` since this one is well below the
-// fold and doesn't need to jump the queue on initial load.
-import testimonialsPhoto from '@/public/Advith_Krishnan_2.webp'
+// reversed) — same R2/remoteImage() sourcing as profilePhoto above.
+const testimonialsPhoto = remoteImage('/Advith_Krishnan_2.webp')
 
 // Lazy-loaded: WorldMap pulls in react-simple-maps/d3-geo, and only ever
 // renders once the boot-log sequence finishes — no reason for that weight
@@ -2409,11 +2409,12 @@ export default function HomeClient({
                       >
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
                           <Image
-                            src={profilePhoto}
+                            src={profilePhoto.src}
                             alt="Advith Krishnan"
                             fill
                             priority
                             placeholder="blur"
+                            blurDataURL={profilePhoto.blurDataURL}
                             sizes="(max-width: 640px) 190px, 222px"
                             className="object-cover"
                           />
@@ -2507,10 +2508,11 @@ export default function HomeClient({
                       <div className="shrink-0 w-40 sm:w-48 sm:sticky sm:top-2 mt-3">
                         <div className="relative aspect-square border-2 border-[#000000] overflow-hidden">
                           <Image
-                            src={testimonialsPhoto}
+                            src={testimonialsPhoto.src}
                             alt="Advith Krishnan"
                             fill
                             placeholder="blur"
+                            blurDataURL={testimonialsPhoto.blurDataURL}
                             sizes="(max-width: 640px) 190px, 222px"
                             className="object-cover"
                           />

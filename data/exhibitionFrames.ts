@@ -39,40 +39,40 @@
 // while it loads on a throttled connection. A plain string path can't do
 // this automatically — next/image only knows a blurDataURL when it has
 // the actual file at build time via one of these imports.
-import type { StaticImageData } from 'next/image'
+import { remoteImage, type RemoteImage } from '@/lib/media'
 
-import frame01 from '@/public/IMG_20190103_071215.jpg'
-import frame02 from '@/public/IMG_20190103_075939.jpg'
-import frame03 from '@/public/IMG_20190103_080007.jpg'
-import frame04 from '@/public/IMG_20190103_081554.jpg'
-import frame05 from '@/public/IMG_20190103_082932.jpg'
-import frame06 from '@/public/IMG_20211119_193920.jpg'
-import frame07 from '@/public/IMG_20211122_122534.jpg'
-import frame08 from '@/public/IMG_20220302_175741.jpg'
-import frame09 from '@/public/IMG_20220304_204353.jpg'
-import frame10 from '@/public/IMG_20220401_192335_737.jpg'
-import frame12 from '@/public/IMG_20240423_080639.jpg'
-import frame16 from '@/public/IMG_20240604_130801.jpg'
-import frame17 from '@/public/IMG_20250714_005009.jpg'
-import frame18 from '@/public/IMG_0756.jpg'
-import frame19 from '@/public/05FCBBAF-CDA5-4B1B-922D-6426A9B6DBA3_1_105_c.jpeg'
-import frame20 from '@/public/1109AEAE-CB76-481B-A0C5-637DF2636E1C_4_5005_c.jpeg'
-import frame21 from '@/public/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg'
-import frame22 from '@/public/326387A0-CF8E-42C2-9F7A-87A04A5903D7_1_105_c.jpeg'
-import frame23 from '@/public/4443A26E-06E7-46C1-AF1B-D7058056D458_1_105_c.jpeg'
-import frame37 from '@/public/67D733B7-A762-4847-84C8-C5A7E5B5500F_1_105_c.jpeg'
-import frame24 from '@/public/8DEE3877-00A4-4592-B09F-300D29B8A3EF_1_105_c.jpeg'
-import frame30 from '@/public/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg'
-import frame31 from '@/public/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg'
-import frame32 from '@/public/E71A0C45-4BA0-42AB-8B15-D2EBFA7A2AB9_1_105_c.jpeg'
-import frame33 from '@/public/8eqko4.png'
-import frame34 from '@/public/hqdefault.jpg'
-import frame35 from '@/public/images.jpeg'
-import frame36 from '@/public/maxresdefault.jpg'
-import frame11 from '@/public/IMG_20231022_140633.jpg'
-import frame13 from '@/public/IMG_20240528_224218.jpg'
-import frame14 from '@/public/IMG_20240528_225351.jpg'
-import frame15 from '@/public/IMG_20240528_225753.jpg'
+const frame01 = remoteImage('/IMG_20190103_071215.jpg')
+const frame02 = remoteImage('/IMG_20190103_075939.jpg')
+const frame03 = remoteImage('/IMG_20190103_080007.jpg')
+const frame04 = remoteImage('/IMG_20190103_081554.jpg')
+const frame05 = remoteImage('/IMG_20190103_082932.jpg')
+const frame06 = remoteImage('/IMG_20211119_193920.jpg')
+const frame07 = remoteImage('/IMG_20211122_122534.jpg')
+const frame08 = remoteImage('/IMG_20220302_175741.jpg')
+const frame09 = remoteImage('/IMG_20220304_204353.jpg')
+const frame10 = remoteImage('/IMG_20220401_192335_737.jpg')
+const frame12 = remoteImage('/IMG_20240423_080639.jpg')
+const frame16 = remoteImage('/IMG_20240604_130801.jpg')
+const frame17 = remoteImage('/IMG_20250714_005009.jpg')
+const frame18 = remoteImage('/IMG_0756.jpg')
+const frame19 = remoteImage('/05FCBBAF-CDA5-4B1B-922D-6426A9B6DBA3_1_105_c.jpeg')
+const frame20 = remoteImage('/1109AEAE-CB76-481B-A0C5-637DF2636E1C_4_5005_c.jpeg')
+const frame21 = remoteImage('/112EEF32-B66D-49E5-9DB9-6BC6787AEF3D_1_105_c.jpeg')
+const frame22 = remoteImage('/326387A0-CF8E-42C2-9F7A-87A04A5903D7_1_105_c.jpeg')
+const frame23 = remoteImage('/4443A26E-06E7-46C1-AF1B-D7058056D458_1_105_c.jpeg')
+const frame37 = remoteImage('/67D733B7-A762-4847-84C8-C5A7E5B5500F_1_105_c.jpeg')
+const frame24 = remoteImage('/8DEE3877-00A4-4592-B09F-300D29B8A3EF_1_105_c.jpeg')
+const frame30 = remoteImage('/19F77ED7-2604-454D-A740-32B2120BB4EE_1_105_c.jpeg')
+const frame31 = remoteImage('/22152C98-2AA8-4B6F-A831-85BB4A86EA72_1_105_c.jpeg')
+const frame32 = remoteImage('/E71A0C45-4BA0-42AB-8B15-D2EBFA7A2AB9_1_105_c.jpeg')
+const frame33 = remoteImage('/8eqko4.png')
+const frame34 = remoteImage('/hqdefault.jpg')
+const frame35 = remoteImage('/images.jpeg')
+const frame36 = remoteImage('/maxresdefault.jpg')
+const frame11 = remoteImage('/IMG_20231022_140633.jpg')
+const frame13 = remoteImage('/IMG_20240528_224218.jpg')
+const frame14 = remoteImage('/IMG_20240528_225351.jpg')
+const frame15 = remoteImage('/IMG_20240528_225753.jpg')
 
 export type ExhibitionFrame = {
   id: string
@@ -84,10 +84,11 @@ export type ExhibitionFrame = {
   widthPx: number
   heightPx: number
   rotationDeg: number
-  /** Static import of a file under /public (see the file header above for
-   *  why, vs. a plain path string). Omitted → renders as a black-outline
-   *  placeholder (see ImageExhibition.tsx) instead of a real photo/polaroid. */
-  src?: StaticImageData
+  /** R2-hosted image, looked up from the migration manifest via
+   *  remoteImage() (see lib/media.ts and the file header above for why, vs.
+   *  a plain path string). Omitted → renders as a black-outline placeholder
+   *  (see ImageExhibition.tsx) instead of a real photo/polaroid. */
+  src?: RemoteImage
   alt?: string
   /** Handwritten-style caption in the polaroid's bottom margin (see
    *  ImageExhibition.tsx's Edu NSW/ACT Cursive text) — only meaningful

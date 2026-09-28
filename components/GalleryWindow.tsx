@@ -74,12 +74,13 @@ export default function GalleryWindow() {
           >
             <div className="relative w-full aspect-[3/2] border border-[#808080] bg-white overflow-hidden">
               <Image
-                src={p.image}
+                src={p.image.src}
                 alt={p.alt_text}
                 fill
                 sizes="140px"
                 quality={70}
                 placeholder="blur"
+                blurDataURL={p.image.blurDataURL}
                 className="object-cover"
               />
             </div>
@@ -95,12 +96,13 @@ export default function GalleryWindow() {
         <div className="relative flex-1 min-h-0 bg-black border-2 border-[#808080]">
           <Image
             key={photo.id}
-            src={photo.image}
+            src={photo.image.src}
             alt={photo.alt_text}
             fill
             sizes="(max-width: 640px) 100vw, 700px"
             quality={85}
             placeholder="blur"
+            blurDataURL={photo.image.blurDataURL}
             className="object-contain"
           />
           {highlights.length > 1 && (

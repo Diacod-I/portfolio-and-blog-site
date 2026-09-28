@@ -11,9 +11,12 @@
 //      projects can span far more categories than blog posts do.
 
 import type { StaticImageData } from 'next/image'
+import { r2Url } from '@/lib/r2'
 
-// ...import project thumbnails here, e.g.:
-// import myProjectThumb from '@/public/projects/my-project.png'
+// Thumbnails live on R2 now (see scripts/migrate-to-r2.mjs's
+// 'project-thumbnails' folder) — r2Url('project-thumbnails/<file>') builds
+// the public URL. No blurDataURL here since ProjectsWindow.tsx doesn't use
+// placeholder="blur" for these.
 
 export interface Project {
   id: string
@@ -49,7 +52,7 @@ const allProjects: Project[] = [
     title: 'dot-files', 
     description: 'My config dot files (Neovim + tmux + Starship + zsh)', 
     tags: ['shell', 'lua'],
-    thumbnail: '/project-thumbnails/dot-files.png',
+    thumbnail: r2Url('project-thumbnails/dot-files.png'),
     liveUrl: 'https://github.com/Diacod-I/dot-files',
     repoUrl: 'https://github.com/Diacod-I/dot-files',
     date: '2026-08-13',
@@ -61,7 +64,7 @@ const allProjects: Project[] = [
     title: 'Warthog',
     description: 'Fast, memory-safe ML/DL library without NumPy/PyTorch.',
     tags: ['rust', 'python'],
-    thumbnail: '/project-thumbnails/warthog.png',
+    thumbnail: r2Url('project-thumbnails/warthog.png'),
     liveUrl: 'https://github.com/Diacod-I/warthog',
     repoUrl: 'https://github.com/Diacod-I/warthog',
     date: '2026-07-11',
@@ -74,7 +77,7 @@ const allProjects: Project[] = [
     title: 'Sovereign',
     description: 'A freelance marketplace, with agents, for agents.',
     tags: ['next.js', 'typescript', 'solidity'],
-    thumbnail: '/project-thumbnails/sovereign.png',
+    thumbnail: r2Url('project-thumbnails/sovereign.png'),
     liveUrl: 'https://sovereign-marketplace.vercel.app/',
     repoUrl: 'https://github.com/Diacod-I/Sovereign',
     date: '2026-09-14',

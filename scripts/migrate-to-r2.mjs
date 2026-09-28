@@ -67,8 +67,11 @@ const FOLDERS = [
   { dir: 'testimonials', prefix: 'testimonials' },
 ]
 
-// The profile photo — its own prefix since it isn't an exhibition photo.
-const PROFILE_PHOTO = 'Advith_Krishnan.webp'
+// The profile photos — their own prefix since they aren't exhibition
+// photos. Two now: the bio row's dossier photo, and the second sticky
+// photo in the Testimonials row (see HomeClient.tsx's profilePhoto /
+// testimonialsPhoto).
+const PROFILE_PHOTOS = ['Advith_Krishnan.webp', 'Advith_Krishnan_2.webp']
 
 // Loose personal photos at the public/ root that data/exhibitionFrames.ts
 // static-imports for the hidden image-exhibition easter egg — listed by
@@ -205,16 +208,18 @@ async function main() {
     }
   }
 
-  const profilePath = path.join(PUBLIC, PROFILE_PHOTO)
-  try {
-    await stat(profilePath)
-    const key = `profile/${PROFILE_PHOTO}`
-    process.stdout.write(`  ${key} ... `)
-    manifest[`/${PROFILE_PHOTO}`] = await uploadOne(profilePath, key)
-    console.log('done')
-    count++
-  } catch {
-    console.warn(`(skipping public/${PROFILE_PHOTO} — not found)`)
+  for (const name of PROFILE_PHOTOS) {
+    const profilePath = path.join(PUBLIC, name)
+    try {
+      await stat(profilePath)
+      const key = `profile/${name}`
+      process.stdout.write(`  ${key} ... `)
+      manifest[`/${name}`] = await uploadOne(profilePath, key)
+      console.log('done')
+      count++
+    } catch {
+      console.warn(`(skipping public/${name} — not found)`)
+    }
   }
 
   for (const name of EXHIBITION_PHOTOS) {

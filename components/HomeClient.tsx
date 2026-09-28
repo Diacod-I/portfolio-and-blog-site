@@ -25,7 +25,7 @@ import ExperienceSection from '@/components/ExperienceSection'
 import EducationSection from '@/components/EducationSection'
 import TestimonialsSection from '@/components/TestimonialsSection'
 import GithubContributionGraph from '@/components/GithubContributionGraph'
-import DesktopIcon, { GridCell, cellToPx } from '@/components/DesktopIcon'
+import DesktopIcon, { GRID, GridCell, cellToPx } from '@/components/DesktopIcon'
 import Win98Window from '@/components/Win98Window'
 import { useWindowStore, type AppId, type WinState } from '@/lib/store/windowStore'
 import highlights from '@/data/highlights'
@@ -605,6 +605,21 @@ const ICON_POS_KEY = 'desktop-icon-cells-v2'
 // below. Otherwise it's an invisible dead cell nothing can ever be dropped
 // on or swapped with — which is exactly the "glitched cell" bug this fixes.
 const NO_DESKTOP_ICON: AppId[] = ['credits', 'popReadme']
+
+// Every AppId that actually renders a <DesktopIcon /> — DEFAULT_ICON_CELLS
+// minus NO_DESKTOP_ICON, computed once here rather than re-filtered
+// wherever the desktop needs "all the real icons" (Select All, rubber-band
+// marquee hit-testing, Arrange Icons). Both source consts are module-level
+// already, so this can be too.
+const DESKTOP_ICON_IDS = (Object.keys(DEFAULT_ICON_CELLS) as AppId[]).filter(
+  id => !NO_DESKTOP_ICON.includes(id)
+)
+
+// Apps launched via handleGameOpen's mobile-tooltip gate instead of a bare
+// openApp call — the desktop context menu's "Open" action (and anything
+// else that needs to open "whichever icon this is" generically) has to
+// route through the same check these icons' own onOpen props already do.
+const GAME_APP_IDS: AppId[] = ['pop', 'minesweeper', 'solitaire']
 
 export default function HomeClient({
   notes,
@@ -1324,6 +1339,43 @@ export default function HomeClient({
   // ---- Desktop icon grid ------------------------------------------------------
   const [iconCells, setIconCells] = useState<Record<AppId, GridCell>>(DEFAULT_ICON_CELLS)
 
+  // Clamps a single cell into the current viewport's valid on-screen range
+  // — same bounds the single-icon drag path clamps its pixel drop position
+  // against (see DesktopIcon's handlePointerUp), just expressed in cell
+  // units and available here too. Used both to keep a *fresh* group-drag
+  // in bounds (see moveIcon below) and to repair anything already saved
+  // that predates that fix (see sanitizeIconCells below) — localStorage
+  // (ICON_POS_KEY) persists forever, so a position corrupted by a bug
+  // that's since been fixed in code doesn't un-corrupt itself just because
+  // the code did; it sits there until something actively re-clamps it.
+  const clampCellToViewport = (cell: GridCell): GridCell => {
+    const maxCol = Math.max(0, Math.floor((window.innerWidth - GRID.cellW - GRID.originX) / GRID.cellW))
+    const maxRow = Math.max(0, Math.floor((window.innerHeight - GRID.cellH - 60 - GRID.originY) / GRID.cellH))
+    return {
+      col: Math.min(Math.max(0, cell.col), maxCol),
+      row: Math.min(Math.max(0, cell.row), maxRow),
+    }
+  }
+
+  // Full repair pass: clamps every desktop icon's cell on-screen, then
+  // resolves any collisions that clamping itself introduces (two icons
+  // that were previously off-screen in different directions could clamp
+  // onto the same visible cell) using the same "push down" rule as the
+  // single-icon path elsewhere. Iterates DESKTOP_ICON_IDS in a fixed order
+  // so the result is deterministic given the same input, rather than
+  // depending on Set/Object iteration order happening to line up.
+  const sanitizeIconCells = (cells: Record<AppId, GridCell>): Record<AppId, GridCell> => {
+    const next = { ...cells }
+    const occupied = new Set<string>()
+    for (const id of DESKTOP_ICON_IDS) {
+      let cell = clampCellToViewport(next[id])
+      while (occupied.has(`${cell.col},${cell.row}`)) cell = { col: cell.col, row: cell.row + 1 }
+      occupied.add(`${cell.col},${cell.row}`)
+      next[id] = cell
+    }
+    return next
+  }
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(ICON_POS_KEY)
@@ -1339,14 +1391,197 @@ export default function HomeClient({
         const sanitized = Object.fromEntries(
           Object.entries(parsed).filter(([id]) => id in DEFAULT_ICON_CELLS)
         )
-        setIconCells({ ...DEFAULT_ICON_CELLS, ...sanitized })
+        // Repaired, not just merged — see sanitizeIconCells's own comment.
+        // Anything a since-fixed drag bug pushed off-screen before this
+        // existed gets pulled back on-screen the moment the page loads,
+        // permanently (written straight back to localStorage), rather than
+        // silently carrying that corruption forward forever.
+        const repaired = sanitizeIconCells({ ...DEFAULT_ICON_CELLS, ...sanitized })
+        setIconCells(repaired)
+        try { localStorage.setItem(ICON_POS_KEY, JSON.stringify(repaired)) } catch { /* private mode */ }
       }
     } catch { /* corrupted storage: keep defaults */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ---- Multi-select (rubber-band marquee, click/ctrl-click, group drag) -------
+  // Real-OS icon selection: a set of currently-selected AppIds. Separate
+  // from `wins`/isActive — selection is purely a desktop-picking concept,
+  // it has nothing to do with which app windows are open.
+  const [selectedIds, setSelectedIds] = useState<Set<AppId>>(new Set())
+  // Live pixel offset broadcast to every OTHER selected icon while one of
+  // them is mid-drag (see DesktopIcon's onDragMove/groupDragOffset props) —
+  // the dragged icon tracks its own position itself via its local dragPos,
+  // this is just what every passenger icon rides along on. null once no
+  // group drag is in progress.
+  const [groupDrag, setGroupDrag] = useState<{ draggingId: AppId; dx: number; dy: number } | null>(null)
+  // Rubber-band marquee rectangle, in the desktop div's own coordinate
+  // space (see desktopRef below) — null when not actively marquee-dragging.
+  const [marqueeRect, setMarqueeRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  // Right-click context menu — either the empty desktop's own menu, or one
+  // icon's. Screen-space (clientX/clientY), clamped to the viewport at
+  // render time (see the JSX).
+  const [contextMenu, setContextMenu] = useState<
+    { x: number; y: number; kind: 'desktop' } | { x: number; y: number; kind: 'icon'; iconId: AppId } | null
+  >(null)
+  const desktopRef = useRef<HTMLDivElement>(null)
+  // Marquee-drag bookkeeping — a ref (not state) since it's write-heavy
+  // (every pointermove) and nothing needs to re-render off it directly,
+  // only off the derived marqueeRect/selectedIds state above.
+  const marqueeState = useRef<{
+    originLeft: number
+    originTop: number
+    additive: boolean
+    baseSelection: Set<AppId>
+    moved: boolean
+  } | null>(null)
+
+  // Not memoized (unlike the handlers below) — it closes over handleGameOpen,
+  // which itself closes over isMobile and isn't memoized either, so wrapping
+  // this in useCallback([]) would freeze it to whatever isMobile was on the
+  // very first render (always false, before the matchMedia effect runs) —
+  // this is only ever called from a click handler, never a hook dependency,
+  // so there's nothing to gain from memoizing it anyway.
+  const openIconApp = (appId: AppId) => {
+    if (GAME_APP_IDS.includes(appId)) handleGameOpen(appId)
+    else openApp(appId)
+  }
+
+  const handleIconSelect = useCallback((id: string, additive: boolean) => {
+    const appId = id as AppId
+    setSelectedIds(prev => {
+      if (additive) {
+        const next = new Set(prev)
+        if (next.has(appId)) next.delete(appId)
+        else next.add(appId)
+        return next
+      }
+      // Plain click: replaces the selection with just this icon — even if
+      // it was already the sole selected one (matches real OS: a bare
+      // click never toggles the icon back off, only ctrl/cmd-click does).
+      return new Set([appId])
+    })
+  }, [])
+
+  // Drives every non-dragged selected icon's live "riding along" visual
+  // (see groupDragOffset on DesktopIcon) — only actually stores an offset
+  // when the dragged icon is itself part of a multi-selection; dragging a
+  // single unselected (or solo-selected) icon stays exactly as before,
+  // with no group broadcast at all.
+  const handleIconDragMove = useCallback((id: string, delta: { dx: number; dy: number } | null) => {
+    const appId = id as AppId
+    if (delta === null) {
+      setGroupDrag(null)
+      return
+    }
+    setSelectedIds(current => {
+      if (current.has(appId) && current.size > 1) {
+        setGroupDrag({ draggingId: appId, dx: delta.dx, dy: delta.dy })
+      }
+      return current
+    })
+  }, [])
+
+  const handleIconContextMenu = useCallback((id: string, x: number, y: number) => {
+    const appId = id as AppId
+    // Right-clicking an icon that's already part of the current
+    // multi-selection keeps the whole selection intact (so e.g. a future
+    // "Open all" would act on the group); right-clicking outside it
+    // collapses the selection down to just this one first — same rule
+    // real OS icon menus use.
+    setSelectedIds(prev => (prev.has(appId) ? prev : new Set([appId])))
+    setContextMenu({ x, y, kind: 'icon', iconId: appId })
   }, [])
 
   const moveIcon = (id: string, cell: GridCell) => {
     const appId = id as AppId
     setIconCells(prev => {
+      const persist = (map: Record<AppId, GridCell>) => {
+        try { localStorage.setItem(ICON_POS_KEY, JSON.stringify(map)) } catch { /* private mode */ }
+      }
+
+      // Multi-select group move: every selected icon keeps the exact same
+      // relative offset it had to the one that was actually dragged,
+      // rather than each independently snapping to wherever it lands (that
+      // would scramble the group's arrangement on every drop). Only
+      // engages when the dragged icon is itself part of a >1-icon
+      // selection — dragging a solo icon (selected or not) always falls
+      // through to the plain single-icon path below, unchanged.
+      if (selectedIds.has(appId) && selectedIds.size > 1) {
+        let deltaCol = cell.col - prev[appId].col
+        let deltaRow = cell.row - prev[appId].row
+
+        // Clamp the *shared* delta once, off the whole group's own
+        // leftmost/topmost member — NOT each mover's own col/row
+        // independently after the fact. Independently clamping each mover
+        // to >= 0 is what broke this: if the dragged icon gets pushed far
+        // enough past the left/top edge, the delta can be large enough that
+        // several *other* selected icons — which used to sit at different
+        // columns/rows from each other — all clamp down to the exact same
+        // 0, colliding with each other. The collision-avoidance loop below
+        // then shoves the losers downward to resolve it, which is what
+        // read as icons scrambling/drifting — and since each subsequent
+        // drag could clamp-and-collide again from wherever things landed
+        // last time, repeating this near an edge compounded the damage.
+        // Clamping the shared delta instead means the whole selection
+        // simply stops together at the edge, keeping its exact relative
+        // arrangement, the same way dragging a multi-selection into a wall
+        // works on a real desktop.
+        const minMoverCol = Math.min(...Array.from(selectedIds, (m) => prev[m].col))
+        const minMoverRow = Math.min(...Array.from(selectedIds, (m) => prev[m].row))
+        if (minMoverCol + deltaCol < 0) deltaCol = -minMoverCol
+        if (minMoverRow + deltaRow < 0) deltaRow = -minMoverRow
+
+        // Same idea against the right/bottom edge — this direction never
+        // had ANY clamp at all, even before the left/top fix above.
+        // pxToNearestCell only floors at 0; it has no ceiling, and the
+        // single-icon drag path's own viewport clamp (see DesktopIcon's
+        // handlePointerUp) only bounds the pixel position of whichever icon
+        // you actually grabbed — it says nothing about every *other*
+        // selected icon riding along, which just gets prev[mover] + delta
+        // with no upper bound. A group with a member further right/down
+        // than the one you dragged could end up computed off-screen even
+        // though the icon under your cursor looked perfectly in-bounds the
+        // whole time. maxCol/maxRow mirror the exact same
+        // "window.innerWidth - GRID.cellW" / "window.innerHeight -
+        // GRID.cellH - 60" viewport bounds that path already uses,
+        // converted to cell units instead of pixels.
+        const maxCol = Math.floor((window.innerWidth - GRID.cellW - GRID.originX) / GRID.cellW)
+        const maxRow = Math.floor((window.innerHeight - GRID.cellH - 60 - GRID.originY) / GRID.cellH)
+        const maxMoverCol = Math.max(...Array.from(selectedIds, (m) => prev[m].col))
+        const maxMoverRow = Math.max(...Array.from(selectedIds, (m) => prev[m].row))
+        if (maxMoverCol + deltaCol > maxCol) deltaCol = maxCol - maxMoverCol
+        if (maxMoverRow + deltaRow > maxRow) deltaRow = maxRow - maxMoverRow
+
+        const next = { ...prev }
+        // Cells already spoken for by icons NOT in this move — the batch's
+        // own members are free to pass through each other's *old* cells on
+        // the way to their new ones, only a genuinely fixed icon (or, via
+        // the loop below, an already-placed batch member) blocks a spot.
+        const claimed = new Set<string>()
+        for (const [other, oc] of Object.entries(prev) as [AppId, GridCell][]) {
+          if (!selectedIds.has(other) && !NO_DESKTOP_ICON.includes(other)) {
+            claimed.add(`${oc.col},${oc.row}`)
+          }
+        }
+        for (const mover of selectedIds) {
+          let target: GridCell = {
+            col: prev[mover].col + deltaCol,
+            row: prev[mover].row + deltaRow,
+          }
+          while (claimed.has(`${target.col},${target.row}`)) target = { col: target.col, row: target.row + 1 }
+          claimed.add(`${target.col},${target.row}`)
+          next[mover] = target
+        }
+        // Final defensive pass — the clamps above are meant to already
+        // guarantee everything lands on-screen and collision-free, but
+        // sanitizeIconCells re-checks both from scratch as a safety net
+        // rather than trusting that math never has a gap.
+        const repaired = sanitizeIconCells(next)
+        persist(repaired)
+        return repaired
+      }
+
       // Win98 collision rule: occupied cell → take nearest free cell below
       const occupied = (c: GridCell) =>
         (Object.entries(prev) as [AppId, GridCell][]).some(
@@ -1359,10 +1594,147 @@ export default function HomeClient({
       let target = cell
       while (occupied(target)) target = { col: target.col, row: target.row + 1 }
       const next = { ...prev, [appId]: target }
-      try { localStorage.setItem(ICON_POS_KEY, JSON.stringify(next)) } catch { /* private mode */ }
-      return next
+      const repaired = sanitizeIconCells(next)
+      persist(repaired)
+      return repaired
     })
   }
+
+  // ---- Desktop background: rubber-band marquee select + click-to-deselect ----
+  // Only fires when the pointerdown lands directly on the desktop div
+  // itself (see the e.target check below) — a press starting on an icon,
+  // window, or anything else stacked on top of the wallpaper never reaches
+  // here at all, so this can't fight with DesktopIcon's own drag handling.
+  const MARQUEE_THRESHOLD = 4
+  const handleDesktopPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || e.target !== e.currentTarget) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const additive = e.shiftKey || e.ctrlKey || e.metaKey
+    marqueeState.current = {
+      originLeft: e.clientX - rect.left,
+      originTop: e.clientY - rect.top,
+      additive,
+      baseSelection: additive ? new Set(selectedIds) : new Set(),
+      moved: false,
+    }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const handleDesktopPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const s = marqueeState.current
+    if (!s) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const curLeft = e.clientX - rect.left
+    const curTop = e.clientY - rect.top
+    if (!s.moved && Math.hypot(curLeft - s.originLeft, curTop - s.originTop) < MARQUEE_THRESHOLD) return
+    s.moved = true
+
+    const box = {
+      left: Math.min(s.originLeft, curLeft),
+      top: Math.min(s.originTop, curTop),
+      width: Math.abs(curLeft - s.originLeft),
+      height: Math.abs(curTop - s.originTop),
+    }
+    setMarqueeRect(box)
+
+    // Hit-test every desktop icon's grid cell against the marquee box — the
+    // grid cell footprint (GRID.cellW x GRID.cellH), not just the visible
+    // icon glyph, so brushing the marquee anywhere through an icon's
+    // "slot" selects it, same generous hit area real desktops use.
+    const hits = new Set<AppId>()
+    for (const appId of DESKTOP_ICON_IDS) {
+      const p = cellToPx(iconCells[appId])
+      const overlaps =
+        p.left < box.left + box.width &&
+        p.left + GRID.cellW > box.left &&
+        p.top < box.top + box.height &&
+        p.top + GRID.cellH > box.top
+      if (overlaps) hits.add(appId)
+    }
+    setSelectedIds(s.additive ? new Set([...s.baseSelection, ...hits]) : hits)
+  }
+
+  const handleDesktopPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const s = marqueeState.current
+    marqueeState.current = null
+    e.currentTarget.releasePointerCapture(e.pointerId)
+    setMarqueeRect(null)
+    if (s && !s.moved && !s.additive) {
+      // A plain click on empty desktop with no drag: deselect everything
+      // (real OS behavior) — a ctrl/cmd-click on empty space, by contrast,
+      // intentionally does nothing to the existing selection.
+      setSelectedIds(new Set())
+    }
+  }
+
+  // Closes the context menu on any click/scroll elsewhere — deliberately
+  // scheduled via requestAnimationFrame rather than added synchronously the
+  // instant contextMenu is set: a right-click dispatches its own
+  // pointerdown just before the browser's 'contextmenu' event fires, and
+  // attaching a plain window 'pointerdown' listener in the same tick would
+  // sometimes catch that same trailing event and close the menu the
+  // instant it opened. Deferring a frame sidesteps that race entirely.
+  useEffect(() => {
+    if (!contextMenu) return
+    const close = () => setContextMenu(null)
+    const raf = requestAnimationFrame(() => {
+      window.addEventListener('pointerdown', close)
+      window.addEventListener('scroll', close, true)
+    })
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('pointerdown', close)
+      window.removeEventListener('scroll', close, true)
+    }
+  }, [contextMenu])
+
+  // Desktop-level keyboard shortcuts: Escape clears the current selection
+  // (and/or closes an open context menu), Ctrl/Cmd+A selects every icon.
+  //
+  // This used to gate Ctrl+A on `document.activeElement === document.body`
+  // — the idea being "only steal Ctrl+A when nothing else has keyboard
+  // focus" — but that check doesn't actually track what it sounds like it
+  // tracks: clicking any focusable element inside a window (a tab button,
+  // a link, anything) moves DOM focus onto it, and browsers do NOT move
+  // focus back to <body> just because you later click a plain, non-
+  // focusable div like the desktop background. So activeElement stayed
+  // "stuck" inside whichever window you'd last touched — permanently, for
+  // the rest of the session — silently breaking desktop Ctrl+A the moment
+  // you'd so much as clicked a tab in advith.exe, whether or not that
+  // window was still open, focused, or long since minimized. (Minimizing
+  // — visibility:hidden — usually does force a blur per spec, but relying
+  // on that as the ONLY way back to a working state isn't good enough
+  // either.)
+  //
+  // The actually-robust version of "don't steal Ctrl+A from something that
+  // wants it" is to check what's about to *receive* this exact keydown
+  // (e.target), not a separate, easily-stale snapshot of the DOM's overall
+  // focus state — an editable field (or a contentEditable region) always
+  // shows up as e.target when it's the one being typed into, regardless of
+  // any window's open/active/minimized state. Since this site disables
+  // text selection everywhere except form fields already (see body's
+  // select-none + input/textarea's select-text in globals.css), there's no
+  // other "real" select-all to preserve outside those editable targets.
+  useEffect(() => {
+    const isEditableTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false
+      return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedIds(new Set())
+        setContextMenu(null)
+        return
+      }
+      const isSelectAll = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a'
+      if (isSelectAll && !isEditableTarget(e.target)) {
+        e.preventDefault()
+        setSelectedIds(new Set(DESKTOP_ICON_IDS))
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // ---- Misc desktop behavior --------------------------------------------------
   // Reports now show up in both the Blogs app and the Contributor Archive
@@ -1417,37 +1789,6 @@ export default function HomeClient({
     if (gameTooltipTimer.current) clearTimeout(gameTooltipTimer.current)
   }, [])
 
-  // First-visit hint (once per session)
-  const [showHint, setShowHint] = useState(false)
-  const anyOpen =
-    wins.advith.status !== 'closed' ||
-    wins.blogs.status !== 'closed' ||
-    wins.gallery.status !== 'closed' ||
-    wins.credits.status !== 'closed' ||
-    wins.pop.status !== 'closed' ||
-    wins.popReadme.status !== 'closed' ||
-    wins.minesweeper.status !== 'closed' ||
-    wins.solitaire.status !== 'closed' ||
-    wins.projects.status !== 'closed'
-  useEffect(() => {
-    if (anyOpen || sessionStorage.getItem('desktop-hint-shown')) return
-    const timer = setTimeout(() => {
-      setShowHint(true)
-      sessionStorage.setItem('desktop-hint-shown', '1')
-    }, 3000)
-    const dismiss = () => {
-      clearTimeout(timer)
-      setShowHint(false)
-    }
-    window.addEventListener('pointerdown', dismiss)
-    window.addEventListener('keydown', dismiss)
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('pointerdown', dismiss)
-      window.removeEventListener('keydown', dismiss)
-    }
-  }, [anyOpen])
-
   // Deep links: /?app=open (or /?app=advith) → advith window, /?app=blogs →
   // blogs window. Any other page (e.g. ErrorWindow, or old bookmarked links)
   // that still routes in with these query strings keeps working — but once
@@ -1494,16 +1835,96 @@ export default function HomeClient({
       isActive: wins[id].status === 'open' && focusedId === id,
     }))
 
+  // Shared multi-select/group-drag wiring every <DesktopIcon> below needs —
+  // factored out rather than repeated 7 times over. groupDragOffset only
+  // ever comes out non-null for an icon that (a) is selected, (b) isn't
+  // itself the one currently being dragged (that one tracks its own
+  // position via its own local dragPos — see DesktopIcon), and (c) a group
+  // drag is actually in progress right now.
+  // How high a dragged icon needs to render to always stay visible over
+  // every currently-open window — NOT a fixed constant. Win98Window renders
+  // at 40 + wins[id].z, and z comes from the window store's zCounter (see
+  // lib/store/windowStore.ts), which increments on every single focus and
+  // is persisted to localStorage forever — it never resets, so it keeps
+  // climbing across the entire lifetime of a visitor's browser profile.
+  // DesktopIcon used to just hardcode zIndex 50 while dragging, which is
+  // trivially beaten by any window's z-index after as few as ~10 focus
+  // switches (or fewer, since zCounter carries over from previous visits) —
+  // the dragged icon would silently render *behind* whichever window
+  // happened to be open, vanishing the instant the drag crossed over it,
+  // and staying invisible forever if dropped there. Computing this fresh
+  // off the actual current maximum, every render, is the only version of
+  // this that's correct regardless of how long the site's been used.
+  const maxWindowZIndex = 40 + Math.max(0, ...Object.values(wins).map(w => w.z))
+  // Also floored against 9995 (the context menu's own z-[9995], see the
+  // JSX below) rather than just the windows — the taskbar sits at a fixed
+  // z-[9990] (see globals.css's .win98-taskbar) regardless of how many
+  // windows have ever been focused, so on a totally fresh session (every
+  // window's z is still 0, maxWindowZIndex is only 40) a dragged icon would
+  // still lose to the taskbar specifically, even with the window-relative
+  // fix above. Taking the max of both floors covers a fresh session (the
+  // 9995 floor wins) and a heavily-used one where zCounter has climbed well
+  // past 9995 (the window-relative value wins) — a dragged icon should
+  // always read as the topmost thing on screen, full stop.
+  const draggingIconZIndex = Math.max(maxWindowZIndex, 9995) + 10
+
+  const iconGroupProps = (appId: AppId) => ({
+    isSelected: selectedIds.has(appId),
+    // See DesktopIcon's own comment on this prop — real double-click
+    // conventions are a desktop/mouse thing, phones keep the site's
+    // original single-tap-to-open behavior.
+    openOnSingleClick: isMobile,
+    groupDragOffset: groupDrag && groupDrag.draggingId !== appId && selectedIds.has(appId)
+      ? { dx: groupDrag.dx, dy: groupDrag.dy }
+      : null,
+    draggingZIndex: draggingIconZIndex,
+    onSelect: handleIconSelect,
+    onDragMove: handleIconDragMove,
+    onContextMenuAt: handleIconContextMenu,
+    onMove: moveIcon,
+  })
+
   return (
     <>
       <div
+        ref={desktopRef}
         className="h-screen p-4 pb-16 overflow-hidden relative"
         style={{
           backgroundImage: 'url(/win98/windows_98_wallpaper.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
+        onPointerDown={handleDesktopPointerDown}
+        onPointerMove={handleDesktopPointerMove}
+        onPointerUp={handleDesktopPointerUp}
+        onContextMenu={(e) => {
+          // Right-click on empty desktop only — DesktopIcon's own
+          // onContextMenu already stopPropagation-free calls
+          // onContextMenuAt and this handler still fires after it bubbles,
+          // so gate on the same "did this land directly on the desktop
+          // div" check the marquee handlers use.
+          if (e.target !== e.currentTarget) return
+          e.preventDefault()
+          setContextMenu({ x: e.clientX, y: e.clientY, kind: 'desktop' })
+        }}
       >
+      {/* Rubber-band marquee selection box — classic dashed/translucent
+          win98 selection rectangle, drawn only while actively dragging on
+          empty desktop (see handleDesktopPointerMove). Absolutely
+          positioned in the same coordinate space as the desktop icons
+          themselves (this div's own padding box), not the viewport. */}
+      {marqueeRect && (
+        <div
+          className="absolute pointer-events-none z-40 border border-dashed border-white"
+          style={{
+            left: marqueeRect.left,
+            top: marqueeRect.top,
+            width: marqueeRect.width,
+            height: marqueeRect.height,
+            backgroundColor: 'rgba(0, 0, 128, 0.2)',
+          }}
+        />
+      )}
       {/* Desktop icons: draggable, snap to invisible grid, order persisted */}
       <DesktopIcon
         id="blogs"
@@ -1511,9 +1932,8 @@ export default function HomeClient({
         icon={APPS.blogs.icon}
         cell={iconCells.blogs}
         showBadge={hasNewBlog}
-        isActive={wins.blogs.status !== 'closed'}
         onOpen={() => openApp('blogs')}
-        onMove={moveIcon}
+        {...iconGroupProps('blogs')}
       />
       <DesktopIcon
         id="gallery"
@@ -1521,9 +1941,8 @@ export default function HomeClient({
         icon={APPS.gallery.icon}
         cell={iconCells.gallery}
         showBadge={hasNewHighlight}
-        isActive={wins.gallery.status !== 'closed'}
         onOpen={() => openApp('gallery')}
-        onMove={moveIcon}
+        {...iconGroupProps('gallery')}
       />
       <DesktopIcon
         id="advith"
@@ -1531,50 +1950,45 @@ export default function HomeClient({
         icon={APPS.advith.icon}
         cell={iconCells.advith}
         showBadge={hasNewReport}
-        isActive={wins.advith.status !== 'closed'}
         priority
         onOpen={() => openApp('advith')}
-        onMove={moveIcon}
+        {...iconGroupProps('advith')}
       />
       <DesktopIcon
         id="pop"
         label="Prince of Persia"
         icon={APPS.pop.icon}
         cell={iconCells.pop}
-        isActive={wins.pop.status !== 'closed'}
         disabled={isMobile}
         onOpen={() => handleGameOpen('pop')}
-        onMove={moveIcon}
+        {...iconGroupProps('pop')}
       />
       <DesktopIcon
         id="minesweeper"
         label="Minesweeper"
         icon={APPS.minesweeper.icon}
         cell={iconCells.minesweeper}
-        isActive={wins.minesweeper.status !== 'closed'}
         disabled={isMobile}
         priority
         onOpen={() => handleGameOpen('minesweeper')}
-        onMove={moveIcon}
+        {...iconGroupProps('minesweeper')}
       />
       <DesktopIcon
         id="solitaire"
         label="Solitaire"
         icon={APPS.solitaire.icon}
         cell={iconCells.solitaire}
-        isActive={wins.solitaire.status !== 'closed'}
         disabled={isMobile}
         onOpen={() => handleGameOpen('solitaire')}
-        onMove={moveIcon}
+        {...iconGroupProps('solitaire')}
       />
       <DesktopIcon
         id="projects"
         label="Projects"
         icon={hasProjects ? '/win98/folder-full.png' : APPS.projects.icon}
         cell={iconCells.projects}
-        isActive={wins.projects.status !== 'closed'}
         onOpen={() => openApp('projects')}
-        onMove={moveIcon}
+        {...iconGroupProps('projects')}
       />
 
       {/* Mobile-only: tapping a disabled game icon explains why instead of
@@ -1593,22 +2007,6 @@ export default function HomeClient({
           }}
         >
           {GAME_MOBILE_MESSAGE[gameMobileTooltip]}
-        </div>
-      )}
-
-      {/* Win98 tooltip hint for first-time visitors */}
-      {showHint && !anyOpen && (
-        <div
-          role="status"
-          className="absolute left-32 top-8 z-30 px-2 py-1 text-sm text-black pointer-events-none"
-          style={{
-            backgroundColor: '#ffffe1',
-            border: '1px solid #000000',
-            boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
-            fontFamily: 'monospace',
-          }}
-        >
-          💡 You can drag the apps around and click to open them!
         </div>
       )}
 
@@ -2405,6 +2803,82 @@ export default function HomeClient({
       onReorder={(ids) => setTaskOrder(ids as AppId[])}
       onCreditsClick={() => openApp('credits')}
     />
+    {/* Desktop / icon right-click context menu — fixed positioning (not
+        tied to the desktop div's own coordinate space like the marquee
+        box) since it has to sit above the taskbar too, same as a real OS
+        context menu would. z-[9995]: above the taskbar's 9990 but still
+        below nothing meaningful ever sits above a context menu. Only ever
+        rendered post-interaction (contextMenu starts null and is only set
+        from a click handler), so reading window.innerWidth/innerHeight
+        directly here to clamp on-screen never risks an SSR/hydration
+        mismatch. */}
+    {contextMenu && (
+      <div
+        className="fixed z-[9995] win98-window py-0.5 min-w-[180px]"
+        style={{
+          left: Math.min(contextMenu.x, window.innerWidth - 190),
+          top: Math.min(contextMenu.y, window.innerHeight - 140),
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onContextMenu={(e) => e.preventDefault()}
+        role="menu"
+      >
+        {contextMenu.kind === 'icon' ? (
+          <button
+            role="menuitem"
+            className="w-full text-left px-3 py-1 win98-start-menu-item"
+            onClick={() => {
+              openIconApp(contextMenu.iconId)
+              setContextMenu(null)
+            }}
+          >
+            Open
+          </button>
+        ) : (
+          <>
+            <button
+              role="menuitem"
+              className="w-full text-left px-3 py-1 win98-start-menu-item"
+              onClick={() => {
+                setSelectedIds(new Set(DESKTOP_ICON_IDS))
+                setContextMenu(null)
+              }}
+            >
+              Select All
+            </button>
+            <button
+              role="menuitem"
+              className="w-full text-left px-3 py-1 win98-start-menu-item"
+              onClick={() => {
+                // Real win98's "Arrange Icons Automatically" snaps
+                // everything back into a clean, non-overlapping grid —
+                // there's no meaningful "previous manual arrangement" to
+                // preserve once you've asked for that, so this just resets
+                // straight to the same default layout a first-time visitor
+                // sees (same source of truth iconCells falls back to
+                // anyway if localStorage is ever empty/corrupted).
+                setIconCells(DEFAULT_ICON_CELLS)
+                try { localStorage.setItem(ICON_POS_KEY, JSON.stringify(DEFAULT_ICON_CELLS)) } catch { /* private mode */ }
+                setContextMenu(null)
+              }}
+            >
+              Arrange Icons Automatically
+            </button>
+            <div className="border-t border-[#808080] my-0.5" />
+            <button
+              role="menuitem"
+              className="w-full text-left px-3 py-1 win98-start-menu-item"
+              onClick={() => {
+                setSelectedIds(new Set())
+                setContextMenu(null)
+              }}
+            >
+              Refresh
+            </button>
+          </>
+        )}
+      </div>
+    )}
     </>
   )
 }

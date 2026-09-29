@@ -181,12 +181,19 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
   // no real entries at all (an ordinary empty year still gets no section;
   // a year that's empty BECAUSE it's inside a flagged quiet gap does, so
   // the silence there isn't silently skipped over same as an untouched
-  // empty year would be). Recomputed from filteredEntries (not the
-  // unfiltered `entries`), so an active tag filter's own gaps are what get
-  // flagged — a filter narrowed to one rarely-used tag will show more/wider
-  // quiet stretches than the unfiltered timeline does, which is the
-  // intended, honest behavior rather than a bug: the filler describes what
-  // is (and isn't) visible right now, not the full underlying history.
+  // empty year would be).
+  //
+  // Quiet/milestone fillers are ONLY generated when no tag filter is
+  // active (selectedTags.length === 0). They describe gaps in the
+  // person's real, full history — "nothing happened here" — which is
+  // only a true statement about the unfiltered timeline. Once a tag
+  // filter narrows filteredEntries down to a subset (e.g. just "pytorch"
+  // reports), the resulting gaps are an artifact of the filter, not
+  // actual quiet stretches — plenty may have happened elsewhere in that
+  // window under a different tag. Rendering "— Quiet period —" banners
+  // there would misrepresent filtered-out activity as literal silence,
+  // so filtered views show only the matching entries with no fillers at
+  // all.
   const sections: ArchiveSection[] = []
   const pushRow = (year: number, row: ArchiveRow) => {
     let section = sections[sections.length - 1]
@@ -196,10 +203,12 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
     }
     section.rows.push(row)
   }
+  const showQuietFillers = selectedTags.length === 0
   filteredEntries.forEach((entry, i) => {
     const entryYear = new Date(entry.date).getFullYear()
     pushRow(entryYear, { kind: 'entry', entry })
 
+    if (!showQuietFillers) return
     const olderEntry = filteredEntries[i + 1]
     if (!olderEntry) return
     const olderYear = new Date(olderEntry.date).getFullYear()
@@ -249,15 +258,21 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
   // the true start of the timeline, so they belong at the very bottom, in
   // that order: the milestone first (pushRow appends, so whatever's pushed
   // first renders above whatever's pushed after it), then the quiet
-  // stretch that preceded it. Only added when the oldest entry actually
-  // visible right now is on or after PRE_JOURNEY_QUIET.to (May 2025): if a
-  // tag filter's own oldest match is already earlier than that (shouldn't
-  // currently happen — nothing in the data predates July 2025 — but this
-  // keeps it from ever rendering a nonsensical "quiet until May 2025"
-  // banner beneath an entry that's actually from, say, March 2025) or if
-  // the filter matches nothing at all, both are skipped together.
+  // stretch that preceded it. Only added when no tag filter is active
+  // (same reasoning as showQuietFillers above) AND when the oldest entry
+  // actually visible right now is on or after PRE_JOURNEY_QUIET.to (May
+  // 2025): if a tag filter's own oldest match is already earlier than
+  // that (shouldn't currently happen — nothing in the data predates July
+  // 2025 — but this keeps it from ever rendering a nonsensical "quiet
+  // until May 2025" banner beneath an entry that's actually from, say,
+  // March 2025) or if the filter matches nothing at all, both are skipped
+  // together.
   const oldestVisible = filteredEntries[filteredEntries.length - 1]
-  if (oldestVisible && new Date(oldestVisible.date) >= new Date(PRE_JOURNEY_QUIET.to)) {
+  if (
+    showQuietFillers &&
+    oldestVisible &&
+    new Date(oldestVisible.date) >= new Date(PRE_JOURNEY_QUIET.to)
+  ) {
     const year = new Date(PRE_JOURNEY_QUIET.from).getFullYear()
     pushRow(year, { kind: 'milestone', key: 'milestone-joined-lfx', date: JOINED_LFX.date, label: JOINED_LFX.label })
     pushRow(year, {

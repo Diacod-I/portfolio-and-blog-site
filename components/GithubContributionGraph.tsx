@@ -75,24 +75,42 @@ const MIN_LABEL_GAP_WEEKS = 2
 // row of labels above the grid doesn't repeat "Aug Aug Aug Aug...". Also
 // enforces MIN_LABEL_GAP_WEEKS above so a label never renders close enough
 // to the previous one to visually merge — see that constant's comment for
-// why this specifically bites the very first column. Skipping a label this
-// way is a deliberate, minimal fallback (matches how GitHub's own graph
-// behaves at the same edge case) rather than reworking the whole layout: at
-// worst, the one label whose month is already obvious from the very next
-// (unskipped) label simply doesn't render standalone.
+// why this specifically bites the very first column.
+//
+// When a collision happens against the very first column specifically, the
+// earlier version of this function dropped the SECOND (colliding) label
+// and kept the first — which meant the tiny 1-2 day fragment in column 0
+// (e.g. the tail end of Sep) won out over the very next column's full,
+// real month (Oct), leaving Oct completely unlabeled even though it's the
+// one with an actual full week on the grid. That's backwards: the fragment
+// carries less real information than the full month right next to it. So
+// this case is flipped — when the previous label sitting at index 0 is
+// what's causing the collision, that one is un-rendered instead, and the
+// new (real, fuller) month takes the label spot. Every other collision
+// (which the MIN_LABEL_GAP_WEEKS comment notes shouldn't normally occur
+// past index 0) still falls back to the original "skip the new one"
+// behavior.
 function monthLabels(weeks: (ContributionDay | null)[][]): (string | null)[] {
+  const labels: (string | null)[] = new Array(weeks.length).fill(null)
   let prevMonth = -1
   let lastLabeledIndex = -Infinity
-  return weeks.map((week, i) => {
+  weeks.forEach((week, i) => {
     const firstRealDay = week.find((d): d is ContributionDay => d !== null)
-    if (!firstRealDay) return null
+    if (!firstRealDay) return
     const month = new Date(`${firstRealDay.date}T00:00:00Z`).getUTCMonth()
-    if (month === prevMonth) return null
+    if (month === prevMonth) return
     prevMonth = month
-    if (i - lastLabeledIndex < MIN_LABEL_GAP_WEEKS) return null
+    if (i - lastLabeledIndex < MIN_LABEL_GAP_WEEKS) {
+      if (lastLabeledIndex === 0) {
+        labels[0] = null
+      } else {
+        return
+      }
+    }
+    labels[i] = MONTH_LABELS[month]
     lastLabeledIndex = i
-    return MONTH_LABELS[month]
   })
+  return labels
 }
 
 export default function GithubContributionGraph() {

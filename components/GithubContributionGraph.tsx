@@ -58,16 +58,39 @@ function buildGrid(days: ContributionDay[]): (ContributionDay | null)[][] {
   return weeks
 }
 
+// Minimum number of week-columns required between two month labels. Each
+// column is 13px (10px cell + 3px gap — see the `gap-[3px]` flex below), a
+// 3-letter label at this font size renders wider than that single column,
+// so two labels landing on adjacent columns visually collide/merge into
+// one unreadable run of text (e.g. "SepOct"). Real month boundaries are
+// naturally ~4+ weeks apart and never trigger this; the one case that does
+// is the very first column of the whole 365-day window, which is almost
+// always a partial week (the fetched range starts "today minus a year",
+// essentially never a Sunday) — so it can carry just 1-2 real days from
+// the tail end of one month, immediately followed by a full week firmly in
+// the next month one column over.
+const MIN_LABEL_GAP_WEEKS = 2
+
 // Label the first week that crosses into a new month, GitHub-style, so the
-// row of labels above the grid doesn't repeat "Aug Aug Aug Aug...".
+// row of labels above the grid doesn't repeat "Aug Aug Aug Aug...". Also
+// enforces MIN_LABEL_GAP_WEEKS above so a label never renders close enough
+// to the previous one to visually merge — see that constant's comment for
+// why this specifically bites the very first column. Skipping a label this
+// way is a deliberate, minimal fallback (matches how GitHub's own graph
+// behaves at the same edge case) rather than reworking the whole layout: at
+// worst, the one label whose month is already obvious from the very next
+// (unskipped) label simply doesn't render standalone.
 function monthLabels(weeks: (ContributionDay | null)[][]): (string | null)[] {
   let prevMonth = -1
-  return weeks.map((week) => {
+  let lastLabeledIndex = -Infinity
+  return weeks.map((week, i) => {
     const firstRealDay = week.find((d): d is ContributionDay => d !== null)
     if (!firstRealDay) return null
     const month = new Date(`${firstRealDay.date}T00:00:00Z`).getUTCMonth()
     if (month === prevMonth) return null
     prevMonth = month
+    if (i - lastLabeledIndex < MIN_LABEL_GAP_WEEKS) return null
+    lastLabeledIndex = i
     return MONTH_LABELS[month]
   })
 }
@@ -127,7 +150,17 @@ export default function GithubContributionGraph() {
                 <span>More</span>
               </div>
             </div>
-            <div className="overflow-x-auto">
+            {/* justify-center on the scrollable wrapper, not the grid
+                itself: when the grid (53 columns × 13px) is narrower than
+                the panel — the usual case, since the panel's width tracks
+                the dossier column, not the grid — this centers it instead
+                of leaving all the unused space stacked on the right from
+                plain left alignment. If the panel is ever narrower than
+                the grid (e.g. a very cramped mobile width), overflow-x-auto
+                still takes over and scrolls normally; centering a
+                scrollable flex container has no effect once its content
+                actually overflows. */}
+            <div className="overflow-x-auto flex justify-center">
               <div className="flex gap-[3px] w-max px-1 pt-4 pb-1">
                 {weeks.map((week, i) => (
                   <div key={i} className="flex flex-col gap-[3px] relative">

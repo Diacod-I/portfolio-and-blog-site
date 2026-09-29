@@ -65,6 +65,56 @@ type ArchiveEntry =
   | { kind: 'internal'; key: string; date: string; tags: string[]; note: Note }
   | { kind: 'external'; key: string; date: string; tags: string[]; report: ExternalReport }
 
+// A gap between two consecutive entries (sorted newest-first, so "next" here
+// means the OLDER of the pair) wider than this gets a "quiet period" filler
+// row instead of just silently skipping straight from one date to the next —
+// same idea as POAP's timeline filling in stretches with no collectibles
+// instead of leaving the gap unexplained. 60 days (~2 months) is short
+// enough to never fire on the normal month-to-month cadence of the internal
+// monthly reports (see this file's own header comment), but long enough to
+// only flag genuine dry spells rather than every ordinary skipped month.
+const QUIET_GAP_THRESHOLD_DAYS = 60
+
+// Unlike every other quiet filler on this page, the stretch before the
+// archive's very first entry (LFX Mentorship Midterm, 2025-07-22) can't be
+// derived from the gap-detection walk below — that walk only ever looks at
+// pairs of consecutive REAL entries, and there's no earlier entry to pair
+// the first one against. So this one is manually specified rather than
+// computed: Jan–Apr 2025 (before the open-source journey had started at
+// all), up through joining LFX Mentorship in May 2025. Deliberately ends at
+// May, not at the Midterm write-up's own July date — the ~2.5 months from
+// joining to that first report is normal ramp-up time, not "quiet," same
+// distinction QUIET_GAP_THRESHOLD_DAYS draws everywhere else on this page.
+const PRE_JOURNEY_QUIET = { from: '2025-01-01', to: '2025-05-01' }
+
+// The event that ended PRE_JOURNEY_QUIET — its own standalone row (see
+// 'milestone' below) rather than a second line inside the quiet filler's
+// own box, so it reads as its own moment on the timeline instead of
+// looking like part of the "nothing happened" banner it sits next to.
+const JOINED_LFX = { date: '2025-05-01', label: 'Joined LFX Mentorship' }
+
+// One row in the rendered list: a real entry, a filler marking a
+// QUIET_GAP_THRESHOLD_DAYS+ stretch between the two entries on either side
+// of it, or a milestone — a single dated event worth calling out on its
+// own (currently just JOINED_LFX above) without it being a full archive
+// entry with a link/tags/etc. `from`/`to` on 'quiet' are ISO date strings
+// (the older/newer entry's own `date`), not the exact boundary of
+// "activity" — there's no way to know the true start/end of a quiet
+// stretch, only that nothing logged here falls between these two dates.
+type ArchiveRow =
+  | { kind: 'entry'; entry: ArchiveEntry }
+  | { kind: 'quiet'; key: string; from: string; to: string }
+  | { kind: 'milestone'; key: string; date: string; label: string }
+
+// A year's worth of rows (real entries and/or quiet-period fillers) — kept
+// as a first-class grouping distinct from the flat entries list so a gap
+// spanning multiple years splits into one filler per year touched (see the
+// walk below) instead of a single banner straddling two sections. A year
+// with no real entries still gets its own section, with just a filler row,
+// if a flagged quiet gap passes through it — an ordinary empty year (never
+// part of any flagged gap) still gets no section at all.
+type ArchiveSection = { year: number; rows: ArchiveRow[] }
+
 export default function ContributorArchive({ notes }: ContributorArchiveProps) {
   const entries = useMemo<ArchiveEntry[]>(() => {
     const internal: ArchiveEntry[] = notes
@@ -115,17 +165,108 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
     [entries, selectedTags]
   )
 
-  // Grouped by the year each entry's date falls in, newest year first —
-  // entries within a year stay in the newest-first order from the sort
-  // above since Map preserves insertion order per key.
-  const entriesByYear = new Map<number, ArchiveEntry[]>()
-  for (const entry of filteredEntries) {
-    const year = new Date(entry.date).getFullYear()
-    const bucket = entriesByYear.get(year)
-    if (bucket) bucket.push(entry)
-    else entriesByYear.set(year, [entry])
+  // Grouped by the year each entry's date falls in, newest year first, with
+  // quiet-period filler rows spliced in wherever two consecutive entries
+  // (in the already newest-first sorted filteredEntries) are more than
+  // QUIET_GAP_THRESHOLD_DAYS apart — see that constant's comment. A gap
+  // confined to a single year gets one filler row, same as before. A gap
+  // that crosses one or more year boundaries (e.g. the newer entry is in
+  // 2026, the older one in 2025) gets split into one filler PER YEAR it
+  // touches instead of a single banner straddling two sections: a tail
+  // segment (Jan 1 → the newer entry's date) appended to the newer year's
+  // own section, a head segment (the older entry's date → Dec 31) that
+  // becomes the FIRST row of the older year's section, and — for a gap
+  // spanning 3+ years — a full Jan-1-to-Dec-31 filler for every year
+  // strictly in between, each getting its own section even though it has
+  // no real entries at all (an ordinary empty year still gets no section;
+  // a year that's empty BECAUSE it's inside a flagged quiet gap does, so
+  // the silence there isn't silently skipped over same as an untouched
+  // empty year would be). Recomputed from filteredEntries (not the
+  // unfiltered `entries`), so an active tag filter's own gaps are what get
+  // flagged — a filter narrowed to one rarely-used tag will show more/wider
+  // quiet stretches than the unfiltered timeline does, which is the
+  // intended, honest behavior rather than a bug: the filler describes what
+  // is (and isn't) visible right now, not the full underlying history.
+  const sections: ArchiveSection[] = []
+  const pushRow = (year: number, row: ArchiveRow) => {
+    let section = sections[sections.length - 1]
+    if (!section || section.year !== year) {
+      section = { year, rows: [] }
+      sections.push(section)
+    }
+    section.rows.push(row)
   }
-  const years = [...entriesByYear.keys()].sort((a, b) => b - a)
+  filteredEntries.forEach((entry, i) => {
+    const entryYear = new Date(entry.date).getFullYear()
+    pushRow(entryYear, { kind: 'entry', entry })
+
+    const olderEntry = filteredEntries[i + 1]
+    if (!olderEntry) return
+    const olderYear = new Date(olderEntry.date).getFullYear()
+    const gapDays =
+      (new Date(entry.date).getTime() - new Date(olderEntry.date).getTime()) / 86_400_000
+    if (gapDays <= QUIET_GAP_THRESHOLD_DAYS) return
+
+    if (entryYear === olderYear) {
+      pushRow(entryYear, {
+        kind: 'quiet',
+        key: `quiet-${olderEntry.date}-${entry.date}`,
+        from: olderEntry.date,
+        to: entry.date,
+      })
+      return
+    }
+
+    // Tail of the newer year: silence from that year's start up to entry
+    // itself (entry is necessarily the OLDEST entry of entryYear here,
+    // since the very next entry belongs to an earlier year).
+    pushRow(entryYear, {
+      kind: 'quiet',
+      key: `quiet-${entryYear}-start-${entry.date}`,
+      from: `${entryYear}-01-01`,
+      to: entry.date,
+    })
+    // Any year fully inside the gap, touched by neither entry directly.
+    for (let y = entryYear - 1; y > olderYear; y--) {
+      pushRow(y, { kind: 'quiet', key: `quiet-${y}-full`, from: `${y}-01-01`, to: `${y}-12-31` })
+    }
+    // Head of the older year: silence from olderEntry to that year's end.
+    // Pushed now, before the forEach even reaches olderEntry's own index —
+    // pushRow creates olderYear's section here, and olderEntry's row (next
+    // iteration) lands right after it in that same section, so this reads
+    // as "the quiet stretch, then the entry that ended it," oldest-first
+    // within the section same as everywhere else.
+    pushRow(olderYear, {
+      kind: 'quiet',
+      key: `quiet-${olderEntry.date}-${olderYear}-end`,
+      from: olderEntry.date,
+      to: `${olderYear}-12-31`,
+    })
+  })
+
+  // JOINED_LFX + PRE_JOURNEY_QUIET, appended after (i.e. below/older than)
+  // every real entry and every derived gap filler above — together they're
+  // the true start of the timeline, so they belong at the very bottom, in
+  // that order: the milestone first (pushRow appends, so whatever's pushed
+  // first renders above whatever's pushed after it), then the quiet
+  // stretch that preceded it. Only added when the oldest entry actually
+  // visible right now is on or after PRE_JOURNEY_QUIET.to (May 2025): if a
+  // tag filter's own oldest match is already earlier than that (shouldn't
+  // currently happen — nothing in the data predates July 2025 — but this
+  // keeps it from ever rendering a nonsensical "quiet until May 2025"
+  // banner beneath an entry that's actually from, say, March 2025) or if
+  // the filter matches nothing at all, both are skipped together.
+  const oldestVisible = filteredEntries[filteredEntries.length - 1]
+  if (oldestVisible && new Date(oldestVisible.date) >= new Date(PRE_JOURNEY_QUIET.to)) {
+    const year = new Date(PRE_JOURNEY_QUIET.from).getFullYear()
+    pushRow(year, { kind: 'milestone', key: 'milestone-joined-lfx', date: JOINED_LFX.date, label: JOINED_LFX.label })
+    pushRow(year, {
+      kind: 'quiet',
+      key: 'quiet-pre-journey',
+      from: PRE_JOURNEY_QUIET.from,
+      to: PRE_JOURNEY_QUIET.to,
+    })
+  }
 
   return (
     <div className="win98-window flex flex-col">
@@ -173,12 +314,64 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
             </p>
           ) : (
             <div className="flex flex-col gap-3 p-1">
-              {years.map((year) => (
-                <div key={year}>
-                  <p className="text-xs font-bold text-white mb-1 px-1">Year {year}</p>
+              {sections.map((section) => (
+                <div key={section.year}>
+                  <p className="text-xs font-bold text-white mb-1 px-1">Year {section.year}</p>
                   <div className="grid">
-                    {entriesByYear.get(year)!.map((entry) =>
-                      entry.kind === 'internal' ? (
+                    {section.rows.map((row) => {
+                      if (row.kind === 'milestone') {
+                        // Same dashed-card treatment as the 'quiet' filler
+                        // below (unclickable, select-none, one card in the
+                        // grid) so it reads as the same family of "not a
+                        // real archive entry" row. my-1 gives both filler
+                        // kinds their own breathing room from the flush,
+                        // touching win98-button rows around them — those
+                        // are deliberately kept tight against each other
+                        // (see the header comment on why), so the margin
+                        // lives on the filler cards themselves rather than
+                        // as a gap on the shared grid, which would space
+                        // out every row uniformly. Plain white, same as
+                        // the quiet card, rather than an accent color — the
+                        // ✦ glyph plus the different border/label text
+                        // already distinguish "a specific milestone" from
+                        // "an absence of activity" without needing its own
+                        // color on top of that.
+                        return (
+                          <div
+                            key={row.key}
+                            className="my-1 p-2 flex flex-col items-center justify-center gap-0.5 text-center border border-dashed border-white/40 select-none"
+                          >
+                            <span className="text-[10px] font-bold text-white">✦ {row.label}</span>
+                            <span className="text-[10px] text-white/70">{format(new Date(row.date), 'MMM yyyy')}</span>
+                          </div>
+                        )
+                      }
+                      if (row.kind === 'quiet') {
+                        // Deliberately not a <button>/<Link> — nothing to
+                        // click, nothing to navigate to. Dashed border +
+                        // muted color distinguish it at a glance from the
+                        // solid win98-button entry rows around it, same as
+                        // how POAP's own timeline gap-filler reads as
+                        // "placeholder," not "content." select-none since a
+                        // stray "— Quiet period —" text selection reads odd
+                        // for what's essentially a spacer with a caption.
+                        // my-1 for the same reason as the milestone card
+                        // above — its own breathing room from the flush
+                        // entry rows around it.
+                        return (
+                          <div
+                            key={row.key}
+                            className="my-1 p-2 flex flex-col items-center justify-center gap-0.5 text-center border border-dashed border-[#555] select-none"
+                          >
+                            <span className="text-[10px] italic text-[#888]">— Quiet period —</span>
+                            <span className="text-[10px] text-[#666]">
+                              {format(new Date(row.from), 'MMM yyyy')} – {format(new Date(row.to), 'MMM yyyy')}
+                            </span>
+                          </div>
+                        )
+                      }
+                      const entry = row.entry
+                      return entry.kind === 'internal' ? (
                         <Link
                           key={entry.key}
                           href={`/reports/${entry.note.slug}`}
@@ -245,7 +438,7 @@ export default function ContributorArchive({ notes }: ContributorArchiveProps) {
                           </span>
                         </a>
                       )
-                    )}
+                    })}
                   </div>
                 </div>
               ))}

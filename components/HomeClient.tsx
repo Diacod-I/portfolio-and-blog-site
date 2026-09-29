@@ -84,7 +84,7 @@ const WorldMap = dynamic(() => import('@/components/WorldMap'), {
     <div className="win98-window flex flex-col mt-3">
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
-          <span>Location</span>
+          <span>Places of work</span>
         </div>
       </div>
       <div className="bg-[#1f1f1f] border-2 p-2 flex items-center justify-center" style={{ aspectRatio: '960 / 500' }}>

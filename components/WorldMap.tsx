@@ -38,8 +38,18 @@
 // react-simple-maps fetches and parses it itself at runtime in the browser
 // (see fetchGeographies in the library source), so there's no local JSON
 // payload to bundle at all.
+//
+// Deliberately 110m, not the more detailed 50m: 50m resolution reveals
+// small outlying territories 110m simply omits (too small to render at
+// all at that resolution) — India's Andaman & Nicobar and Lakshadweep
+// islands, for instance, show up as scattered stray-colored specks far
+// from the mainland, reading as visual noise rather than "more accurate."
+// 110m keeps each country's shape as one clean landmass. The tradeoff is
+// that a handful of very small countries (Singapore) have no polygon at
+// all in 110m data — see REMOTE_COUNTRIES' dotRadius in data/worldMap.ts
+// for how that's handled without switching datasets.
 import { ComposableMap, Geographies, Geography, Graticule, Marker, Sphere } from 'react-simple-maps'
-import { INDIA_FILL } from '@/data/worldMap'
+import { INDIA_FILL, REMOTE_FILL, REMOTE_COUNTRIES } from '@/data/worldMap'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -55,6 +65,23 @@ const INDIA_CENTROID: [number, number] = [78.9629, 22.5937]
 // circle with a bright edge.
 const GLOBE_FILL = '#161616'
 
+type MapLabel = {
+  id: string
+  label: string
+  centroid: [number, number]
+  fill: string
+  labelDy?: number
+  dotRadius?: number
+}
+
+// India plus every REMOTE_COUNTRIES entry, in one shared shape so they can
+// be sorted and rendered by a single loop (see its own comment below on
+// why the sort — and therefore this merge — exists at all).
+const ALL_LABELS: MapLabel[] = [
+  { id: 'india', label: 'INDIA', centroid: INDIA_CENTROID, fill: INDIA_FILL },
+  ...REMOTE_COUNTRIES.map((c) => ({ ...c, fill: REMOTE_FILL })),
+]
+
 export default function WorldMap() {
   return (
     // Same nested win98-window pattern ExperienceSection.tsx and
@@ -65,7 +92,7 @@ export default function WorldMap() {
     <div className="win98-window flex flex-col mt-3">
       <div className="win98-titlebar">
         <div className="flex items-center gap-2">
-          <span>Location</span>
+          <span>Work map</span>
         </div>
       </div>
       <div className="bg-[#1f1f1f] border-2 p-2 relative">
@@ -75,7 +102,7 @@ export default function WorldMap() {
           projection="geoNaturalEarth1"
           projectionConfig={{ scale: 155 }}
           role="img"
-          aria-label="A world map with India filled in and labeled"
+          aria-label="A world map with India marked as home base, and the USA, Switzerland, Singapore, and UK filled in as countries worked with remotely while based in India"
           style={{ width: '100%', height: 'auto' }}
         >
           <Sphere id="rsm-sphere" fill={GLOBE_FILL} stroke={GLOBE_FILL} strokeWidth={0.5} />
@@ -84,12 +111,18 @@ export default function WorldMap() {
             {({ geographies }) =>
               geographies.map((geo) => {
                 const isIndia = geo.properties?.name === 'India'
+                // Matched by name OR numeric id (see data/worldMap.ts's own
+                // comment on why both) — either one hitting is enough.
+                const isRemote = REMOTE_COUNTRIES.some(
+                  (c) => c.name === geo.properties?.name || c.id === geo.id
+                )
+                const fill = isIndia ? INDIA_FILL : isRemote ? REMOTE_FILL : 'transparent'
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={isIndia ? INDIA_FILL : 'transparent'}
-                    stroke={isIndia ? INDIA_FILL : '#6b7280'}
+                    fill={fill}
+                    stroke={isIndia ? INDIA_FILL : isRemote ? REMOTE_FILL : '#6b7280'}
                     strokeWidth={0.75}
                     style={{
                       default: { outline: 'none' },
@@ -101,29 +134,93 @@ export default function WorldMap() {
               })
             }
           </Geographies>
-          {/* Label callout for India: a small box floating above the
-              country with a leader line down to its centroid, so it reads
-              as "this filled shape is India" rather than relying on the
-              fill color alone. */}
-          <Marker coordinates={INDIA_CENTROID}>
-            <line x1={0} y1={-26} x2={0} y2={-2} stroke={INDIA_FILL} strokeWidth={1} />
-            <circle r={2} fill={INDIA_FILL} />
-            <g transform="translate(0, -26)">
-              <rect x={-20} y={-16} width={40} height={16} fill="#1f1f1f" stroke={INDIA_FILL} strokeWidth={1} />
-              <text
-                textAnchor="middle"
-                y={-5}
-                fontSize={8}
-                fontWeight={700}
-                letterSpacing={0.5}
-                fill={INDIA_FILL}
-                style={{ fontFamily: 'monospace' }}
-              >
-                INDIA
-              </text>
-            </g>
-          </Marker>
+          {/* One shared label-callout renderer for India + every remote
+              country, rather than India's own hand-written copy — needed
+              so both participate in the same z-ordering pass below. SVG has
+              no z-index for sibling elements; stacking is purely DOM order,
+              later = on top. Two overlapping label boxes (e.g. UK and
+              Switzerland, both clustered in Europe) would otherwise stack
+              in whatever arbitrary order they happened to be declared in,
+              which can put a "higher" (further north) label's box on top of
+              a "lower" (further south) one it overlaps — backwards from how
+              a real map reads, where the nearer/lower pin should win.
+              ALL_LABELS sorts every label by latitude, north to south, so
+              mapping over it in order naturally renders southernmost labels
+              last — i.e. highest DOM position, i.e. on top — matching that
+              rule for every pair, not just the one that happened to prompt
+              this. */}
+          {ALL_LABELS
+            .slice()
+            .sort((a, b) => b.centroid[1] - a.centroid[1])
+            .map((item) => {
+              const dy = item.labelDy ?? 26
+              const dotRadius = item.dotRadius ?? 2
+              // Per-char multiplier/padding scaled up alongside the 14px
+              // font below (was 7/16 for a 10px font, 5.6/12 for 8px) — box
+              // height grows downward from a fixed y=0 baseline at the dot,
+              // so a taller box only extends further up, it never needs dy
+              // adjusted to avoid colliding with the dot/line it's already
+              // anchored to.
+              const boxWidth = item.label.length * 10 + 22
+              return (
+                <Marker key={item.id} coordinates={item.centroid}>
+                  <line x1={0} y1={-dy} x2={0} y2={-dotRadius} stroke={item.fill} strokeWidth={1} />
+                  <circle r={dotRadius} fill={item.fill} />
+                  <g transform={`translate(0, -${dy})`}>
+                    {/* Box width derived from the label length rather than
+                        a fixed size — labels vary from 3 chars (USA/UK) to
+                        11 (SWITZERLAND). The per-char multiplier accounts
+                        for this monospace font's actual glyph advance at
+                        14px (~8.4px/char) and the 0.8px letterSpacing
+                        between glyphs, plus generous padding so a bold
+                        weight rendering slightly wider than expected still
+                        doesn't clip past the box edges. */}
+                    <rect
+                      x={-boxWidth / 2}
+                      y={-26}
+                      width={boxWidth}
+                      height={26}
+                      fill="#1f1f1f"
+                      stroke={item.fill}
+                      strokeWidth={1.5}
+                    />
+                    <text
+                      textAnchor="middle"
+                      y={-9}
+                      fontSize={14}
+                      fontWeight={700}
+                      letterSpacing={0.8}
+                      fill={item.fill}
+                      style={{ fontFamily: 'monospace' }}
+                    >
+                      {item.label}
+                    </text>
+                  </g>
+                </Marker>
+              )
+            })}
         </ComposableMap>
+        {/* Legend: same dark panel, monospace label treatment as the map's
+            own India callout box, just laid out as a small key rather than
+            pinned to the globe — a color alone (especially blue vs. green
+            on a dark background) isn't reliably distinguishable for every
+            visitor, so this spells out what each fill means. */}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 px-1 text-[10px] font-mono text-[#ccc]">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block w-2.5 h-2.5 border"
+              style={{ backgroundColor: INDIA_FILL, borderColor: INDIA_FILL }}
+            />
+            <span>Current Location</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block w-2.5 h-2.5 border"
+              style={{ backgroundColor: REMOTE_FILL, borderColor: REMOTE_FILL }}
+            />
+            <span>Worked Remotely With</span>
+          </div>
+        </div>
       </div>
     </div>
   )

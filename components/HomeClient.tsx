@@ -2088,7 +2088,7 @@ export default function HomeClient({
               // directly on a scrollable flex container clips/hides
               // whatever's taller than the container and offset above the
               // fold — that's not reachable by scrolling in any browser.)
-              <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
+              <div key={homeTab} className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
                 <div className="min-h-full flex flex-col items-center justify-center">
                   {/* Contact used to have its own typed "$ >" terminal-query
                       intro here (CONTACT_QUERY_TEXT), same as Home still
@@ -2125,9 +2125,33 @@ export default function HomeClient({
             // archive. The profile/bio dossier moved to Home (see the
             // default branch below) so a first-time visitor lands on
             // Advith, not a commit graph. Same min-h-full scroll-fix pattern
-            // as Contact above.
-            <div className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
-                <div className="min-h-full flex flex-col items-center justify-center">
+            // as Contact above — except justify-start, not justify-center:
+            // this tab's content (contribution graph + archive) is reliably
+            // taller than the viewport, and centering overflowing flex
+            // content splits the overflow evenly above/below center —
+            // since scrollTop can't go negative, that left the tab opening
+            // with its top portion already scrolled past, landing on the
+            // middle of the content instead of the top. justify-start still
+            // centers short content fine (nothing below min-h-full height
+            // to push against), it just doesn't fight the overflow case.
+            //
+            // key={homeTab} is the actual fix for "opens mid-scroll": this
+            // div, Contact's div, and Home's div are three separate JSX
+            // branches of the same homeTab ternary, but all three are a
+            // bare <div> at the exact same child slot — React reconciles by
+            // type+position, not by branch, so without a key it was reusing
+            // the SAME scrollable DOM node across tab switches rather than
+            // mounting a fresh one. scrollTop (and whatever the user had
+            // scrolled to on the tab they were just on) carried straight
+            // over instead of resetting to 0. Home never showed this
+            // because its own layout effect (see homeContentStartRef)
+            // already recomputes scrollTop from scratch on every mount
+            // regardless of its stale starting value; Contact/Logs have no
+            // such correction, so they need the key to force an actual
+            // remount — and therefore a real scrollTop reset — on every tab
+            // change instead.
+            <div key={homeTab} className="flex-1 min-h-0 overflow-y-auto pt-4 px-4 pb-16" onScroll={handleTabScroll}>
+                <div className="min-h-full flex flex-col items-center justify-start">
                   <div className="max-w-3xl w-full">
                   {/* Logs used to have its own typed "$ >" terminal-query
                       intro here (LOGS_QUERY_TEXT), same as Home still does

@@ -87,7 +87,7 @@ const allProjects: Project[] = [
   {
     id: 'commit-critter',
     title: 'Commit Critter',
-    description: 'A pet that lives on your GitHub README and eats your real GitHub activity.',
+    description: 'A pet that stays alive on your GitHub activity.',
     tags: ['python', 'shell'],
     thumbnail: r2Url('project-thumbnails/commit-critter.png'),
     liveUrl: 'https://github.com/Diacod-I',

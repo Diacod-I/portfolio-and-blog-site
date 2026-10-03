@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 
+// Edge, not the default Node runtime — this route only reads request
+// headers, no Node-only APIs, so it qualifies. Faster cold starts and runs
+// closer to the visitor globally instead of a specific serverless region.
+export const runtime = 'edge'
+
 // Backs the About tab's little "I know your IP" easter egg (see
 // components/HomeClient.tsx, fetched client-side on mount). A dedicated
 // route handler instead of reading headers() directly in each page.tsx

@@ -20,7 +20,22 @@ const GRAPHQL_ENDPOINT = 'https://api.github.com/graphql'
 
 export const revalidate = 3600 // 1 hour — contribution counts don't need to be second-fresh
 
+// Edge, not the default Node runtime — this route only ever does `fetch`,
+// no Node-only APIs, so it qualifies. Faster cold starts and runs closer to
+// the visitor globally instead of a specific serverless region.
+export const runtime = 'edge'
+
 type ContributionDay = { date: string; count: number }
+type ContributionsPayload = { totalContributions: number; days: ContributionDay[] }
+
+// Last successful response, kept in memory so a transient GitHub failure
+// (rate limit, outage, a malformed response) can serve yesterday's graph
+// instead of silently overwriting the widget with an empty one for the
+// rest of this hour's revalidate window. Scoped to a single warm
+// function/edge-isolate instance — not a guarantee across every instance
+// or a cold start, just a best-effort smoothing of the common case where
+// the same instance serves several requests in a row.
+let lastGood: ContributionsPayload | null = null
 
 const QUERY = `
   query($login: String!, $from: DateTime!, $to: DateTime!) {
@@ -44,7 +59,7 @@ export async function GET() {
   const token = process.env.GITHUB_TOKEN
 
   if (!token) {
-    return NextResponse.json({ error: 'GITHUB_TOKEN not configured', totalContributions: 0, days: [] })
+    return NextResponse.json(lastGood ?? { error: 'GITHUB_TOKEN not configured', totalContributions: 0, days: [] })
   }
 
   // Exactly one year back from right now — GitHub's contributionsCollection
@@ -70,17 +85,17 @@ export async function GET() {
     })
 
     if (!res.ok) {
-      return NextResponse.json({ error: `GitHub API responded ${res.status}`, totalContributions: 0, days: [] })
+      return NextResponse.json(lastGood ?? { error: `GitHub API responded ${res.status}`, totalContributions: 0, days: [] })
     }
 
     const json = await res.json()
     if (json.errors?.length) {
-      return NextResponse.json({ error: json.errors[0].message, totalContributions: 0, days: [] })
+      return NextResponse.json(lastGood ?? { error: json.errors[0].message, totalContributions: 0, days: [] })
     }
 
     const calendar = json?.data?.user?.contributionsCollection?.contributionCalendar
     if (!calendar) {
-      return NextResponse.json({ error: 'No contribution data in response', totalContributions: 0, days: [] })
+      return NextResponse.json(lastGood ?? { error: 'No contribution data in response', totalContributions: 0, days: [] })
     }
 
     const days: ContributionDay[] = calendar.weeks.flatMap(
@@ -88,8 +103,9 @@ export async function GET() {
         week.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
     )
 
-    return NextResponse.json({ totalContributions: calendar.totalContributions, days })
+    lastGood = { totalContributions: calendar.totalContributions, days }
+    return NextResponse.json(lastGood)
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message, totalContributions: 0, days: [] })
+    return NextResponse.json(lastGood ?? { error: (err as Error).message, totalContributions: 0, days: [] })
   }
 }

@@ -89,7 +89,7 @@ const allProjects: Project[] = [
     title: 'Commit Critter',
     description: 'A pixel-art pet that lives in your GitHub README and eats your real GitHub activity.',
     tags: ['python', 'shell'],
-    thumbnail: 'https://raw.githubusercontent.com/Diacod-I/Commit-Critter/main/assets/card-full-dark.svg',
+    thumbnail: r2Url('project-thumbnails/commit-critter.png'),
     liveUrl: 'https://github.com/Diacod-I',
     repoUrl: 'https://github.com/Diacod-I/Commit-Critter',
     date: '2026-10-03',

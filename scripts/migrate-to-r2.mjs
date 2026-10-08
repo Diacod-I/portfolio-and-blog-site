@@ -163,9 +163,12 @@ async function uploadOne(localPath, key) {
       Key: key,
       Body: buffer,
       ContentType: contentType(ext),
-      // Content is immutable once uploaded here (a changed photo would
-      // get uploaded under the same key, not edited in place) — safe to
-      // cache aggressively at the edge and in visitors' browsers.
+      // Content is immutable once uploaded here — safe to cache
+      // aggressively at the edge and in visitors' browsers. That also means
+      // a changed photo must be uploaded under a NEW filename/key: re-using
+      // the old key keeps serving the stale cached copy for up to a year
+      // (Cloudflare edge, Vercel's image optimizer, and browsers all cache
+      // by URL).
       CacheControl: 'public, max-age=31536000, immutable',
     })
   )

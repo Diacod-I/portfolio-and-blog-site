@@ -2,9 +2,15 @@
 // Manifest for the Projects gallery (see components/ProjectsWindow.tsx).
 //
 // Add a project:
-//   1. (Optional) drop a thumbnail image in /public/projects/ and import it
-//      below for a static-imported, blur-placeholder'd, auto-optimized image
-//      — same trick data/highlights.ts uses for Gallery photos.
+//   1. (Optional) drop a thumbnail in public/project-thumbnails/, run
+//      `pnpm run migrate:r2` to upload it to R2, then reference it below as
+//      `thumbnail: r2Url('project-thumbnails/<file>')`. After confirming it
+//      loads, `git rm` the local public/ copy.
+//      IMPORTANT: to CHANGE an existing thumbnail, use a NEW filename (e.g.
+//      commit-critter-v2.png) and update the entry — don't re-upload under
+//      the same name. Uploads are cached for a year as `immutable` at
+//      Cloudflare's edge, Vercel's image optimizer, and visitors' browsers,
+//      so a same-name replacement keeps serving the old image.
 //   2. Add an entry to the array below — order doesn't matter, entries are
 //      sorted by `date` (newest first) automatically.
 //   3. `tags` are freeform strings (not the blog's fixed Tag union) since
@@ -89,7 +95,7 @@ const allProjects: Project[] = [
     title: 'Commit Critter',
     description: 'A pet that stays alive on your GitHub activity.',
     tags: ['python', 'shell'],
-    thumbnail: r2Url('project-thumbnails/commit-critter.png'),
+    thumbnail: r2Url('project-thumbnails/commit-critter-v2.png'),
     liveUrl: 'https://github.com/Diacod-I',
     repoUrl: 'https://github.com/Diacod-I/Commit-Critter',
     date: '2026-10-03',

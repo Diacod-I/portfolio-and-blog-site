@@ -241,11 +241,6 @@ async function main() {
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
 
   console.log(`\nUploaded ${count} file(s) to bucket "${process.env.R2_BUCKET_NAME}".`)
-  console.log(`Manifest written to scripts/r2-manifest.json (committed to the repo — it's just metadata, no image bytes).`)
-  console.log(`\nNext: let Claude know the manifest is ready — it'll rewrite data/highlights.ts,`)
-  console.log(`data/exhibitionFrames.ts, components/HomeClient.tsx, data/projects.ts, and any`)
-  console.log(`content/notes/*.mdx post-image references to point at the new R2 URLs instead of`)
-  console.log(`the local public/ copies.`)
 }
 
 main().catch((err) => {
